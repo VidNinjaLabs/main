@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { SkipForward } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
@@ -6,7 +7,7 @@ import { useAsync } from "react-use";
 import { getMetaFromId } from "@/backend/metadata/getmeta";
 import { MWMediaType, MWSeasonMeta } from "@/backend/metadata/types/mw";
 import { Button } from "@/components/buttons/Button";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { usePlayerMeta } from "@/components/player/hooks/usePlayerMeta";
 import { Transition } from "@/components/utils/Transition";
 import { PlayerMeta } from "@/stores/player/slices/source";
@@ -235,7 +236,7 @@ export function NextEpisodeButton(props: {
         padding="md:px-12 p-2.5"
         className="w-full"
       >
-        <Icon className="mr-2" icon={Icons.SKIP_EPISODE} />
+        <LucideIcon className="mr-2" icon={SkipForward} />
         {isLastEpisode && nextEp
           ? t("player.nextEpisode.nextSeason")
           : t("player.nextEpisode.next")}
@@ -265,7 +266,7 @@ export function NextEpisodeButton(props: {
           onClick={() => loadNextEpisode()}
           className="bg-buttons-primary hover:bg-buttons-primaryHover text-buttons-primaryText flex justify-center items-center"
         >
-          <Icon className="text-xl mr-1" icon={Icons.SKIP_EPISODE} />
+          <LucideIcon className="text-xl mr-1" icon={SkipForward} />
           {isLastEpisode && nextEp
             ? t("player.nextEpisode.nextSeason")
             : t("player.nextEpisode.next")}

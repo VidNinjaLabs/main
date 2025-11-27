@@ -1,10 +1,11 @@
 import classNames from "classnames";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { updateSettings } from "@/backend/accounts/settings";
 import { Toggle } from "@/components/buttons/Toggle";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
@@ -131,7 +132,7 @@ function ButtonList(props: {
                 onClick={handleResetCustomSpeed}
                 title="Reset to presets"
               >
-                <Icon icon={Icons.X} className="text-sm" />
+                <LucideIcon icon={X} className="text-sm" />
               </button>
             </>
           )}

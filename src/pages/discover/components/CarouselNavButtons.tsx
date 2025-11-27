@@ -1,4 +1,5 @@
-import { Icon, Icons } from "@/components/Icon";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { Flare } from "@/components/utils/Flare";
 
 interface CarouselNavButtonsProps {
@@ -28,11 +29,11 @@ function NavButton({ direction, onClick }: NavButtonProps) {
           className="rounded-full group-hover:opacity-100 z-20"
         />
         <Flare.Child className="cursor-pointer text-white flex justify-center items-center h-10 w-10 rounded-full active:scale-110 transition-[transform,background-color] duration-200 z-30">
-          <Icon
-            icon={
-              direction === "left" ? Icons.CHEVRON_LEFT : Icons.CHEVRON_RIGHT
-            }
-          />
+          {direction === "left" ? (
+            <ChevronLeft className="text-white" />
+          ) : (
+            <ChevronRight className="text-white" />
+          )}
         </Flare.Child>
       </Flare.Base>
     </button>

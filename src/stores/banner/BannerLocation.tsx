@@ -1,7 +1,8 @@
+import { CircleAlert, X } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { conf } from "@/setup/config";
 import { useBannerStore, useRegisterBanner } from "@/stores/banner";
 
@@ -17,8 +18,8 @@ export function Banner(props: {
     info: "bg-[#126FD3] text-white",
   };
   const icons = {
-    error: Icons.CIRCLE_EXCLAMATION,
-    info: Icons.CIRCLE_EXCLAMATION,
+    error: CircleAlert,
+    info: CircleAlert,
   };
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export function Banner(props: {
         ].join(" ")}
       >
         <div className="flex items-center space-x-3">
-          <Icon icon={icons[props.type]} />
+          <LucideIcon icon={icons[props.type]} />
           <div>{props.children}</div>
         </div>
         <span
@@ -47,7 +48,7 @@ export function Banner(props: {
             sessionStorage.setItem(`hideBanner-${props.id}`, "true");
           }}
         >
-          <Icon icon={Icons.X} />
+          <LucideIcon icon={X} />
         </span>
       </div>
     </div>

@@ -1,6 +1,6 @@
+import { Settings as SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Icons } from "@/components/Icon";
 import { OverlayAnchor } from "@/components/overlays/OverlayAnchor";
 import { Overlay } from "@/components/overlays/OverlayDisplay";
 import { OverlayPage } from "@/components/overlays/OverlayPage";
@@ -120,7 +120,7 @@ export function Settings() {
 
   return (
     <OverlayAnchor id={router.id}>
-      <VideoPlayerButton onClick={() => router.open()} icon={Icons.GEAR} />
+      <VideoPlayerButton onClick={() => router.open()} icon={SettingsIcon} />
     </OverlayAnchor>
   );
 }

@@ -112,28 +112,21 @@ export function PlayerPart(props: PlayerPartProps) {
       </div>
 
       <Player.TopControls show={showTargets}>
-        <div className="grid grid-cols-[1fr,auto] xl:grid-cols-3 items-center">
-          <div className="flex space-x-3 items-center">
+        <div className="grid grid-cols-3 items-center">
+          <div className="flex items-center justify-start">
             <Player.BackLink url={props.backUrl} />
-            <span className="text mx-3 text-type-secondary">/</span>
+          </div>
+          <div className="flex justify-center items-center text-center">
             <Player.Title />
-
+          </div>
+          <div className="flex items-center justify-end space-x-3">
             <Player.InfoButton />
-
             <Player.BookmarkButton />
-          </div>
-          <div className="text-center hidden xl:flex justify-center items-center">
-            <Player.EpisodeTitle />
-          </div>
-          <div className="hidden lg:flex items-center justify-end">
-            <BrandPill />
-          </div>
-          <div className="flex lg:hidden items-center justify-end">
             {status === playerStatus.PLAYING ? (
-              <>
+              <div className="flex lg:hidden items-center">
                 <Player.Airplay />
                 <Player.Chromecast />
-              </>
+              </div>
             ) : null}
           </div>
         </div>
@@ -142,9 +135,6 @@ export function PlayerPart(props: PlayerPartProps) {
       <Player.BottomControls show={showTargets}>
         {status !== playerStatus.PLAYING && !manualSourceSelection && <Tips />}
         <div className="flex items-center justify-center space-x-3 h-full">
-          {status === playerStatus.SCRAPING ? (
-            <ScrapingPartInterruptButton />
-          ) : null}
           {status === playerStatus.PLAYING ? (
             <>
               {isMobile ? <Player.Time short /> : null}

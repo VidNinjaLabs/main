@@ -1,4 +1,6 @@
-import { Icon, Icons } from "@/components/Icon";
+import { Subtitles } from "lucide-react";
+
+import { LucideIcon } from "@/components/LucideIcon";
 import { Flare } from "@/components/utils/Flare";
 import { Transition } from "@/components/utils/Transition";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
@@ -24,7 +26,7 @@ export function SubtitleDelayPopout() {
           className="rounded-lg"
         />
         <Flare.Child className="grid grid-cols-[auto,1fr] gap-3 pointer-events-auto relative transition-transform">
-          <Icon className="text-2xl" icon={Icons.CAPTIONS} />
+          <LucideIcon className="text-2xl" icon={Subtitles} />
           <div className="w-full flex items-center justify-between">
             <span className="text-sm">
               Subtitle delay: {delay > 0 ? "+" : ""}

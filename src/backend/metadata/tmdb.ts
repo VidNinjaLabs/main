@@ -388,7 +388,7 @@ export function getMediaBackdrop(
   backdropPath: string | null,
 ): string | undefined {
   const shouldProxyTmdb = usePreferencesStore.getState().proxyTmdb;
-  const imgUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
+  const imgUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
   const proxyUrl = getProxyUrls()[0];
   if (proxyUrl && shouldProxyTmdb) {
     return `${proxyUrl}/?destination=${imgUrl}`;
@@ -494,7 +494,7 @@ export async function getMediaLogo(
       data.logos?.find((l: any) => l.iso_639_1 === "en") ||
       data.logos?.[0];
     if (logo && logo.file_path) {
-      return `https://image.tmdb.org/t/p/original${logo.file_path}`;
+      return `https://image.tmdb.org/t/p/w500${logo.file_path}`;
     }
     return undefined;
   } catch (err) {

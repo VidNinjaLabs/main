@@ -1,4 +1,5 @@
-import { Icons } from "@/components/Icon";
+import { Maximize, Minimize } from "lucide-react";
+
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 
@@ -9,7 +10,7 @@ export function Fullscreen() {
   return (
     <VideoPlayerButton
       onClick={() => display?.toggleFullscreen()}
-      icon={isFullscreen ? Icons.COMPRESS : Icons.EXPAND}
+      icon={isFullscreen ? Minimize : Maximize}
     />
   );
 }

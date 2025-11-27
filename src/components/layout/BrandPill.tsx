@@ -8,6 +8,8 @@ export function BrandPill(props: {
   clickable?: boolean;
   header?: boolean;
   backgroundClass?: string;
+  className?: string;
+  iconClass?: string;
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -20,9 +22,10 @@ export function BrandPill(props: {
         props.clickable
           ? "transition-[transform,background-color] hover:scale-105 hover:bg-pill-backgroundHover hover:text-type-logo active:scale-95"
           : "",
+        props.className,
       )}
     >
-      <Icon className="text-2xl" icon={Icons.LOGO} />
+      <Icon className={props.iconClass ?? "text-2xl"} icon={Icons.LOGO} />
       <span
         className={[
           "font-semibold text-white",

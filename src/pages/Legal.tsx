@@ -1,8 +1,17 @@
 import classNames from "classnames";
+import {
+  CircleCheck,
+  EyeOff,
+  LucideIcon as LucideIconType,
+  Mail,
+  Search,
+  TriangleAlert,
+  User,
+} from "lucide-react";
 import React from "react";
 
-import { Icon, Icons } from "@/components/Icon";
 import { BiggerCenterContainer } from "@/components/layout/ThinContainer";
+import { LucideIcon } from "@/components/LucideIcon";
 import {
   Heading1,
   Heading2,
@@ -20,7 +29,7 @@ export function shouldHaveLegalPage() {
 }
 
 function LegalCard(props: {
-  icon: Icons;
+  icon: LucideIconType;
   subtitle: string;
   title: string;
   description: React.ReactNode;
@@ -30,7 +39,7 @@ function LegalCard(props: {
   return (
     <div className="bg-onboarding-card/40 duration-300 border border-onboarding-border rounded-lg p-7">
       <div>
-        <Icon
+        <LucideIcon
           icon={props.icon}
           className={classNames("text-4xl mb-6 block", props.colorClass)}
         />
@@ -63,14 +72,14 @@ export function LegalPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
           <LegalCard
-            icon={Icons.SEARCH}
+            icon={Search}
             subtitle="Service Model"
             title="How We Operate"
             colorClass="text-blue-400"
             description={
               <>
                 <Paragraph>
-                  P-Stream functions as a search engine and content aggregator
+                  cloudclash functions as a search engine and content aggregator
                   that indexes publicly available media from across the
                   internet.
                   <br />
@@ -84,13 +93,13 @@ export function LegalPage() {
                   that&apos;s already available online, without bypassing any
                   security measures.
                 </Paragraph>
-                <Link to="/about">Learn more about how P-Stream works</Link>
+                <Link to="/about">Learn more about how cloudclash works</Link>
               </>
             }
           />
 
           <LegalCard
-            icon={Icons.CIRCLE_CHECK}
+            icon={CircleCheck}
             subtitle="Copyright Policy"
             title="Content & Copyright"
             colorClass="text-green-400"
@@ -116,7 +125,7 @@ export function LegalPage() {
           />
 
           <LegalCard
-            icon={Icons.EYE_SLASH}
+            icon={EyeOff}
             subtitle="Data Protection"
             title="Privacy & Data"
             colorClass="text-purple-400"
@@ -131,14 +140,14 @@ export function LegalPage() {
                 information or identifying data.
                 <br />
                 <br />
-                P-Stream is entirely self hostable, and can be run on any
+                cloudclash is entirely self hostable, and can be run on any
                 server. Even by yourself.
               </Paragraph>
             }
           />
 
           <LegalCard
-            icon={Icons.USER}
+            icon={User}
             subtitle="User Responsibilities"
             title="User Guidelines"
             colorClass="text-yellow-400"
@@ -159,13 +168,13 @@ export function LegalPage() {
           />
 
           <LegalCard
-            icon={Icons.WARNING}
+            icon={TriangleAlert}
             subtitle="Terms & Conditions"
             title="Service Terms"
             colorClass="text-red-400"
             description={
               <Paragraph>
-                P-Stream is licensed under the MIT license.
+                cloudclash is licensed under the MIT license.
                 <br />
                 <br />
                 By using our platform, you acknowledge these terms and agree
@@ -180,7 +189,7 @@ export function LegalPage() {
           />
 
           <LegalCard
-            icon={Icons.MAIL}
+            icon={Mail}
             subtitle="Legal Contact"
             title="Legal Inquiries"
             colorClass="text-cyan-400"
@@ -191,14 +200,14 @@ export function LegalPage() {
                 files.
                 <br />
                 <br />
-                P-Stream operates within legal boundaries and cooperates with
+                cloudclash operates within legal boundaries and cooperates with
                 legitimate requests when technically feasible.
               </Paragraph>
             }
           >
             {conf().DMCA_EMAIL && (
               <div className="flex space-x-3 items-center pt-4">
-                <Icon icon={Icons.MAIL} className="text-white" />
+                <LucideIcon icon={Mail} className="text-white" />
                 <span className="text-gray-300">Contact: </span>
                 <a
                   href={`mailto:${conf().DMCA_EMAIL}`}

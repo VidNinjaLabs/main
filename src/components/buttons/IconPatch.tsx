@@ -1,11 +1,14 @@
+import { LucideIcon as LucideIconType } from "lucide-react";
+
 import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 
 export interface IconPatchProps {
   active?: boolean;
   onClick?: () => void;
   clickable?: boolean;
   className?: string;
-  icon: Icons;
+  icon: Icons | LucideIconType;
   transparent?: boolean;
   downsized?: boolean;
   navigation?: boolean;
@@ -31,7 +34,11 @@ export function IconPatch(props: IconPatchProps) {
       <div
         className={`flex items-center justify-center rounded-full border-2 border-transparent bg-pill-background bg-opacity-100 transition-[background-color,color,transform,border-color] duration-75 ${transparentClasses} ${navigationClasses} ${clickableClasses} ${activeClasses} ${sizeClasses}`}
       >
-        <Icon icon={props.icon} />
+        {typeof props.icon === "string" ? (
+          <Icon icon={props.icon as Icons} />
+        ) : (
+          <LucideIcon icon={props.icon as LucideIconType} />
+        )}
       </div>
     </div>
   );

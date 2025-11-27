@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import Fuse from "fuse.js";
+import { Ear, Upload } from "lucide-react";
 import { type DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsyncFn } from "react-use";
@@ -8,7 +9,7 @@ import { convert } from "subsrt-ts";
 import { subtitleTypeList } from "@/backend/helpers/subs";
 import { FileDropHandler } from "@/components/DropFile";
 import { FlagIcon } from "@/components/FlagIcon";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { useCaptions } from "@/components/player/hooks/useCaptions";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { Input } from "@/components/player/internals/ContextMenu/Input";
@@ -141,7 +142,7 @@ export function CaptionOption(props: {
             </span>
           )}
           {props.isHearingImpaired && (
-            <Icon icon={Icons.EAR} className="ml-2" />
+            <LucideIcon icon={Ear} className="ml-2" />
           )}
         </span>
       </SelectableLink>
@@ -453,7 +454,7 @@ export function CaptionsView({
           )}
         >
           <div className="flex flex-col items-center">
-            <Icon className="text-5xl mb-4" icon={Icons.UPLOAD} />
+            <LucideIcon className="text-5xl mb-4" icon={Upload} />
             <span className="text-xl weight font-medium">
               {t("player.menus.subtitles.dropSubtitleFile")}
             </span>

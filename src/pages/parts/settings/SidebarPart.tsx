@@ -1,7 +1,14 @@
+import {
+  Captions,
+  Link,
+  Paintbrush,
+  Settings,
+  Settings2,
+  User,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Icons } from "@/components/Icon";
 import { SidebarLink, SidebarSection } from "@/components/layout/Sidebar";
 import { Divider } from "@/components/utils/Divider";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -22,27 +29,27 @@ export function SidebarPart(props: {
       {
         textKey: "settings.account.title",
         id: "settings-account",
-        icon: Icons.USER,
+        icon: User,
       },
       {
         textKey: "settings.preferences.title",
         id: "settings-preferences",
-        icon: Icons.SETTINGS,
+        icon: Settings2,
       },
       {
         textKey: "settings.appearance.title",
         id: "settings-appearance",
-        icon: Icons.BRUSH,
+        icon: Paintbrush,
       },
       {
         textKey: "settings.subtitles.title",
         id: "settings-captions",
-        icon: Icons.CAPTIONS,
+        icon: Captions,
       },
       {
         textKey: "settings.connections.title",
         id: "settings-connection",
-        icon: Icons.LINK,
+        icon: Link,
       },
     ],
     [],
@@ -123,7 +130,7 @@ export function SidebarPart(props: {
       >
         <SidebarSection title={t("global.pages.settings")}>
           <SidebarLink
-            icon={Icons.GEAR}
+            icon={Settings}
             active={
               (!props.searchQuery.trim() && props.selectedCategory === null) ||
               (props.searchQuery.trim() ? activeLink === "" : false)

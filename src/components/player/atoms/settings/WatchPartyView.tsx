@@ -1,4 +1,5 @@
 /* eslint-disable no-alert */
+import { Edit, TrendingUp, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
@@ -8,6 +9,7 @@ import { getRoomStatuses } from "@/backend/player/status";
 import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
 import { Spinner } from "@/components/layout/Spinner";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
@@ -246,8 +248,8 @@ export function WatchPartyView({ id }: { id: string }) {
                               handleEditCode();
                             }}
                           >
-                            <Icon
-                              icon={Icons.EDIT}
+                            <LucideIcon
+                              icon={Edit}
                               className="w-3 h-3 text-type-secondary hover:text-type-logo"
                             />
                           </div>
@@ -317,10 +319,8 @@ export function WatchPartyView({ id }: { id: string }) {
                               className="flex items-center justify-between text-xs py-1"
                             >
                               <span className="flex items-center gap-1">
-                                <Icon
-                                  icon={
-                                    user.isHost ? Icons.RISING_STAR : Icons.USER
-                                  }
+                                <LucideIcon
+                                  icon={user.isHost ? TrendingUp : User}
                                   className={`w-3 h-3 ${user.isHost ? "text-onboarding-best" : "text-type-secondary"}`}
                                 />
                                 <span

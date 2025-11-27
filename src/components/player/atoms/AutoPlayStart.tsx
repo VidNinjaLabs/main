@@ -1,6 +1,7 @@
+import { Play } from "lucide-react";
 import { useCallback } from "react";
 
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 
@@ -25,9 +26,9 @@ export function AutoPlayStart() {
       onClick={handleClick}
       className="group pointer-events-auto flex h-16 w-16 cursor-pointer items-center justify-center bg-video-autoPlay-background hover:bg-video-autoPlay-hover rounded-full text-white transition-[background-color,transform] hover:scale-125 active:scale-100"
     >
-      <Icon
-        icon={Icons.PLAY}
-        className="text-2xl transition-transform group-hover:scale-125"
+      <LucideIcon
+        icon={Play}
+        className="text-2xl transition-transform group-hover:scale-125 ml-1"
       />
     </div>
   );

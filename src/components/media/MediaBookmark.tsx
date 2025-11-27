@@ -1,11 +1,15 @@
-import { useCallback, useMemo } from "react";
+import { Bookmark, LucideProps } from "lucide-react";
+import { forwardRef, useCallback, useMemo } from "react";
 
-import { Icons } from "@/components/Icon";
 import { useBookmarkStore } from "@/stores/bookmarks";
 import { PlayerMeta } from "@/stores/player/slices/source";
 import { MediaItem } from "@/utils/mediaTypes";
 
 import { IconPatch } from "../buttons/IconPatch";
+
+const FilledBookmark = forwardRef<SVGSVGElement, LucideProps>((props, ref) => {
+  return <Bookmark ref={ref} {...props} fill="currentColor" />;
+});
 
 interface MediaBookmarkProps {
   media: MediaItem;
@@ -58,7 +62,7 @@ export function MediaBookmarkButton({ media, group }: MediaBookmarkProps) {
       }}
     >
       <IconPatch
-        icon={isBookmarked ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
+        icon={isBookmarked ? FilledBookmark : Bookmark}
         className={`${buttonOpacityClass} p-2 opacity-75 transition-opacity duration-300 hover:scale-110 hover:cursor-pointer`}
       />
     </div>

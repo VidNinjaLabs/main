@@ -1,11 +1,12 @@
 import { Listbox } from "@headlessui/react";
+import { ChevronsUpDown, FileText, Share } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useCopyToClipboard } from "react-use";
 
 import { Button } from "@/components/buttons/Button";
 import { OptionItem } from "@/components/form/Dropdown";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { OverlayPage } from "@/components/overlays/OverlayPage";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { convertSubtitlesToSrtDataurl } from "@/components/player/utils/captions";
@@ -33,8 +34,8 @@ function PlayerDropdown({
                 {defaultLabel}
               </span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <Icon
-                  icon={Icons.UP_DOWN_ARROW}
+                <LucideIcon
+                  icon={ChevronsUpDown}
                   className="transform transition-transform text-xl text-dropdown-secondary rotate-180"
                 />
               </span>
@@ -90,10 +91,10 @@ function StyleTrans(props: { k: string }) {
         bold: <Menu.Highlight />,
         br: <br />,
         ios_share: (
-          <Icon icon={Icons.IOS_SHARE} className="inline-block text-xl -mb-1" />
+          <LucideIcon icon={Share} className="inline-block text-xl -mb-1" />
         ),
         ios_files: (
-          <Icon icon={Icons.IOS_FILES} className="inline-block text-xl -mb-1" />
+          <LucideIcon icon={FileText} className="inline-block text-xl -mb-1" />
         ),
       }}
     />

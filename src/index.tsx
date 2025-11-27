@@ -4,6 +4,7 @@ import "./stores/__old/imports";
 import "@/setup/ga";
 import "@/assets/css/index.css";
 
+import { CircleAlert } from "lucide-react";
 import { StrictMode, Suspense, useCallback } from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -13,8 +14,8 @@ import { BrowserRouter, HashRouter } from "react-router-dom";
 import { useAsync, useAsyncFn } from "react-use";
 
 import { Button } from "@/components/buttons/Button";
-import { Icon, Icons } from "@/components/Icon";
 import { Loading } from "@/components/layout/Loading";
+import { LucideIcon } from "@/components/LucideIcon";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useAuthRestore } from "@/hooks/auth/useAuthRestore";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
@@ -83,7 +84,7 @@ function ErrorScreen(props: {
   return (
     <LargeTextPart
       iconSlot={
-        <Icon className="text-type-danger text-2xl" icon={Icons.WARNING} />
+        <LucideIcon className="text-type-danger text-2xl" icon={CircleAlert} />
       }
     >
       {props.children}

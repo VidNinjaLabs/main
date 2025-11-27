@@ -1,8 +1,16 @@
+import {
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  TrendingUp,
+  User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { useWatchPartySync } from "@/hooks/useWatchPartySync";
 import { useAuthStore } from "@/stores/auth";
 import { getProgressPercentage } from "@/stores/progress";
@@ -73,8 +81,8 @@ export function WatchPartyStatus() {
 
       <div className="w-full text-type-secondary flex justify-between items-center space-x-2">
         <div className="cursor-pointer" onClick={handleToggleExpanded}>
-          <Icon
-            icon={expanded ? Icons.CHEVRON_DOWN : Icons.CHEVRON_RIGHT}
+          <LucideIcon
+            icon={expanded ? ChevronDown : ChevronRight}
             className="w-3 h-3"
           />
         </div>
@@ -111,8 +119,8 @@ export function WatchPartyStatus() {
                 className="flex items-center justify-between text-xs"
               >
                 <span className="flex items-center gap-1">
-                  <Icon
-                    icon={user.isHost ? Icons.RISING_STAR : Icons.USER}
+                  <LucideIcon
+                    icon={user.isHost ? TrendingUp : User}
                     className={`w-3 h-3 ${user.isHost ? "text-onboarding-best" : ""}`}
                   />
                   <span className={user.isHost ? "text-onboarding-best" : ""}>
@@ -138,7 +146,7 @@ export function WatchPartyStatus() {
             onClick={syncWithHost}
             disabled={isSyncing}
           >
-            <Icon icon={Icons.CLOCK} className="w-3 h-3" />
+            <LucideIcon icon={Clock} className="w-3 h-3" />
             <span className="whitespace-nowrap">
               {isSyncing
                 ? t("watchParty.syncing")

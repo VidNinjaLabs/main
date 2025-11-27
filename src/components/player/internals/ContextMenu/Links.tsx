@@ -1,15 +1,22 @@
 import classNames from "classnames";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  ChevronRight,
+} from "lucide-react";
 import { ReactNode } from "react";
 
-import { Icon, Icons } from "@/components/Icon";
 import { Spinner } from "@/components/layout/Spinner";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Title } from "@/components/player/internals/ContextMenu/Misc";
 
 export function Chevron(props: { children?: React.ReactNode }) {
   return (
     <span className="text-white flex items-center font-medium">
       {props.children}
-      <Icon className="text-xl ml-1 -mr-1.5" icon={Icons.CHEVRON_RIGHT} />
+      <LucideIcon className="text-xl ml-1 -mr-1.5" icon={ChevronRight} />
     </span>
   );
 }
@@ -51,7 +58,7 @@ export function BackLink(props: {
             className="p-2 rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
             onClick={props.onClick}
           >
-            <Icon className="text-xl" icon={Icons.ARROW_RIGHT} />
+            <LucideIcon className="text-xl" icon={ArrowRight} />
           </button>
         }
       >
@@ -68,7 +75,7 @@ export function BackLink(props: {
         className="-ml-2 p-2 rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
         onClick={props.onClick}
       >
-        <Icon className="text-xl" icon={Icons.ARROW_LEFT} />
+        <LucideIcon className="text-xl" icon={ArrowLeft} />
       </button>
       <span className="line-clamp-1 break-all">{props.children}</span>
     </Title>
@@ -173,8 +180,8 @@ export function SelectableLink(props: {
   let rightContent;
   if (props.selected) {
     rightContent = (
-      <Icon
-        icon={Icons.CIRCLE_CHECK}
+      <LucideIcon
+        icon={CheckCircle}
         className="text-xl text-video-context-type-accent"
       />
     );
@@ -182,7 +189,7 @@ export function SelectableLink(props: {
   if (props.error)
     rightContent = (
       <span className="flex items-center text-video-context-error">
-        <Icon className="ml-2" icon={Icons.WARNING} />
+        <LucideIcon className="ml-2" icon={AlertTriangle} />
       </span>
     );
   if (props.loading) rightContent = <Spinner className="text-lg" />; // should override selected and error

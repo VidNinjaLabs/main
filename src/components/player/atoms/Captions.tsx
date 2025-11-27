@@ -1,6 +1,6 @@
+import { Subtitles } from "lucide-react";
 import { useEffect } from "react";
 
-import { Icons } from "@/components/Icon";
 import { OverlayAnchor } from "@/components/overlays/OverlayAnchor";
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
@@ -21,7 +21,7 @@ export function Captions() {
           router.open();
           router.navigate("/captionsOverlay");
         }}
-        icon={Icons.CAPTIONS}
+        icon={Subtitles}
       />
     </OverlayAnchor>
   );

@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { LucideIcon as LucideIconType } from "lucide-react";
 import { forwardRef } from "react";
 
 import { Icon, Icons } from "@/components/Icon";
@@ -6,7 +7,8 @@ import { Icon, Icons } from "@/components/Icon";
 export interface VideoPlayerButtonProps {
   children?: React.ReactNode;
   onClick?: (el: HTMLButtonElement) => void;
-  icon?: Icons;
+  // Support both old Icons enum and new Lucide icons
+  icon?: Icons | LucideIconType;
   iconSizeClass?: string;
   className?: string;
   activeClass?: string;
@@ -16,6 +18,10 @@ export const VideoPlayerButton = forwardRef<
   HTMLButtonElement,
   VideoPlayerButtonProps
 >((props, ref) => {
+  // Check if icon is a Lucide icon (function/object) or custom Icons enum (string)
+  const isLucideIcon = typeof props.icon !== "string";
+  const LucideComponent = isLucideIcon ? (props.icon as LucideIconType) : null;
+
   return (
     <button
       ref={ref}
@@ -28,9 +34,15 @@ export const VideoPlayerButton = forwardRef<
         props.className ?? "",
       ])}
     >
-      {props.icon && (
-        <Icon className={props.iconSizeClass || "text-2xl"} icon={props.icon} />
-      )}
+      {props.icon &&
+        (isLucideIcon && LucideComponent ? (
+          <LucideComponent className={props.iconSizeClass || "text-2xl"} />
+        ) : (
+          <Icon
+            className={props.iconSizeClass || "text-2xl"}
+            icon={props.icon as Icons}
+          />
+        ))}
       {props.children}
     </button>
   );

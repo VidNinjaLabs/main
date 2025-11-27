@@ -1,11 +1,12 @@
+import { Lock, TriangleAlert, Unlock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAsync } from "react-use";
 
 import { getBackendMeta } from "@/backend/accounts/meta";
 import { Button } from "@/components/buttons/Button";
-import { Icon, Icons } from "@/components/Icon";
 import { SidebarSection } from "@/components/layout/Sidebar";
+import { LucideIcon } from "@/components/LucideIcon";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
@@ -15,7 +16,7 @@ function SecureBadge(props: { url: string | null }) {
   const secure = props.url ? props.url.startsWith("https://") : false;
   return (
     <div className="flex items-center gap-1 -mx-1 ml-3 px-1 rounded bg-largeCard-background font-bold">
-      <Icon icon={secure ? Icons.LOCK : Icons.UNLOCK} />
+      <LucideIcon icon={secure ? Lock : Unlock} />
       {t(
         secure
           ? "settings.sidebar.info.secure"
@@ -91,8 +92,8 @@ export function AppInfoPart() {
           </p>
           <p className="text-type-dimmed px-2 py-1 rounded bg-settings-sidebar-badge inline-flex items-center gap-1">
             {backendMeta.error ? (
-              <Icon
-                icon={Icons.WARNING}
+              <LucideIcon
+                icon={TriangleAlert}
                 className="text-type-danger text-base"
               />
             ) : null}

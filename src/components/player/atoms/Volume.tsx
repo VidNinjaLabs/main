@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+import { Volume1, Volume2, Volume as VolumeIcon, VolumeX } from "lucide-react";
 import { useCallback, useRef } from "react";
 
-import { Icon, Icons } from "@/components/Icon";
 import {
   makePercentage,
   makePercentageString,
@@ -64,15 +65,15 @@ export function Volume(props: Props) {
 
   const getVolumeIcon = (volumeLevel: number) => {
     if (volumeLevel === 0) {
-      return Icons.VOLUME_X;
+      return VolumeX;
     }
     if (volumeLevel > 0 && volumeLevel <= 0.33) {
-      return Icons.VOLUME_LOW;
+      return VolumeIcon;
     }
     if (volumeLevel > 0.33 && volumeLevel <= 0.66) {
-      return Icons.VOLUME_MED;
+      return Volume1;
     }
-    return Icons.VOLUME;
+    return Volume2;
   };
 
   return (
@@ -84,7 +85,10 @@ export function Volume(props: Props) {
     >
       <div className="pointer-events-auto flex cursor-pointer items-center py-0 touch-none">
         <div className="px-4 text-2xl text-white" onClick={handleClick}>
-          <Icon icon={getVolumeIcon(percentage / 100)} />
+          {(() => {
+            const VolumeIcon = getVolumeIcon(percentage / 100);
+            return <VolumeIcon />;
+          })()}
         </div>
         <div
           className={`linear -ml-2 w-0 overflow-hidden transition-[width,opacity] duration-300 ${

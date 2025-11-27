@@ -1,4 +1,5 @@
-import { Icons } from "@/components/Icon";
+import { Airplay as AirplayIcon } from "lucide-react";
+
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 
@@ -11,7 +12,7 @@ export function Airplay() {
   return (
     <VideoPlayerButton
       onClick={() => display?.startAirplay()}
-      icon={Icons.AIRPLAY}
+      icon={AirplayIcon}
     />
   );
 }

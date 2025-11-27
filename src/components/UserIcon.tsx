@@ -1,6 +1,7 @@
+import { X } from "lucide-react";
 import { memo } from "react";
 
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 
 export enum UserIcons {
   CAT = "cat",
@@ -53,7 +54,7 @@ const iconList: Record<UserIcons, string> = {
 
 export const UserIcon = memo((props: UserIconProps) => {
   const icon = iconList[props.icon];
-  if (!icon) return <Icon className={props.className} icon={Icons.X} />;
+  if (!icon) return <LucideIcon className={props.className} icon={X} />;
   return (
     <span
       dangerouslySetInnerHTML={{ __html: icon }} // eslint-disable-line react/no-danger

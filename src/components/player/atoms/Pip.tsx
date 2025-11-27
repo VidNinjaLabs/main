@@ -1,4 +1,5 @@
-import { Icons } from "@/components/Icon";
+import { PictureInPicture2 } from "lucide-react";
+
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 import {
@@ -14,7 +15,7 @@ export function Pip() {
   return (
     <VideoPlayerButton
       onClick={() => display?.togglePictureInPicture()}
-      icon={Icons.PICTURE_IN_PICTURE}
+      icon={PictureInPicture2}
     />
   );
 }

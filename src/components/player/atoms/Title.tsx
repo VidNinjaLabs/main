@@ -4,7 +4,7 @@ import { usePlayerStore } from "@/stores/player/store";
 import { formatSeconds } from "@/utils/formatSeconds";
 
 export function Title() {
-  const title = usePlayerStore((s) => s.meta?.title);
+  const meta = usePlayerStore((s) => s.meta);
   const { time } = usePlayerStore((s) => s.progress);
   const [isShifting, setIsShifting] = useState(false);
 
@@ -46,10 +46,15 @@ export function Title() {
   return (
     <p
       onClick={handleTitleClick}
-      className="cursor-copy transform transition-transform duration-200 hover:scale-105"
+      className="cursor-copy transform transition-transform duration-200 hover:scale-105 font-bold text-xl"
       title={isShifting ? "Copy with current time" : "Copy link"}
     >
-      {title}
+      {meta?.title}
+      {meta?.releaseYear ? (
+        <span className="font-normal text-type-secondary ml-2">
+          ({meta.releaseYear})
+        </span>
+      ) : null}
     </p>
   );
 }

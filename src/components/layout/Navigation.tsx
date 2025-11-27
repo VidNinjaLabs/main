@@ -1,16 +1,14 @@
 import classNames from "classnames";
+import { Search, Settings, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, To, useNavigate } from "react-router-dom";
 
-import { NoUserAvatar, UserAvatar } from "@/components/Avatar";
-import { IconPatch } from "@/components/buttons/IconPatch";
-import { Icons } from "@/components/Icon";
+import { SearchBarInput } from "@/components/form/SearchBar";
 import { LinksDropdown } from "@/components/LinksDropdown";
-import { useNotifications } from "@/components/overlays/notificationsModal";
 import { Lightbar } from "@/components/utils/Lightbar";
-import { useAuth } from "@/hooks/auth/useAuth";
+import { useRandomTranslation } from "@/hooks/useRandomTranslation";
+import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { BlurEllipsis } from "@/pages/layouts/SubPageLayout";
-import { conf } from "@/setup/config";
 import { useBannerSize } from "@/stores/banner";
 import { usePreferencesStore } from "@/stores/preferences";
 
@@ -26,9 +24,12 @@ export interface NavigationProps {
 export function Navigation(props: NavigationProps) {
   const bannerHeight = useBannerSize();
   const navigate = useNavigate();
-  const { loggedIn } = useAuth();
+
   const [scrollPosition, setScrollPosition] = useState(0);
-  const { openNotifications, getUnreadCount } = useNotifications();
+
+  const { t: randomT } = useRandomTranslation();
+  const [search, setSearch, setSearchUnFocus] = useSearchQuery();
+  const placeholder = randomT(`home.search.placeholder`);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,78 +135,66 @@ export function Navigation(props: NavigationProps) {
         }}
       >
         <div className={classNames("fixed left-0 right-0 flex items-center")}>
-          <div className="px-7 py-5 relative z-[60] flex flex-1 items-center justify-between">
+          <div className="px-3 md:px-7 py-3 md:py-5 relative z-[60] flex flex-1 items-center justify-between">
             <div className="flex items-center space-x-1.5 ssm:space-x-3 pointer-events-auto">
               <Link
                 className="block tabbable rounded-full text-xs ssm:text-base"
                 to="/"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                <BrandPill clickable header />
-              </Link>
-              <a
-                href={conf().DISCORD_LINK}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xl text-white tabbable rounded-full backdrop-blur-lg"
-              >
-                <IconPatch
-                  icon={Icons.DISCORD}
+                <BrandPill
                   clickable
-                  downsized
-                  navigation
+                  header
+                  className="h-14 px-6 !py-0"
+                  iconClass="text-3xl"
                 />
-              </a>
-              {!enableLowPerformanceMode &&
-                (window.location.pathname !== "/discover" ? (
-                  <a
-                    onClick={() => handleClick("/discover")}
-                    rel="noreferrer"
-                    className="text-xl text-white tabbable rounded-full backdrop-blur-lg"
-                  >
-                    <IconPatch
-                      icon={Icons.RISING_STAR}
-                      clickable
-                      downsized
-                      navigation
-                    />
-                  </a>
-                ) : (
-                  <a
-                    onClick={() => handleClick("/")}
-                    rel="noreferrer"
-                    className="text-lg text-white tabbable rounded-full backdrop-blur-lg"
-                  >
-                    <IconPatch
-                      icon={Icons.SEARCH}
-                      clickable
-                      downsized
-                      navigation
-                    />
-                  </a>
-                ))}
-              <a
-                onClick={() => openNotifications()}
-                rel="noreferrer"
-                className="text-xl text-white tabbable rounded-full backdrop-blur-lg relative"
-              >
-                <IconPatch icon={Icons.BELL} clickable downsized navigation />
-                {(() => {
-                  const count = getUnreadCount();
-                  const shouldShow =
-                    typeof count === "number" ? count > 0 : count === "99+";
-                  return shouldShow ? (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
-                      {count}
-                    </span>
-                  ) : null;
-                })()}
-              </a>
+              </Link>
             </div>
-            <div className="relative pointer-events-auto">
-              <LinksDropdown>
-                {loggedIn ? <UserAvatar withName /> : <NoUserAvatar />}
-              </LinksDropdown>
+
+            {/* Show search box on /browse page */}
+            {window.location.pathname.startsWith("/browse") && (
+              <div className="flex-1 max-w-2xl mx-0 md:mx-4 pointer-events-auto flex items-center gap-2">
+                <div className="flex-1">
+                  <SearchBarInput
+                    onChange={setSearch}
+                    value={search}
+                    onUnFocus={setSearchUnFocus}
+                    placeholder={
+                      placeholder ?? "Search for movies or TV shows..."
+                    }
+                    isSticky={false}
+                    isInFeatured={false}
+                  />
+                </div>
+                <a
+                  onClick={() => handleClick("/discover")}
+                  rel="noreferrer"
+                  className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer flex-shrink-0 bg-white/10 hover:bg-white/30 transition-all duration-200"
+                >
+                  <X size={28} />
+                </a>
+              </div>
+            )}
+            <div className="relative pointer-events-auto flex items-center space-x-3">
+              {!enableLowPerformanceMode &&
+                window.location.pathname === "/discover" && (
+                  <a
+                    onClick={() => handleClick("/browse")}
+                    rel="noreferrer"
+                    className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200"
+                  >
+                    <Search size={28} />
+                  </a>
+                )}
+              {/* Hide settings icon on mobile browse page, show on desktop */}
+              {(!window.location.pathname.startsWith("/browse") ||
+                window.innerWidth >= 768) && (
+                <LinksDropdown>
+                  <a className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200">
+                    <Settings size={28} />
+                  </a>
+                </LinksDropdown>
+              )}
             </div>
           </div>
         </div>

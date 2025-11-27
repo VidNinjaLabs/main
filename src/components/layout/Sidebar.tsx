@@ -1,6 +1,8 @@
 import classNames from "classnames";
+import { LucideIcon as LucideIconType } from "lucide-react";
 
 import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 
 export function SidebarSection(props: {
   title: string;
@@ -19,7 +21,7 @@ export function SidebarSection(props: {
 
 export function SidebarLink(props: {
   children: React.ReactNode;
-  icon: Icons;
+  icon: Icons | LucideIconType;
   active?: boolean;
   onClick?: () => void;
 }) {
@@ -34,13 +36,23 @@ export function SidebarLink(props: {
           : null,
       )}
     >
-      <Icon
-        className={classNames(
-          "text-2xl text-settings-sidebar-type-icon",
-          props.active ? "text-settings-sidebar-type-iconActivated" : null,
-        )}
-        icon={props.icon}
-      />
+      {typeof props.icon === "string" ? (
+        <Icon
+          className={classNames(
+            "text-2xl text-settings-sidebar-type-icon",
+            props.active ? "text-settings-sidebar-type-iconActivated" : null,
+          )}
+          icon={props.icon as Icons}
+        />
+      ) : (
+        <LucideIcon
+          className={classNames(
+            "text-2xl text-settings-sidebar-type-icon",
+            props.active ? "text-settings-sidebar-type-iconActivated" : null,
+          )}
+          icon={props.icon as LucideIconType}
+        />
+      )}
       <span>{props.children}</span>
     </button>
   );

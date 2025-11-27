@@ -1,6 +1,6 @@
 {
   "about": {
-    "description": "P-Stream is a fork of movie-web that is ensured to stay up even after the shutdown of movie-web.app. P-Stream runs on a private, self-hosted VPS. I run this site at a loss; there are very minimal ads due to my beliefs in free media.",
+    "description": "CloudClash is a fork of movie-web that is ensured to stay up even after the shutdown of movie-web.app. CloudClash runs on a private, self-hosted VPS. I run this site at a loss; there are very minimal ads due to my beliefs in free media.",
     "help": "Can't find an answer? <0>Get support here.</0>",
     "faqTitle": "Common questions",
     "searchPlaceholder": "Search FAQ...",
@@ -13,12 +13,12 @@
     },
     "q1": {
       "title": "Where does the content come from?",
-      "body": "P-Stream does not host any content. When you click on something to watch, the internet is searched for the selected media (On the loading screen and in the 'video sources' tab you can see which source you're using). Media never gets uploaded by P-Stream, everything is through this searching mechanism.",
+      "body": "CloudClash does not host any content. When you click on something to watch, the internet is searched for the selected media (On the loading screen and in the 'video sources' tab you can see which source you're using). Media never gets uploaded by CloudClash, everything is through this searching mechanism.",
       "section": "general"
     },
     "q2": {
       "title": "Where can I request a show or movie?",
-      "body": "It's not possible to request a show or movie, P-Stream does not manage any content. All content is viewed through sources on the internet.",
+      "body": "It's not possible to request a show or movie, CloudClash does not manage any content. All content is viewed through sources on the internet.",
       "section": "search"
     },
     "q3": {
@@ -33,11 +33,11 @@
     },
     "q5": {
       "title": "How can I find out more?",
-      "body": "P-Stream has a Discord server that can be found at the header of this page!",
+      "body": "CloudClash has a Discord server that can be found at the header of this page!",
       "section": "general"
     },
     "q6": {
-      "title": "Is there a P-Stream app?",
+      "title": "Is there a CloudClash app?",
       "body": "Not yet, but you can install it as a PWA (Progressive Web App). On iOS, use Safari → Share → Add to Home Screen. On Android, use Chrome → 3 dots → Add to Home Screen. An experimental APK is available via our Discord, but it's not recommended.",
       "section": "general"
     },
@@ -136,7 +136,7 @@
       "body": "Use the \"Customize\" option in subtitle settings or tap [ and ] on your keyboard to adjust. You can also upload your own subtitle file.",
       "section": "language"
     },
-    "title": "About P-Stream and FAQ (^▽^)"
+    "title": "About CloudClash and FAQ"
   },
   "actions": {
     "copied": "Copied",
@@ -168,7 +168,7 @@
       "passphrasePlaceholder": "Passphrase",
       "submit": "Login",
       "title": "Login to your account",
-      "validationError": "Incorrect or incomplete passphrase /ᐠ. .ᐟ\\"
+      "validationError": "Incorrect or incomplete passphrase"
     },
     "register": {
       "information": {
@@ -211,8 +211,8 @@
   },
   "footer": {
     "legal": {
-      "disclaimer": "Disclaimer ◝(ᵔᵕᵔ)◜",
-      "disclaimerText": "Please note: P-Stream does not host any files itself but instead only display's content from 3rd party providers. Legal issues should be taken up with them."
+      "disclaimer": "Disclaimer",
+      "disclaimerText": "Please note: CloudClash does not host any files itself but instead only display's content from 3rd party providers. Legal issues should be taken up with them."
     },
     "links": {
       "discord": "Discord",
@@ -221,10 +221,10 @@
       "twitter": "Twitter",
       "funding": "Support us"
     },
-    "tagline": "Watch your favorite shows and movies for free with no ads ever! (っ'ヮ'c)"
+    "tagline": "Watch your favorite shows and movies for free with no ads ever!"
   },
   "global": {
-    "name": "P-Stream",
+    "name": "CloudClash",
     "pages": {
       "about": "About and FAQ",
       "legal": "Legal / DMCA",
@@ -232,7 +232,7 @@
       "support": "Support",
       "login": "Login",
       "onboarding": "Setup",
-      "pagetitle": "{{title}} - P-Stream",
+      "pagetitle": "{{title}} - CloudClash",
       "register": "Register",
       "settings": "Settings",
       "migration": "Migrate Account",
@@ -331,26 +331,14 @@
       "loading": "Loading...",
       "noResults": "We couldn't find anything :(",
       "placeholder": {
-        "default": "What do you want to watch?",
-        "extra": [
-          "What are you in the mood for?",
-          "Should we delete your browser history?",
-          "What do you want to stream?",
-          "P-Stream is the best site ever!",
-          "What's on your watchlist today?",
-          "How was your day?",
-          "My bad the site never works...",
-          "Isn't P-Stream just the best?",
-          ">ᴗ<"
-        ]
+        "default": "Search Movies & TVShows"
       },
       "empty": {
         "default": "Welcome, find media to watch here!",
         "extra": [
           "There's nothing here :(",
           "So empty...",
-          "Such emptiness.",
-          "Hi new user :3"
+          "Such emptiness."
         ]
       },
       "sectionTitle": "Search results",
@@ -365,15 +353,15 @@
     "titles": {
       "day": {
         "default": "What would you like to watch this afternoon?",
-        "extra": ["Viva la P-Stream!"]
+        "extra": ["Viva la CloudClash!"]
       },
       "morning": {
         "default": "What would you like to watch this morning?",
-        "extra": ["Viva la P-Stream!"]
+        "extra": ["Viva la CloudClash!"]
       },
       "night": {
         "default": "What would you like to watch tonight?",
-        "extra": ["Viva la P-Stream!"]
+        "extra": ["Viva la CloudClash!"]
       },
       "420": {
         "default": "What would you like to watch this 4/20?",
@@ -542,13 +530,13 @@
     "badge": "Not found",
     "goHome": "Back to home",
     "reloadButton": "Try again",
-    "message": "We looked everywhere: under the bins, in the closet, behind the proxy, but ultimately couldn't find the page you are looking for. (ಥ﹏ಥ)",
+    "message": "We looked everywhere: under the bins, in the closet, behind the proxy, but ultimately couldn't find the page you are looking for.",
     "title": "Couldn't find that page"
   },
   "downtimeNotice": {
     "badge": "Issues",
     "goHome": "Go home",
-    "message": "P-Stream is experiencing issues with some providers again, if you cant find or play a show please change the source. Expect this error to persist throughout the below times.",
+    "message": "CloudClash is experiencing issues with some providers again, if you cant find or play a show please change the source. Expect this error to persist throughout the below times.",
     "title": "Provider issues"
   },
   "onboarding": {
@@ -568,7 +556,7 @@
       "notDetecting": "Installed on Chrome, but the site isn't detecting it? Try reloading the page!",
       "notDetectingAction": "Reload page",
       "status": {
-        "disallowed": "Extension is not enabled for this page (,,>﹏<,,)",
+        "disallowed": "Extension is not enabled for this page",
         "disallowedAction": "Enable extension",
         "failed": "Failed to request status",
         "loading": "Waiting for you to install the extension",
@@ -598,19 +586,19 @@
         "button": "More info",
         "title": "Understanding a setup",
         "explainer": {
-          "intro": "P-Stream doesn't host videos. It relies on third-party websites for content, so you need to choose how it connects to those sites.",
+          "intro": "CloudClash doesn't host videos. It relies on third-party websites for content, so you need to choose how it connects to those sites.",
           "options": "Your Options:",
           "extension": "1. Extension",
           "extensionDescription": "The extension gives you access to the most sources. It acts as a local proxy and can handle sites that need special cookies or headers to load.",
           "proxy": "2. Proxy",
           "proxyDescription": "The proxy scrapes media from other websites. It bypasses browser restrictions (like CORS) to allow scraping.",
           "default": "3. Default Setup",
-          "defaultDescription": "Uses P-Stream's built-in proxy. It's the easiest option but might be slower due to shared bandwidth.",
+          "defaultDescription": "Uses CloudClash's built-in proxy. It's the easiest option but might be slower due to shared bandwidth.",
           "fedapi": {
             "fedapi": "Additional: Febbox token",
             "fedapiDescription": "Bring your own FREE Febbox account to gain access to FED API and CIA API, the best sources with 4K quality, Dolby Atmos, skip intro and the fastest load times! Highly recommended option!"
           },
-          "outro": "If you have more questions on how this works, feel free to ask on the <0>P-Stream Discord</0> server!"
+          "outro": "If you have more questions on how this works, feel free to ask on the <0>CloudClash Discord</0> server!"
         },
         "recommended": {
           "title": "Not sure what to choose?",
@@ -647,7 +635,7 @@
           "title": "Custom proxy"
         }
       },
-      "title": "Let's get you setup with P-Stream 🥳"
+      "title": "Let's get you setup with CloudClash 🥳"
     }
   },
   "overlays": {
@@ -667,7 +655,7 @@
       "downloads": {
         "button": "Attempt download",
         "hlsDownloader": "Or, go to the <0>hls downloader website</0> and paste the playlist URL from below.",
-        "disclaimer": "Downloads are taken directly from the provider. P-Stream does not have control over how the downloads are provided.",
+        "disclaimer": "Downloads are taken directly from the provider. CloudClash does not have control over how the downloads are provided.",
         "copyHlsPlaylist": "Copy HLS playlist link",
         "downloadSubtitle": "Download current subtitle",
         "downloadVideo": "Download video",
@@ -676,7 +664,7 @@
         "iina": "IINA",
         "outplayer": "Outplayer",
         "hlsOpenInDisclaimer": "Opening HLS streams in an external player MAY NOT WORK!",
-        "hlsDisclaimer": "Downloads are taken directly from the provider. P-Stream does not have control over how the downloads are provided.<br /><br />Please note you are downloading an HLS playlist, <bold>it is not recommended to download if you are not familiar with advanced streaming formats</bold>. Try different sources for different formats.",
+        "hlsDisclaimer": "Downloads are taken directly from the provider. CloudClash does not have control over how the downloads are provided.<br /><br />Please note you are downloading an HLS playlist, <bold>it is not recommended to download if you are not familiar with advanced streaming formats</bold>. Try different sources for different formats.",
         "onAndroid": {
           "1": "To download on Android, click the download button then, on the new page, <bold>tap and hold</bold> on the video, then select <bold>save</bold>.",
           "shortTitle": "Download / Android",
@@ -696,7 +684,7 @@
       },
       "episodes": {
         "button": "Episodes",
-        "emptyState": "There are no episodes in this season, check back later (sorry :3)...",
+        "emptyState": "There are no episodes in this season, check back later...",
         "episodeBadge": "E{{episode}}",
         "loadingError": "Error loading season",
         "loadingList": "Loading...",
@@ -746,7 +734,7 @@
           "title": "No embeds found"
         },
         "noStream": {
-          "text": "This source has no streams for this movie or show. /ᐠ - ˕ -マ Ⳋ",
+          "text": "This source has no streams for this movie or show.",
           "title": "No stream :("
         },
         "title": "Sources",
@@ -771,7 +759,7 @@
         },
         "title": "Subtitles",
         "unknownLanguage": "Unknown",
-        "dropSubtitleFile": "Drop subtitle file here! >_<",
+        "dropSubtitleFile": "Drop subtitle file here!",
         "scrapeButton": "Scrape subtitles",
         "refresh": "Refresh External Subtitles",
         "refreshing": "Refreshing...",
@@ -867,7 +855,7 @@
         "homeButton": "Go home",
         "enableExtension": "Enable extension",
         "title": "Please enable the extension",
-        "text": "You've installed the P-Stream extension. To start using it, you need to enable the extension for this site."
+        "text": "You've installed the CloudClash extension. To start using it, you need to enable the extension for this site."
       },
       "tips": {
         "1": "Tap the gear icon to switch sources!",
@@ -890,17 +878,17 @@
       "shortRemaining": "-{{timeLeft}}"
     },
     "turnstile": {
-      "description": "Please prove your humanity by completing the quick challenge, this is to keep P-Stream safe.",
+      "description": "Please prove your humanity by completing the quick challenge, this is to keep CloudClash safe.",
       "error": "Failed to verify your humanity - stream failed to load. Clear your cache and try again, or switch to a different source (tap the gear).",
       "title": "Are You a Robot 🤖?",
-      "verifyingHumanity": "Verifying your humanity... (^▽^)👍"
+      "verifyingHumanity": "Verifying your humanity..."
     }
   },
   "support": {
     "title": "Support",
-    "text": "P-Stream is designed to be as user-friendly as possible. However, people still have questions and issues. This page is here to help resolve these shortcomings",
+    "text": "CloudClash is designed to be as user-friendly as possible. However, people still have questions and issues. This page is here to help resolve these shortcomings",
     "q1": {
-      "body": "Well, you can join the official <0>P-Stream discord</0> and ask questions there or you can email the one provided at the bottom of this page.",
+      "body": "Well, you can join the official <0>CloudClash discord</0> and ask questions there or you can email the one provided at the bottom of this page.",
       "title": "Where can I get help?"
     },
     "q2": {
@@ -910,9 +898,9 @@
   },
   "jip": {
     "title": "Jip",
-    "text": "P-Stream didn't fall out of a coconut tree, it was made mostly by a single person (a very epic one at that).",
+    "text": "CloudClash didn't fall out of a coconut tree, it was made mostly by a single person (a very epic one at that).",
     "q1": {
-      "body": "Well, you can join the official <0>P-Stream discord</0> and ask questions there or you can email the one provided at the bottom of this page.",
+      "body": "Well, you can join the official <0>CloudClash discord</0> and ask questions there or you can email the one provided at the bottom of this page.",
       "title": "Where can I get help?"
     },
     "q2": {
@@ -956,7 +944,7 @@
       },
       "admin": {
         "title": "Admin panel",
-        "text": "Test P-Stream's condition."
+        "text": "Test CloudClash's condition."
       },
       "actions": {
         "delete": {
@@ -995,7 +983,7 @@
       },
       "register": {
         "cta": "Get started",
-        "text": "Share your watch progress between devices and keep them synced. ( ̧⸝⸝⍢⸝⸝)ෆ",
+        "text": "Share your watch progress between devices and keep them synced.",
         "title": "Sync to the Cloud"
       },
       "title": "Account"
@@ -1072,7 +1060,7 @@
           "description": "It seems that one or more items in this setup need your attention.",
           "title": "Something needs your attention 😱"
         },
-        "itemError": "There is something wrong with this setting. Go through setup again to fix it. (ᴗ_ ᴗ。)",
+        "itemError": "There is something wrong with this setting. Go through setup again to fix it.",
         "items": {
           "default": "Default setup",
           "extension": "Extension",
@@ -1080,7 +1068,7 @@
         },
         "redoSetup": "Redo setup",
         "successStatus": {
-          "description": "All things are in place for you to start watching your favorite media. (๑>◡<๑)",
+          "description": "All things are in place for you to start watching your favorite media.",
           "title": "Everything is set up!"
         },
         "unsetStatus": {
@@ -1093,7 +1081,7 @@
         "addButton": "Add new worker",
         "description": "To make the application function, all traffic is routed through proxies. Enable this if you want to bring your own workers. <0>Instructions.</0>",
         "documentation": "Proxy documentation",
-        "emptyState": "No workers yet (｡•́︿•̀｡), add one below",
+        "emptyState": "No workers yet, add one below",
         "label": "Use custom proxy workers",
         "urlLabel": "Worker URLs",
         "urlPlaceholder": "https://",
@@ -1178,7 +1166,7 @@
       },
       "BorderThicknessLabel": "Border Thickness"
     },
-    "unsaved": "You have unsaved changes... ฅ^•ﻌ•^ฅ"
+    "unsaved": "You have unsaved changes..."
   },
   "discover": {
     "tabs": {

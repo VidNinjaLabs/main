@@ -1,4 +1,14 @@
 import classNames from "classnames";
+import {
+  ArrowRight,
+  CircleHelp,
+  Github,
+  LogOut,
+  LucideIcon as LucideIconType,
+  Minimize,
+  Settings,
+  TrendingUp,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +18,7 @@ import { getRoomStatuses } from "@/backend/player/status";
 import { UserAvatar } from "@/components/Avatar";
 import { Icon, Icons } from "@/components/Icon";
 import { Spinner } from "@/components/layout/Spinner";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Transition } from "@/components/utils/Transition";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
@@ -55,7 +66,7 @@ function GoToLink(props: {
 function DropdownLink(props: {
   children: React.ReactNode;
   href?: string;
-  icon?: Icons;
+  icon?: Icons | LucideIconType;
   highlight?: boolean;
   className?: string;
   onClick?: () => void;
@@ -72,20 +83,33 @@ function DropdownLink(props: {
         props.className,
       )}
     >
-      {props.icon ? <Icon icon={props.icon} className="text-xl" /> : null}
+      {props.icon ? (
+        typeof props.icon === "string" ? (
+          <Icon icon={props.icon as Icons} className="text-xl" />
+        ) : (
+          <LucideIcon icon={props.icon as LucideIconType} className="text-xl" />
+        )
+      ) : null}
       {props.children}
     </GoToLink>
   );
 }
 
-function CircleDropdownLink(props: { icon: Icons; href: string }) {
+function CircleDropdownLink(props: {
+  icon: Icons | LucideIconType;
+  href: string;
+}) {
   return (
     <GoToLink
       href={props.href}
       onClick={() => window.scrollTo(0, 0)}
       className="tabbable w-11 h-11 rounded-full bg-dropdown-contentBackground text-dropdown-text hover:text-white transition-colors duration-100 flex justify-center items-center"
     >
-      <Icon className="text-2xl" icon={props.icon} />
+      {typeof props.icon === "string" ? (
+        <Icon className="text-2xl" icon={props.icon as Icons} />
+      ) : (
+        <LucideIcon className="text-2xl" icon={props.icon as LucideIconType} />
+      )}
     </GoToLink>
   );
 }
@@ -190,8 +214,8 @@ function WatchPartyInputLink() {
             {isLoading ? (
               <Spinner className="w-5 h-5" />
             ) : (
-              <Icon
-                icon={Icons.ARROW_RIGHT}
+              <LucideIcon
+                icon={ArrowRight}
                 className="text-xl transition-opacity duration-200"
               />
             )}
@@ -235,22 +259,12 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
   return (
     <div className="relative is-dropdown">
       <div
-        className={classNames(
-          "cursor-pointer tabbable rounded-full flex gap-2 text-white items-center py-2 px-3 bg-pill-background hover:bg-pill-backgroundHover backdrop-blur-lg transition-all duration-100 hover:scale-105",
-          open ? "bg-opacity-100" : "bg-opacity-50",
-        )}
+        className="cursor-pointer tabbable"
         tabIndex={0}
         onClick={toggleOpen}
         onKeyUp={(evt) => evt.key === "Enter" && toggleOpen()}
       >
         {props.children}
-        <Icon
-          className={classNames(
-            "text-xl transition-transform duration-100",
-            open ? "rotate-180" : "",
-          )}
-          icon={Icons.CHEVRON_DOWN}
-        />
       </div>
       <Transition animation="slide-down" show={open}>
         <div className="rounded-xl absolute w-64 bg-dropdown-altBackground top-full mt-3 right-0">
@@ -270,24 +284,24 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
               })()}
             </DropdownLink>
           ) : (
-            <DropdownLink href="/login" icon={Icons.RISING_STAR} highlight>
+            <DropdownLink href="/login" icon={TrendingUp} highlight>
               {t("navigation.menu.register")}
             </DropdownLink>
           )}
           <Divider />
-          <DropdownLink href="/settings" icon={Icons.SETTINGS}>
+          <DropdownLink href="/settings" icon={Settings}>
             {t("navigation.menu.settings")}
           </DropdownLink>
           {process.env.NODE_ENV === "development" ? (
-            <DropdownLink href="/dev" icon={Icons.COMPRESS}>
+            <DropdownLink href="/dev" icon={Minimize}>
               {t("navigation.menu.development")}
             </DropdownLink>
           ) : null}
-          <DropdownLink href="/about" icon={Icons.CIRCLE_QUESTION}>
+          <DropdownLink href="/about" icon={CircleHelp}>
             {t("navigation.menu.about")}
           </DropdownLink>
           {!enableLowPerformanceMode && (
-            <DropdownLink href="/discover" icon={Icons.RISING_STAR}>
+            <DropdownLink href="/discover" icon={TrendingUp}>
               {t("navigation.menu.discover")}
             </DropdownLink>
           )}
@@ -295,7 +309,7 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
           {deviceName ? (
             <DropdownLink
               className="!text-type-danger opacity-75 hover:opacity-100"
-              icon={Icons.LOGOUT}
+              icon={LogOut}
               onClick={logout}
             >
               {t("navigation.menu.logout")}
@@ -304,10 +318,7 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
           <Divider />
           <div className="my-4 flex justify-center items-center gap-4">
             {conf().GITHUB_LINK && (
-              <CircleDropdownLink
-                href={conf().GITHUB_LINK}
-                icon={Icons.GITHUB}
-              />
+              <CircleDropdownLink href={conf().GITHUB_LINK} icon={Github} />
             )}
             <CircleDropdownLink
               href={conf().DISCORD_LINK}

@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 
@@ -14,7 +15,6 @@ import {
   TMDBShowData,
 } from "@/backend/metadata/types/tmdb";
 import { IconPatch } from "@/components/buttons/IconPatch";
-import { Icons } from "@/components/Icon";
 import { Flare } from "@/components/utils/Flare";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 
@@ -165,7 +165,7 @@ export function DetailsModal({ id, data: _data, minimal }: DetailsModalProps) {
                 className="text-s font-semibold text-type-secondary hover:text-white transition-transform hover:scale-95 select-none"
                 onClick={hide}
               >
-                <IconPatch icon={Icons.X} />
+                <IconPatch icon={X} />
               </button>
             </div>
             <Flare.Child className="pointer-events-auto relative h-full overflow-y-auto scrollbar-none select-text">

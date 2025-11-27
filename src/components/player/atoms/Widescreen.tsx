@@ -1,6 +1,6 @@
+import { Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
 
-import { Icons } from "@/components/Icon";
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 
 export function Widescreen() {
@@ -9,7 +9,7 @@ export function Widescreen() {
 
   return (
     <VideoPlayerButton
-      icon={isWideScreen ? Icons.SHRINK : Icons.STRETCH}
+      icon={isWideScreen ? Minimize2 : Maximize2}
       className="text-white"
       onClick={() => {
         const videoElement = document.getElementById("video-element");

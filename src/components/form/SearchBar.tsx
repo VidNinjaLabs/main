@@ -59,27 +59,6 @@ export const SearchBarInput = forwardRef<HTMLInputElement, SearchBarProps>(
             })}
           />
           <Flare.Child className="flex flex-1 flex-col">
-            <div
-              className={c(
-                "absolute bottom-0 left-5 top-0 flex max-h-14 items-center text-search-icon cursor-pointer z-10",
-                "transition-colors duration-300",
-                props.isInFeatured
-                  ? lightTheme
-                    ? "text-white/50"
-                    : ""
-                  : "text-search-icon",
-              )}
-              onClick={(e) => {
-                e.preventDefault();
-                setShowTooltip(!showTooltip);
-                if (ref && typeof ref !== "function" && ref.current) {
-                  ref.current.focus();
-                }
-              }}
-            >
-              <Icon icon={Icons.SEARCH} />
-            </div>
-
             <TextInputControl
               ref={ref}
               onUnFocus={() => {
@@ -90,7 +69,7 @@ export const SearchBarInput = forwardRef<HTMLInputElement, SearchBarProps>(
               onChange={(val) => setSearch(val)}
               value={props.value}
               className={c(
-                "w-full flex-1 bg-transparent px-4 py-4 pl-12 !text-search-text focus:outline-none sm:py-4 sm:pr-2 transition-colors duration-300",
+                "w-full flex-1 bg-transparent px-4 py-4 text-center !text-search-text focus:outline-none sm:py-4 sm:pr-2 transition-colors duration-300",
                 "transition-colors duration-300",
                 props.isInFeatured
                   ? lightTheme

@@ -16,15 +16,6 @@ import {
 import { useQualityStore } from "@/stores/quality";
 import { canPlayHlsNatively } from "@/utils/detectFeatures";
 
-const alwaysVisibleQualities: Record<SourceQuality, boolean> = {
-  unknown: false,
-  "360": true,
-  "480": true,
-  "720": true,
-  "1080": true,
-  "4k": true,
-};
-
 function useIsIosHls() {
   const sourceType = usePlayerStore((s) => s.source?.type);
   const result = useMemo(() => {
@@ -67,7 +58,6 @@ export function QualityView({ id }: { id: string }) {
   }, [setAutomaticQuality, autoQuality, enableAutomaticQuality]);
 
   const visibleQualities = allQualities.filter((quality) => {
-    if (alwaysVisibleQualities[quality]) return true;
     if (availableQualities.includes(quality)) return true;
     return false;
   });

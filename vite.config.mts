@@ -67,8 +67,8 @@ export default defineConfig(({ mode }) => {
           "safari-pinned-tab.svg",
         ],
         manifest: {
-          name: "P-Stream",
-          short_name: "P-Stream",
+          name: "CloudClash",
+          short_name: "CloudClash",
           description:
             "Watch your favorite shows and movies for free with no ads ever! (っ'ヮ'c)",
           theme_color: "#000000",
@@ -166,7 +166,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "@p-stream/providers": path.resolve(
+        "@cloudclash/providers": path.resolve(
           __dirname,
           "./src/backend/providers/lib",
         ),

@@ -1,4 +1,6 @@
-import { Icon, Icons } from "@/components/Icon";
+import { Volume2, VolumeX } from "lucide-react";
+
+import { LucideIcon } from "@/components/LucideIcon";
 import { Flare } from "@/components/utils/Flare";
 import { Transition } from "@/components/utils/Transition";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
@@ -25,9 +27,9 @@ export function VolumeChangedPopout() {
           className="rounded-lg"
         />
         <Flare.Child className="grid grid-cols-[auto,1fr] gap-3 pointer-events-auto relative transition-transform">
-          <Icon
+          <LucideIcon
             className="text-2xl"
-            icon={volume > 0 ? Icons.VOLUME : Icons.VOLUME_X}
+            icon={volume > 0 ? Volume2 : VolumeX}
           />
           <div className="w-full flex items-center">
             <div className="w-full h-1.5 rounded-full bg-video-context-slider bg-opacity-25">

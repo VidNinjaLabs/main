@@ -1,9 +1,10 @@
 import classNames from "classnames";
+import { Menu } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { base64ToBuffer, decryptData } from "@/backend/accounts/crypto";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { UserIcon } from "@/components/UserIcon";
 import { AccountProfile } from "@/pages/parts/auth/AccountCreatePart";
 import { useAuthStore } from "@/stores/auth";
@@ -98,9 +99,9 @@ export function UserAvatar(props: {
 export function NoUserAvatar(props: { iconClass?: string }) {
   return (
     <div className="relative inline-block p-1 text-type-dimmed">
-      <Icon
+      <LucideIcon
         className={props.iconClass ?? "text-base ssm:text-xl"}
-        icon={Icons.MENU}
+        icon={Menu}
       />
     </div>
   );

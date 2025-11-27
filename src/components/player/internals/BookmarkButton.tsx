@@ -1,10 +1,14 @@
-import { useCallback } from "react";
+import { Bookmark, LucideProps } from "lucide-react";
+import { forwardRef, useCallback } from "react";
 
-import { Icons } from "@/components/Icon";
 import { useBookmarkStore } from "@/stores/bookmarks";
 import { usePlayerStore } from "@/stores/player/store";
 
 import { VideoPlayerButton } from "./Button";
+
+const FilledBookmark = forwardRef<SVGSVGElement, LucideProps>((props, ref) => {
+  return <Bookmark ref={ref} {...props} fill="currentColor" />;
+});
 
 export function BookmarkButton() {
   const addBookmark = useBookmarkStore((s) => s.addBookmark);
@@ -22,7 +26,7 @@ export function BookmarkButton() {
   return (
     <VideoPlayerButton
       onClick={() => toggleBookmark()}
-      icon={isBookmarked ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
+      icon={isBookmarked ? FilledBookmark : Bookmark}
       iconSizeClass="text-base"
       className="p-2"
     />

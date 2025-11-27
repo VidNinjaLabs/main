@@ -13,7 +13,6 @@ import DiscoverContent from "@/pages/discover/discoverContent";
 import { HomeLayout } from "@/pages/layouts/HomeLayout";
 import { BookmarksCarousel } from "@/pages/parts/home/BookmarksCarousel";
 import { BookmarksPart } from "@/pages/parts/home/BookmarksPart";
-import { HeroPart } from "@/pages/parts/home/HeroPart";
 import { WatchingCarousel } from "@/pages/parts/home/WatchingCarousel";
 import { WatchingPart } from "@/pages/parts/home/WatchingPart";
 import { SearchListPart } from "@/pages/parts/search/SearchListPart";
@@ -55,7 +54,6 @@ export function HomePage() {
   const { t: randomT } = useRandomTranslation();
   const emptyText = randomT(`home.search.empty`);
   const navigate = useNavigate();
-  const [showBg, setShowBg] = useState<boolean>(false);
   const searchParams = useSearchQuery();
   const [search] = searchParams;
   const s = useSearch(search);
@@ -138,7 +136,7 @@ export function HomePage() {
   };
 
   return (
-    <HomeLayout showBg={showBg}>
+    <HomeLayout showBg={false}>
       <div className="mb-2">
         <Helmet>
           <style type="text/css">{`
@@ -156,38 +154,28 @@ export function HomePage() {
             onShowDetails={handleShowDetails}
             searching={s.searching}
             shorter
-          >
-            <HeroPart
-              searchParams={searchParams}
-              setIsSticky={setShowBg}
-              isInFeatured
-            />
-          </FeaturedCarousel>
-        ) : (
-          <HeroPart
-            searchParams={searchParams}
-            setIsSticky={setShowBg}
-            showTitle
           />
-        )}
+        ) : null}
 
         {conf().SHOW_AD ? <AdsPart /> : null}
       </div>
 
       {/* Search */}
       {search && (
-        <WideContainer>
-          {s.loading ? (
-            <SearchLoadingPart />
-          ) : (
-            s.searching && (
-              <SearchListPart
-                searchQuery={search}
-                onShowDetails={handleShowDetails}
-              />
-            )
-          )}
-        </WideContainer>
+        <div className="pt-36">
+          <WideContainer>
+            {s.loading ? (
+              <SearchLoadingPart />
+            ) : (
+              s.searching && (
+                <SearchListPart
+                  searchQuery={search}
+                  onShowDetails={handleShowDetails}
+                />
+              )
+            )}
+          </WideContainer>
+        </div>
       )}
 
       {/* User Content */}

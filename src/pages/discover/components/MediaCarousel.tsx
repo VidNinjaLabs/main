@@ -1,11 +1,11 @@
 import { Listbox } from "@headlessui/react";
+import { ArrowRight, ArrowUpDown, Check } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
 import { Dropdown, OptionItem } from "@/components/form/Dropdown";
-import { Icon, Icons } from "@/components/Icon";
 import { MediaCard } from "@/components/media/MediaCard";
 import { Flare } from "@/components/utils/Flare";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -56,10 +56,7 @@ function MoreCard({ link }: { link: string }) {
           />
           <Flare.Child className="pointer-events-auto h-[20rem] relative mb-2 p-[0.4em] transition-transform duration-300">
             <div className="flex absolute inset-0 flex-col items-center justify-center">
-              <Icon
-                icon={Icons.ARROW_RIGHT}
-                className="text-4xl mb-2 transition-transform duration-300"
-              />
+              <ArrowRight className="text-4xl mb-2 transition-transform duration-300" />
               <span className="text-sm text-center px-2">
                 {t("discover.carousel.more")}
               </span>
@@ -398,10 +395,7 @@ export function MediaCarousel({
                         className="px-2 py-1 text-sm bg-mediaCard-hoverBackground rounded-full hover:bg-mediaCard-background transition-colors flex items-center gap-1"
                       >
                         <span>{t("discover.carousel.change")}</span>
-                        <Icon
-                          icon={Icons.UP_DOWN_ARROW}
-                          className="text-xs text-dropdown-secondary"
-                        />
+                        <ArrowUpDown className="text-xs text-dropdown-secondary" />
                       </button>
                     }
                     side="right"
@@ -427,10 +421,7 @@ export function MediaCarousel({
                                   {opt.title}
                                 </span>
                                 {selected && (
-                                  <Icon
-                                    icon={Icons.CHECKMARK}
-                                    className="text-xs text-type-link"
-                                  />
+                                  <Check className="text-xs text-type-link" />
                                 )}
                               </>
                             )}
@@ -449,7 +440,7 @@ export function MediaCarousel({
               className="flex px-5 items-center hover:text-type-link transition-colors"
             >
               <span className="text-sm">{t("discover.carousel.more")}</span>
-              <Icon className="text-sm ml-1" icon={Icons.ARROW_RIGHT} />
+              <ArrowRight className="text-sm ml-1" />
             </Link>
           )}
         </div>
@@ -502,10 +493,7 @@ export function MediaCarousel({
                           ? activeButton.name
                           : "..."}
                       </span>
-                      <Icon
-                        icon={Icons.UP_DOWN_ARROW}
-                        className="text-xs text-dropdown-secondary"
-                      />
+                      <ArrowUpDown className="text-xs text-dropdown-secondary" />
                     </button>
                   }
                   side="right"

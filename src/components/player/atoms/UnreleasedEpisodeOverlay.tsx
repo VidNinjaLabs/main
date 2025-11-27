@@ -1,6 +1,7 @@
+import { Film } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Flare } from "@/components/utils/Flare";
 import { Transition } from "@/components/utils/Transition";
 import { usePlayerStore } from "@/stores/player/store";
@@ -35,7 +36,7 @@ export function UnreleasedEpisodeOverlay() {
           className="rounded-lg"
         />
         <Flare.Child className="grid grid-cols-[auto,1fr] gap-3 pointer-events-auto relative transition-transform">
-          <Icon className="text-2xl" icon={Icons.FILM} />
+          <LucideIcon className="text-2xl" icon={Film} />
           <div className="w-full flex items-center justify-between">
             <span className="text-sm">
               {t("media.unreleased")} -{" "}

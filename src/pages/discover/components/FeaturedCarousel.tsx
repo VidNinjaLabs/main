@@ -631,7 +631,7 @@ export function FeaturedCarousel({
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
             style={{
-              backgroundImage: `url(https://image.tmdb.org/t/p/original${item.backdrop_path})`,
+              backgroundImage: `url(https://image.tmdb.org/t/p/w1280${item.backdrop_path})`,
               backgroundSize: "cover",
               backgroundPosition: "center top",
               maskImage:

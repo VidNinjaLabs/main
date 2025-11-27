@@ -1,12 +1,21 @@
 import classNames from "classnames";
+import {
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Film,
+} from "lucide-react";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
 
 import { getMetaFromId } from "@/backend/metadata/getmeta";
 import { MWMediaType, MWSeasonMeta } from "@/backend/metadata/types/mw";
-import { Icon, Icons } from "@/components/Icon";
+import { Icons } from "@/components/Icon";
 import { ProgressRing } from "@/components/layout/ProgressRing";
+import { LucideIcon } from "@/components/LucideIcon";
 import { OverlayAnchor } from "@/components/overlays/OverlayAnchor";
 import { Overlay } from "@/components/overlays/OverlayDisplay";
 import { OverlayPage } from "@/components/overlays/OverlayPage";
@@ -96,10 +105,9 @@ function EpisodeItem({
                     className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                     title={t("player.menus.episodes.markAsFavorite")}
                   >
-                    <Icon
-                      icon={
-                        isFavorited ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE
-                      }
+                    <LucideIcon
+                      icon={Bookmark}
+                      fill={isFavorited ? "currentColor" : "none"}
                       className="h-8 w-8 text-white/80"
                     />
                   </button>
@@ -114,8 +122,8 @@ function EpisodeItem({
                           : t("player.menus.episodes.markAsWatched")
                       }
                     >
-                      <Icon
-                        icon={isWatched ? Icons.EYE_SLASH : Icons.EYE}
+                      <LucideIcon
+                        icon={isWatched ? EyeOff : Eye}
                         className="h-4 w-4 text-white/80"
                       />
                     </button>
@@ -171,8 +179,8 @@ function EpisodeItem({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-              <Icon
-                icon={Icons.FILM}
+              <LucideIcon
+                icon={Film}
                 className="text-video-context-type-main opacity-50 text-3xl"
               />
             </div>
@@ -203,8 +211,9 @@ function EpisodeItem({
                 className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
                 title={t("player.menus.episodes.markAsFavorite")}
               >
-                <Icon
-                  icon={isFavorited ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
+                <LucideIcon
+                  icon={Bookmark}
+                  fill={isFavorited ? "currentColor" : "none"}
                   className="h-8 w-8 text-white/80"
                 />
               </button>
@@ -219,8 +228,8 @@ function EpisodeItem({
                       : t("player.menus.episodes.markAsWatched")
                   }
                 >
-                  <Icon
-                    icon={isWatched ? Icons.EYE_SLASH : Icons.EYE}
+                  <LucideIcon
+                    icon={isWatched ? EyeOff : Eye}
                     className="h-4 w-4 text-white/80"
                   />
                 </button>
@@ -314,8 +323,8 @@ function EpisodeItem({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-                <Icon
-                  icon={Icons.FILM}
+                <LucideIcon
+                  icon={Film}
                   className="text-video-context-type-main opacity-50 text-3xl"
                 />
               </div>
@@ -346,8 +355,9 @@ function EpisodeItem({
                   className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
                   title={t("player.menus.episodes.markAsFavorite")}
                 >
-                  <Icon
-                    icon={isFavorited ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
+                  <LucideIcon
+                    icon={Bookmark}
+                    fill={isFavorited ? "currentColor" : "none"}
                     className="h-8 w-8 text-white/80"
                   />
                 </button>
@@ -362,8 +372,8 @@ function EpisodeItem({
                         : t("player.menus.episodes.markAsWatched")
                     }
                   >
-                    <Icon
-                      icon={isWatched ? Icons.EYE_SLASH : Icons.EYE}
+                    <LucideIcon
+                      icon={isWatched ? EyeOff : Eye}
                       className="h-4 w-4 text-white/80"
                     />
                   </button>
@@ -392,8 +402,9 @@ function EpisodeItem({
                   className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                   title={t("player.menus.episodes.markAsFavorite")}
                 >
-                  <Icon
-                    icon={isFavorited ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
+                  <LucideIcon
+                    icon={Bookmark}
+                    fill={isFavorited ? "currentColor" : "none"}
                     className="h-8 w-8 text-white/80"
                   />
                 </button>
@@ -408,8 +419,8 @@ function EpisodeItem({
                         : t("player.menus.episodes.markAsWatched")
                     }
                   >
-                    <Icon
-                      icon={isWatched ? Icons.EYE_SLASH : Icons.EYE}
+                    <LucideIcon
+                      icon={isWatched ? EyeOff : Eye}
                       className="h-4 w-4 text-white/80"
                     />
                   </button>
@@ -927,7 +938,7 @@ export function EpisodesView({
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
             onClick={() => handleScroll("left")}
           >
-            <Icon icon={Icons.CHEVRON_LEFT} className="text-white/80" />
+            <LucideIcon icon={ChevronLeft} className="text-white/80" />
           </button>
         </div>
 
@@ -1007,7 +1018,7 @@ export function EpisodesView({
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
             onClick={() => handleScroll("right")}
           >
-            <Icon icon={Icons.CHEVRON_RIGHT} className="text-white/80" />
+            <LucideIcon icon={ChevronRight} className="text-white/80" />
           </button>
         </div>
       </div>

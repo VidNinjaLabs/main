@@ -1,6 +1,6 @@
+import { Info } from "lucide-react";
 import { useEffect } from "react";
 
-import { Icons } from "@/components/Icon";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
@@ -35,7 +35,7 @@ export function InfoButton() {
 
   return (
     <VideoPlayerButton
-      icon={Icons.CIRCLE_QUESTION}
+      icon={Info}
       iconSizeClass="text-base"
       className="p-2 !-mr-2"
       onClick={handleClick}

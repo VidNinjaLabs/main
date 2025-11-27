@@ -1,6 +1,7 @@
 // I'm sorry this is so confusing 😭
 
 import classNames from "classnames";
+import { Edit, Ellipsis, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -15,7 +16,7 @@ import { MediaItem } from "@/utils/mediaTypes";
 
 import { MediaBookmarkButton } from "./MediaBookmark";
 import { IconPatch } from "../buttons/IconPatch";
-import { Icon, Icons } from "../Icon";
+import { LucideIcon } from "../LucideIcon";
 
 // Intersection Observer Hook
 function useIntersectionObserver(options: IntersectionObserverInit = {}) {
@@ -262,7 +263,7 @@ function MediaCardContent({
               clickable
               className="text-2xl text-mediaCard-badgeText transition-transform hover:scale-110 duration-500"
               onClick={() => closable && onClose?.()}
-              icon={Icons.X}
+              icon={X}
             />
           </div>
         </div>
@@ -285,9 +286,9 @@ function MediaCardContent({
                 onShowDetails?.(media);
               }}
             >
-              <Icon
+              <LucideIcon
                 className="text-xs font-semibold text-type-secondary"
-                icon={Icons.ELLIPSIS}
+                icon={Ellipsis}
               />
             </button>
           </div>
@@ -303,9 +304,9 @@ function MediaCardContent({
                 onEdit?.();
               }}
             >
-              <Icon
+              <LucideIcon
                 className="text-xs font-semibold text-type-secondary"
-                icon={Icons.EDIT}
+                icon={Edit}
               />
             </button>
           </div>

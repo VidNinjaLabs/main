@@ -1,11 +1,12 @@
 import classNames from "classnames";
+import { Brush, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { Toggle } from "@/components/buttons/Toggle";
 import { Dropdown } from "@/components/form/Dropdown";
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { useProgressBar } from "@/hooks/useProgressBar";
@@ -33,7 +34,7 @@ export function ColorOption(props: {
         style={{ backgroundColor: props.color }}
       >
         {props.active ? (
-          <Icon className="text-sm text-black" icon={Icons.CHECKMARK} />
+          <LucideIcon className="text-sm text-black" icon={Check} />
         ) : null}
       </div>
     </button>
@@ -144,7 +145,7 @@ export function CaptionDelay(props: {
             }
             className="flex-1 flex-col tabbable py-2 h-12 hover:text-white transition-colors duration-100 flex justify-center items-center hover:bg-video-context-buttonOverInputHover rounded bg-video-context-inputBg"
           >
-            <Icon icon={Icons.CHEVRON_LEFT} />
+            <LucideIcon icon={ChevronLeft} />
             <span className="text-xs">
               {t("player.menus.subtitles.delayLate")}
             </span>
@@ -200,7 +201,7 @@ export function CaptionDelay(props: {
             }
             className="flex-1 flex-col tabbable py-2 h-12 hover:text-white transition-colors duration-100 flex justify-center items-center hover:bg-video-context-buttonOverInputHover rounded bg-video-context-inputBg"
           >
-            <Icon icon={Icons.CHEVRON_RIGHT} />
+            <LucideIcon icon={ChevronRight} />
             <span className="text-xs">
               {t("player.menus.subtitles.delayEarly")}
             </span>
@@ -362,7 +363,7 @@ export function CaptionSetting(props: {
                       }
                       className={arrowButtonClasses}
                     >
-                      <Icon icon={Icons.CHEVRON_LEFT} />
+                      <LucideIcon icon={ChevronLeft} />
                     </button>
                   </div>
                   <div className="actions w-6 h-full absolute right-0 top-0 grid grid-cols-1 items-center justify-center">
@@ -377,7 +378,7 @@ export function CaptionSetting(props: {
                       }
                       className={arrowButtonClasses}
                     >
-                      <Icon icon={Icons.CHEVRON_RIGHT} />
+                      <LucideIcon icon={ChevronRight} />
                     </button>
                   </div>
                 </>
@@ -632,7 +633,7 @@ export function CaptionSettingsView({
                     className="absolute opacity-0 cursor-pointer w-10 h-10"
                   />
                   <div style={{ color: styling.color }}>
-                    <Icon icon={Icons.BRUSH} className="text-2xl" />
+                    <LucideIcon icon={Brush} className="text-2xl" />
                   </div>
                 </div>
               </div>

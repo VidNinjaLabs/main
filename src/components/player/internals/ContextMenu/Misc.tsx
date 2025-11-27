@@ -1,4 +1,7 @@
+import { EyeOff, LucideIcon as LucideIconType } from "lucide-react";
+
 import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 
 export function Title(props: {
   children: React.ReactNode;
@@ -14,10 +17,17 @@ export function Title(props: {
   );
 }
 
-export function IconButton(props: { icon: Icons; onClick?: () => void }) {
+export function IconButton(props: {
+  icon: Icons | LucideIconType;
+  onClick?: () => void;
+}) {
   return (
     <button type="button" onClick={props.onClick}>
-      <Icon className="text-xl" icon={props.icon} />
+      {typeof props.icon === "string" ? (
+        <Icon className="text-xl" icon={props.icon as Icons} />
+      ) : (
+        <LucideIcon className="text-xl" icon={props.icon as LucideIconType} />
+      )}
     </button>
   );
 }
@@ -70,7 +80,7 @@ export function TextDisplay(props: {
       <div className="flex items-center gap-4 flex-col">
         {props.noIcon ? null : (
           <div className="w-16 h-10 border border-video-context-border rounded-lg flex justify-center items-center">
-            <Icon className="text-xl" icon={Icons.EYE_SLASH} />
+            <LucideIcon className="text-xl" icon={EyeOff} />
           </div>
         )}
         {props.title ? (

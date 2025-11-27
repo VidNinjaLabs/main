@@ -1,9 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import classNames from "classnames";
+import { Check, Edit } from "lucide-react";
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Icon, Icons } from "@/components/Icon";
+import { LucideIcon } from "@/components/LucideIcon";
 
 export interface EditButtonProps {
   editing: boolean;
@@ -40,7 +41,7 @@ export function EditButton(props: EditButtonProps) {
               {t("home.mediaList.stopEditing")}
             </span>
           ) : (
-            <Icon icon={Icons.EDIT} />
+            <LucideIcon icon={Edit} />
           )}
         </span>
       </button>
@@ -52,7 +53,7 @@ export function EditButton(props: EditButtonProps) {
           className="fixed bottom-9 right-7 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-background-secondary text-white border-2 border-green-500 transition-[background-color,transform,box-shadow] hover:bg-background-secondaryHover hover:scale-110 cursor-pointer"
           id={props.id ? `${props.id}-check` : undefined} // Optionally use a different id for this button
         >
-          <Icon icon={Icons.CHECKMARK} />
+          <LucideIcon icon={Check} />
         </button>
       )}
     </>

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>P-Stream Notifications</title>
+    <title>CloudClash Notifications</title>
     <link>https://pstream.mov</link>
-    <description>Site updates and important notifications for P-Stream users</description>
+    <description>Site updates and important notifications for CloudClash users</description>
     <language>en</language>
     <lastBuildDate>Mon, 29 Sep 2025 18:00:00 MST</lastBuildDate>
     <atom:link href="https://pstream.mov/notifications.xml" rel="self" type="application/rss+xml" />
 
     <item>
       <guid>notification-048</guid>
-      <title>P-Stream v5.3.0 released!</title>
+      <title>CloudClash v5.3.0 released!</title>
       <description>Lots of quality of life improvements and changes and a huge number of bugs fixed!
 
 Additions:
@@ -45,7 +45,7 @@ Fixes:
 
 Thanks to everyone who has been testing the beta and providing feedback!
 
-P-Stream has partnered with Neon Next Generation Pty Ltd. for this release! They offer high quality web and server hosting with a free virtual private container business plan! Use code "pstream" for 25% off your first 3 months! (link below)
+CloudClash has partnered with Neon Next Generation Pty Ltd. for this release! They offer high quality web and server hosting with a free virtual private container business plan! Use code "pstream" for 25% off your first 3 months! (link below)
       </description>
       <link>https://neonnextgeneration.com</link>
       <pubDate>Mon, 10 Nov 2025 13:00:00 MST</pubDate>
@@ -64,7 +64,7 @@ P-Stream has partnered with Neon Next Generation Pty Ltd. for this release! They
 
     <item>
       <guid>notification-046</guid>
-      <title>P-Stream v5.2.1 released!</title>
+      <title>CloudClash v5.2.1 released!</title>
       <description>Lots of great changes and improvements this time!
 
 - Added collection feature to the details modal (thanks @doug for the original idea)
@@ -81,7 +81,7 @@ P-Stream has partnered with Neon Next Generation Pty Ltd. for this release! They
 - Fixed progress saving and showing values larger than 100%
 - Various other bug fixes and improvements
 
-P-Stream has partnered with Neon Next Generation Pty Ltd. for this release! They offer high quality kVM web and server hosting with a free virtual private container business plan! Check them out using the link below!
+CloudClash has partnered with Neon Next Generation Pty Ltd. for this release! They offer high quality kVM web and server hosting with a free virtual private container business plan! Check them out using the link below!
       </description>
       <link>https://billing.neonnextgeneration.com?ref=kAQ3bDhpmT</link>
       <pubDate>Tue, 28 Oct 2025 15:00:00 MST</pubDate>
@@ -90,7 +90,7 @@ P-Stream has partnered with Neon Next Generation Pty Ltd. for this release! They
 
     <item>
       <guid>notification-045</guid>
-      <title>P-Stream v5.2.0 released!</title>
+      <title>CloudClash v5.2.0 released!</title>
       <description>Lots of great bug fixes this time around and a couple quality of life improvements!
 
 - Fixed watch progress getting reset when switching sources.
@@ -131,7 +131,7 @@ Also, we now have a new source: Mega 🔥! Thanks to @fifthwit for adding it!
 
     <item>
       <guid>notification-042</guid>
-      <title>P-Stream v5.1.3 released!</title>
+      <title>CloudClash v5.1.3 released!</title>
       <description>New features and improvements in this update:
 
 - Added favorite episodes! Every episode now has a bookmark icon that can be toggled to sort your episodes into a new Favorites section! It's like a special season of just your picks!
@@ -145,7 +145,7 @@ Also, we now have a new source: Mega 🔥! Thanks to @fifthwit for adding it!
 
 Enjoy the new features!
 
-Also, P-Stream now has a SimpleX community! Feel free to join if you want to stay away from the prying eyes of Discord. Press the link below.</description>
+Also, CloudClash now has a SimpleX community! Feel free to join if you want to stay away from the prying eyes of Discord. Press the link below.</description>
       <link>https://smp10.simplex.im/g#C1oMmXt1lMPqDZAs9Rne4SQ-LhvpwNv2UDLR8RA1zos</link>
       <pubDate>Mon, 29 Sep 2025 18:00:00 MST</pubDate>
       <category>update</category>
@@ -169,9 +169,9 @@ Sorry again!
     <item>
       <guid>notification-040</guid>
       <title>Extension issue for Firefox!</title>
-      <description>If you're using Firefox with the P-Stream extension, you may have noticed that it says updates are unavailable and that the extension is violating policies. Yikes!
+      <description>If you're using Firefox with the CloudClash extension, you may have noticed that it says updates are unavailable and that the extension is violating policies. Yikes!
 
-Heres what happened: I accidently deleted my Firefox account that had the P-Stream extension. 
+Heres what happened: I accidently deleted my Firefox account that had the CloudClash extension. 
 The extension did NOT violate any policies, it was just deleted. For some it says that when it gets removed.
 
 I just created a new account and re-submitted it, so it should be back in the store soon. I'll post here when it is.
@@ -187,8 +187,8 @@ I apologize for the inconvenience!</description>
 
     <item>
       <guid>notification-039</guid>
-      <title>Help support P-Stream!</title>
-      <description>If you enjoy P-Stream, please consider donating to help maintain it!
+      <title>Help support CloudClash!</title>
+      <description>If you enjoy CloudClash, please consider donating to help maintain it!
 
 We're looking at a new server, but we need your help! If a couple people could chip in and cover the $20 (per month) that would be much appreciated. There is only one ad on the site, and we want to keep it that way!
 
@@ -206,7 +206,7 @@ If you are interested in donating, please check the link below!
       <title>New subtitle source badges!</title>
       <description>There's now a quick way to see the source of a subtitle on the external subtitle selection menu!
 
-In addition to the new badges, there's now a new subtitle source: Febbox! Thanks to Nemo for helping P-Stream fetch subtitles from Febbox without needing to set up the Febbox token! It also allows for the subtitles to be used on any source!
+In addition to the new badges, there's now a new subtitle source: Febbox! Thanks to Nemo for helping CloudClash fetch subtitles from Febbox without needing to set up the Febbox token! It also allows for the subtitles to be used on any source!
       </description>
       <pubDate>Tue, 26 Aug 2025 21:50:00 MST</pubDate>
       <category>feature</category>
@@ -214,7 +214,7 @@ In addition to the new badges, there's now a new subtitle source: Febbox! Thanks
 
     <item>
       <guid>notification-037</guid>
-      <title>P-Stream v5.1.1 released!</title>
+      <title>CloudClash v5.1.1 released!</title>
       <description>Minor updates to fix bugs and add some QoL features.
 
 - Now anyone can watch trailers on the details modal! A custom proxy or the extension no longer required. (Other IMDb info still requires the extension or proxy)
@@ -228,7 +228,7 @@ In addition to the new badges, there's now a new subtitle source: Febbox! Thanks
 - Fixed speed boost not working on mobile.
 - Other bug fixes!
 
-P.S. I wanted to highlight TrinityHades, a community member, who is working on adding Safari support to the P-Stream extension! It's not quire ready yet but soon mac users will be able to use the extension to watch P-Stream on Safari!
+P.S. I wanted to highlight TrinityHades, a community member, who is working on adding Safari support to the CloudClash extension! It's not quire ready yet but soon mac users will be able to use the extension to watch CloudClash on Safari!
       </description>
       <pubDate>Sun, 24 Aug 2025 22:37:00 MST</pubDate>
       <category>update</category>
@@ -242,7 +242,7 @@ Unfortunatly, many sources needed to be disabled due to them showing NSFW conten
 
 I recommend you set up the febbox token to get access to FED API and CIA API, the best sources at the moment. You can find the febbox token setting at the botton of the settings page!
 
-If you are interested in adding a new source to P-Stream, I recently created a new guide for it! Check the link below.</description>
+If you are interested in adding a new source to CloudClash, I recently created a new guide for it! Check the link below.</description>
       <link>https://providers.pstream.mov/in-depth/development</link>
       <pubDate>Sat, 16 Aug 2025 11:12:00 MST</pubDate>
       <category>announcement</category>
@@ -252,7 +252,7 @@ If you are interested in adding a new source to P-Stream, I recently created a n
       <guid>notification-033</guid>
       <title>Clarifying current source issues</title>
       <description>I wanted to appologize for some recent issues with FED API and Vidify. 
-Firstly, I wanted to note that P-Stream does not host or control any of the content. Everything is streamed from third party sources.
+Firstly, I wanted to note that CloudClash does not host or control any of the content. Everything is streamed from third party sources.
 
 Vidify:
 You may have noticed (hopefully not) that Vidify has been showing some NSFW content. This is due to protections they have to prevent us from using them as a source.
@@ -282,7 +282,7 @@ Source updates:
 - Fixed VidSrcCx (thanks mapler!)
 - Disabled SpeedStrm
 
-If you are interested in adding a new source to P-Stream, I recently created a new guide for it! Check the link below.</description>
+If you are interested in adding a new source to CloudClash, I recently created a new guide for it! Check the link below.</description>
 <link>https://providers.pstream.mov/in-depth/development</link>
       <pubDate>Tue, 05 Aug 2025 10:55:00 MST</pubDate>
       <category>bugfix</category>
@@ -303,7 +303,7 @@ If you have a few minutes, please take the survey linked below!
 
     <item>
       <guid>notification-8-4-25</guid>
-      <title>P-Stream v5.1.0 released!</title>
+      <title>CloudClash v5.1.0 released!</title>
       <link>https://pstream.mov/</link>
       <description>A bigger one this time. Tons of new quality-of-life features and changes!
 
@@ -328,7 +328,7 @@ Thanks to everyone who has been testing the beta and providing feedback!</descri
 
     <item>
       <guid>notification-028</guid>
-      <title>P-Stream v5.0.4 released!</title>
+      <title>CloudClash v5.0.4 released!</title>
       <description>A bunch more quality-of-life improvements and fixes have been released.
 - Accounts are no longer required for migration downloads and uploads.
 - Right-click to open the details modal has been re-added.
@@ -356,7 +356,7 @@ Most pages should now be working. If you had an account on the old site, your da
 
     <item>
       <guid>notification-022</guid>
-      <title>P-Stream v5.0.2 released!</title>
+      <title>CloudClash v5.0.2 released!</title>
       <description>This is another minor update with great quality-of-life features.
 - Added "open in..." button to the download menu.
 - Added the ability to set a custom playback speed.
@@ -373,7 +373,7 @@ Most pages should now be working. If you had an account on the old site, your da
 
     <item>
       <guid>notification-008</guid>
-      <title>P-Stream v5.0.1</title>
+      <title>CloudClash v5.0.1</title>
       <description>Some minor updates this time:
 - Added network images to the details modal.
 - Added a letterboxd/trakt list page: "Discover All Lists."

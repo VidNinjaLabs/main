@@ -1,4 +1,5 @@
-import { Icons } from "@/components/Icon";
+import { Pause as PauseIcon, Play } from "lucide-react";
+
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 
@@ -16,7 +17,7 @@ export function Pause(props: { iconSizeClass?: string; className?: string }) {
       className={props.className}
       iconSizeClass={props.iconSizeClass}
       onClick={toggle}
-      icon={isPaused ? Icons.PLAY : Icons.PAUSE}
+      icon={isPaused ? Play : PauseIcon}
     />
   );
 }

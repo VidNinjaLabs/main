@@ -157,7 +157,7 @@ function App() {
             }
           />
           <Route path="/browse/:query?" element={<HomePage />} />
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/about" element={<AboutPage />} />
