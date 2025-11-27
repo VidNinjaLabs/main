@@ -7,7 +7,7 @@ import {
   canWebkitPictureInPicture,
 } from "@/utils/detectFeatures";
 
-export function Pip() {
+export function Pip(props: { iconSizeClass?: string }) {
   const display = usePlayerStore((s) => s.display);
 
   if (!canPictureInPicture() && !canWebkitPictureInPicture()) return null;
@@ -16,6 +16,7 @@ export function Pip() {
     <VideoPlayerButton
       onClick={() => display?.togglePictureInPicture()}
       icon={PictureInPicture2}
+      iconSizeClass={props.iconSizeClass}
     />
   );
 }

@@ -18,9 +18,10 @@ declare global {
 
 export interface ChromecastProps {
   className?: string;
+  iconSizeClass?: string;
 }
 
-export function Chromecast({ className }: ChromecastProps) {
+export function Chromecast({ className, iconSizeClass }: ChromecastProps) {
   const [castHidden, setCastHidden] = useState(false);
   const isCasting = usePlayerStore((s) => s.interface.isCasting);
   const launcherRef = useRef<HTMLDivElement>(null);

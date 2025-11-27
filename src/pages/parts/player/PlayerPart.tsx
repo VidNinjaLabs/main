@@ -95,12 +95,12 @@ export function PlayerPart(props: PlayerPartProps) {
         className="text-white"
         show={showTouchTargets && status === playerStatus.PLAYING}
       >
-        <Player.SkipBackward iconSizeClass="text-3xl" inControl={inControl} />
+        <Player.SkipBackward iconSizeClass="text-3xl" />
         <Player.Pause
           iconSizeClass="text-5xl"
           className={isLoading ? "opacity-0" : "opacity-100"}
         />
-        <Player.SkipForward iconSizeClass="text-3xl" inControl={inControl} />
+        <Player.SkipForward iconSizeClass="text-3xl" />
       </Player.CenterMobileControls>
 
       <div
@@ -146,36 +146,40 @@ export function PlayerPart(props: PlayerPartProps) {
           <Player.LeftSideControls>
             {status === playerStatus.PLAYING ? (
               <>
-                <Player.Pause />
-                <Player.SkipBackward inControl={inControl} />
-                <Player.SkipForward inControl={inControl} />
-                <Player.Volume />
+                <Player.Pause iconSizeClass="text-5xl w-12 h-12" />
+                <Player.SkipBackward iconSizeClass="text-5xl w-12 h-12" />
+                <Player.SkipForward iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Volume iconSizeClass="text-5xl w-12 h-12" />
                 <Player.Time />
               </>
             ) : null}
           </Player.LeftSideControls>
           <div className="flex items-center space-x-3">
-            <Player.Episodes inControl={inControl} />
+            <Player.Episodes
+              inControl={inControl}
+              iconSizeClass="text-5xl w-12 h-12"
+            />
             <Player.SkipEpisodeButton
               inControl={inControl}
               onChange={props.onMetaChange}
+              iconSizeClass="text-5xl w-12 h-12"
             />
             {status === playerStatus.PLAYING ? (
               <>
-                <Player.Pip />
-                <Player.Airplay />
-                <Player.Chromecast />
+                <Player.Pip iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Airplay iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Chromecast iconSizeClass="text-5xl w-12 h-12" />
               </>
             ) : null}
             {status === playerStatus.PLAYBACK_ERROR ||
             status === playerStatus.PLAYING ? (
-              <Player.Captions />
+              <Player.Captions iconSizeClass="text-5xl w-12 h-12" />
             ) : null}
-            <Player.Settings />
+            <Player.Settings iconSizeClass="text-5xl w-12 h-12" />
             {isShifting || isHoldingFullscreen ? (
-              <Player.Widescreen />
+              <Player.Widescreen iconSizeClass="text-5xl w-12 h-12" />
             ) : (
-              <Player.Fullscreen />
+              <Player.Fullscreen iconSizeClass="text-5xl w-12 h-12" />
             )}
           </div>
         </div>

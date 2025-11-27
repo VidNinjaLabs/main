@@ -110,7 +110,7 @@ export function SettingsRouter() {
   return <SettingsOverlay id="settings" />;
 }
 
-export function Settings() {
+export function Settings(props: { iconSizeClass?: string }) {
   const router = useOverlayRouter("settings");
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
 
@@ -120,7 +120,11 @@ export function Settings() {
 
   return (
     <OverlayAnchor id={router.id}>
-      <VideoPlayerButton onClick={() => router.open()} icon={SettingsIcon} />
+      <VideoPlayerButton
+        onClick={() => router.open()}
+        icon={SettingsIcon}
+        iconSizeClass={props.iconSizeClass}
+      />
     </OverlayAnchor>
   );
 }

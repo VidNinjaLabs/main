@@ -6,7 +6,7 @@ import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { usePlayerStore } from "@/stores/player/store";
 
-export function Captions() {
+export function Captions(props: { iconSizeClass?: string }) {
   const router = useOverlayRouter("settings");
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
 
@@ -22,6 +22,7 @@ export function Captions() {
           router.navigate("/captionsOverlay");
         }}
         icon={Subtitles}
+        iconSizeClass={props.iconSizeClass}
       />
     </OverlayAnchor>
   );

@@ -11,6 +11,7 @@ import { useProgressStore } from "@/stores/progress";
 interface SkipEpisodeButtonProps {
   inControl: boolean;
   onChange?: (meta: PlayerMeta) => void;
+  iconSizeClass?: string;
 }
 
 export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
@@ -63,7 +64,7 @@ export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
     <VideoPlayerButton
       onClick={() => loadNextEpisode()}
       icon={Icons.SKIP_EPISODE}
-      iconSizeClass="text-xl"
+      iconSizeClass={props.iconSizeClass || "text-xl"}
       className="hover:bg-video-buttonBackground hover:bg-opacity-50"
     />
   );
