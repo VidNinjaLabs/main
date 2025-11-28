@@ -1,6 +1,8 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
+import { febboxClient } from "@/backend/api/febbox";
 import type {
+  FebboxSource,
   VidNinjaSource,
   VidNinjaStreamResponse,
 } from "@/backend/api/types";
@@ -45,13 +47,14 @@ export interface RunOutput {
   stream: VidNinjaStreamResponse["stream"][0];
 }
 
-// Cache for available sources
-let cachedSources: VidNinjaSource[] | null = null;
+async function getAvailableSources(): Promise<
+  (VidNinjaSource | FebboxSource)[]
+> {
+  // Don't cache sources - we need to check Febbox token dynamically
+  const vidNinjaSources = await vidNinjaClient.getSources();
+  const febboxSources = febboxClient.getSources();
 
-async function getAvailableSources(): Promise<VidNinjaSource[]> {
-  if (cachedSources) return cachedSources;
-  cachedSources = await vidNinjaClient.getSources();
-  return cachedSources;
+  return [...vidNinjaSources, ...febboxSources];
 }
 
 function useBaseScrape() {
@@ -181,22 +184,44 @@ export function useScrape() {
         updateSourceStatus(sourceId, "pending", 50);
 
         try {
-          const response = await vidNinjaClient.getStream({
-            sourceId,
-            tmdbId: media.tmdbId,
-            type: media.type,
-            season: media.season?.number,
-            episode: media.episode?.number,
-          });
+          // Route to correct client based on source ID
+          if (sourceId === "febbox") {
+            // Use Febbox client
+            const febboxStream = await febboxClient.getStream({
+              tmdbId: media.tmdbId,
+              type: media.type,
+              title: media.title,
+              season: media.season?.number,
+              episode: media.episode?.number,
+            });
 
-          if (response.stream && response.stream.length > 0) {
-            updateSourceStatus(sourceId, "success", 100);
-            return {
+            if (febboxStream) {
+              updateSourceStatus(sourceId, "success", 100);
+              return {
+                sourceId,
+                stream: febboxStream as any, // Cast to VidNinja stream type for compatibility
+              };
+            }
+            updateSourceStatus(sourceId, "notfound", 100, "No streams found");
+          } else {
+            // Use VidNinja client
+            const response = await vidNinjaClient.getStream({
               sourceId,
-              stream: response.stream[0],
-            };
+              tmdbId: media.tmdbId,
+              type: media.type,
+              season: media.season?.number,
+              episode: media.episode?.number,
+            });
+
+            if (response.stream && response.stream.length > 0) {
+              updateSourceStatus(sourceId, "success", 100);
+              return {
+                sourceId,
+                stream: response.stream[0],
+              };
+            }
+            updateSourceStatus(sourceId, "notfound", 100, "No streams found");
           }
-          updateSourceStatus(sourceId, "notfound", 100, "No streams found");
         } catch (error: any) {
           const isNotFound = error.message?.includes("Couldn't find a stream");
           updateSourceStatus(

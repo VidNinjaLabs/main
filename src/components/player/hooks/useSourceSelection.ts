@@ -1,5 +1,6 @@
 import { useAsyncFn } from "react-use";
 
+import { febboxClient } from "@/backend/api/febbox";
 import { vidNinjaClient } from "@/backend/api/vidninja";
 import { isExtensionActiveCached } from "@/backend/extension/messaging";
 import { prepareStream } from "@/backend/extension/streams";
@@ -72,17 +73,33 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
     const scrapeMedia = metaToScrapeMedia(meta);
 
     try {
-      const result = await vidNinjaClient.getStream({
-        sourceId,
-        tmdbId: scrapeMedia.tmdbId,
-        type: scrapeMedia.type,
-        season: scrapeMedia.season?.number,
-        episode: scrapeMedia.episode?.number,
-      });
+      let stream;
 
-      if (result.stream && result.stream.length > 0) {
-        const stream = result.stream[0];
+      // Route to correct client based on source ID
+      if (sourceId === "febbox") {
+        // Use Febbox client
+        stream = await febboxClient.getStream({
+          tmdbId: scrapeMedia.tmdbId,
+          type: scrapeMedia.type,
+          title: scrapeMedia.title,
+          season: scrapeMedia.season?.number,
+          episode: scrapeMedia.episode?.number,
+        });
+      } else {
+        // Use VidNinja client
+        const result = await vidNinjaClient.getStream({
+          sourceId,
+          tmdbId: scrapeMedia.tmdbId,
+          type: scrapeMedia.type,
+          season: scrapeMedia.season?.number,
+          episode: scrapeMedia.episode?.number,
+        });
 
+        stream =
+          result.stream && result.stream.length > 0 ? result.stream[0] : null;
+      }
+
+      if (stream) {
         report([
           scrapeSourceOutputToProviderMetric(
             meta,
@@ -93,13 +110,13 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
           ),
         ]);
 
-        if (isExtensionActiveCached()) await prepareStream(stream);
+        if (isExtensionActiveCached()) await prepareStream(stream as any);
 
         setEmbedId(null);
         setCaption(null);
         setSource(
-          convertRunoutputToSource({ stream }),
-          convertProviderCaption(stream.captions),
+          convertRunoutputToSource({ stream: stream as any }),
+          convertProviderCaption((stream as any).captions),
           getSavedProgress(progressItems, meta),
         );
         setSourceId(sourceId);

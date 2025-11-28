@@ -1,7 +1,7 @@
 import { ReactNode, useRef, useState } from "react";
 
-import { BrandPill } from "@/components/layout/BrandPill";
 import { Player } from "@/components/player";
+import { ActionFeedback } from "@/components/player/atoms/ActionFeedback";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
@@ -13,7 +13,7 @@ import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWatchPartyStore } from "@/stores/watchParty";
 
-import { ScrapingPartInterruptButton, Tips } from "./ScrapingPart";
+import { Tips } from "./ScrapingPart";
 
 export interface PlayerPartProps {
   children?: ReactNode;
@@ -40,6 +40,9 @@ export function PlayerPart(props: PlayerPartProps) {
   const [isShifting, setIsShifting] = useState(false);
   const [isHoldingFullscreen, setIsHoldingFullscreen] = useState(false);
   const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [feedbackAction, setFeedbackAction] = useState<
+    "play" | "pause" | "forward" | "backward" | null
+  >(null);
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Shift") {
@@ -70,7 +73,6 @@ export function PlayerPart(props: PlayerPartProps) {
       setIsHoldingFullscreen(false);
     }, 1000);
   };
-
   const skiptime = useSkipTime();
 
   return (
@@ -82,6 +84,11 @@ export function PlayerPart(props: PlayerPartProps) {
       <Player.EpisodesRouter onChange={props.onMetaChange} />
       <Player.SettingsRouter />
       <Player.SubtitleView controlsShown={showTargets} />
+      {/* TODO: ActionFeedback - needs keyboard support and refinement */}
+      {/* <ActionFeedback
+        action={feedbackAction}
+        onComplete={() => setFeedbackAction(null)}
+      /> */}
 
       {status === playerStatus.PLAYING ? (
         <Player.CenterControls>
@@ -95,12 +102,19 @@ export function PlayerPart(props: PlayerPartProps) {
         className="text-white"
         show={showTouchTargets && status === playerStatus.PLAYING}
       >
-        <Player.SkipBackward iconSizeClass="text-3xl" />
-        <Player.Pause
+        <Player.SkipBackward
           iconSizeClass="text-5xl"
-          className={isLoading ? "opacity-0" : "opacity-100"}
+          onAction={() => setFeedbackAction("backward")}
         />
-        <Player.SkipForward iconSizeClass="text-3xl" />
+        <Player.Pause
+          iconSizeClass="text-6xl"
+          className={isLoading ? "opacity-0" : "opacity-100"}
+          onAction={(action) => setFeedbackAction(action)}
+        />
+        <Player.SkipForward
+          iconSizeClass="text-5xl"
+          onAction={() => setFeedbackAction("forward")}
+        />
       </Player.CenterMobileControls>
 
       <div
@@ -120,8 +134,6 @@ export function PlayerPart(props: PlayerPartProps) {
             <Player.Title />
           </div>
           <div className="flex items-center justify-end space-x-3">
-            <Player.InfoButton />
-            <Player.BookmarkButton />
             {status === playerStatus.PLAYING ? (
               <div className="flex lg:hidden items-center">
                 <Player.Airplay />
@@ -137,8 +149,8 @@ export function PlayerPart(props: PlayerPartProps) {
         <div className="flex items-center justify-center space-x-3 h-full">
           {status === playerStatus.PLAYING ? (
             <>
-              {isMobile ? <Player.Time short /> : null}
               <Player.ProgressBar />
+              {isMobile ? <Player.Time short /> : null}
             </>
           ) : null}
         </div>
@@ -146,9 +158,18 @@ export function PlayerPart(props: PlayerPartProps) {
           <Player.LeftSideControls>
             {status === playerStatus.PLAYING ? (
               <>
-                <Player.Pause iconSizeClass="text-5xl w-12 h-12" />
-                <Player.SkipBackward iconSizeClass="text-5xl w-12 h-12" />
-                <Player.SkipForward iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Pause
+                  iconSizeClass="text-5xl w-12 h-12"
+                  onAction={(action) => setFeedbackAction(action)}
+                />
+                <Player.SkipBackward
+                  iconSizeClass="text-5xl w-12 h-12"
+                  onAction={() => setFeedbackAction("backward")}
+                />
+                <Player.SkipForward
+                  iconSizeClass="text-5xl w-12 h-12"
+                  onAction={() => setFeedbackAction("forward")}
+                />
                 <Player.Volume iconSizeClass="text-5xl w-12 h-12" />
                 <Player.Time />
               </>

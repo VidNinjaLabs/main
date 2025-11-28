@@ -1,5 +1,5 @@
+/* eslint-disable max-classes-per-file */
 // VidNinja API Type Definitions
-
 export interface VidNinjaQuality {
   type: "mp4";
   url: string;
@@ -67,5 +67,54 @@ export class VidNinjaError extends Error {
   ) {
     super(message);
     this.name = "VidNinjaError";
+  }
+}
+
+// Febbox Types
+export interface FebboxConfig {
+  apiUrl: string;
+  uiToken: string;
+}
+
+export interface FebboxFileItem {
+  fid: string;
+  file_name: string;
+  is_dir: boolean;
+  size?: number;
+}
+
+export interface FebboxQuality {
+  url: string;
+  quality: string;
+  name: string;
+  speed: string;
+  size: string;
+}
+
+export interface FebboxStream {
+  id: string;
+  type: "file";
+  playlist: string;
+  headers: Record<string, string>;
+  flags: string[];
+  captions: [];
+  qualities?: Record<string, FebboxQuality>;
+}
+
+export interface FebboxSource {
+  id: "febbox";
+  name: "Febbox";
+  rank: number;
+  type: "source";
+  mediaTypes?: string[];
+}
+
+export class FebboxError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+  ) {
+    super(message);
+    this.name = "FebboxError";
   }
 }

@@ -58,6 +58,9 @@ export interface PreferencesStore {
   setHomeSectionOrder(v: string[]): void;
   setManualSourceSelection(v: boolean): void;
   setEnableDoubleClickToSeek(v: boolean): void;
+
+  providerNames: Record<string, string>;
+  setProviderName(id: string, name: string): void;
 }
 
 export const usePreferencesStore = create(
@@ -228,6 +231,12 @@ export const usePreferencesStore = create(
       setEnableDoubleClickToSeek(v) {
         set((s) => {
           s.enableDoubleClickToSeek = v;
+        });
+      },
+      providerNames: {},
+      setProviderName(id, name) {
+        set((s) => {
+          s.providerNames[id] = name;
         });
       },
     })),

@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsyncFn } from "react-use";
@@ -13,11 +12,8 @@ import { getSettings, updateSettings } from "@/backend/accounts/settings";
 import { editUser } from "@/backend/accounts/user";
 import { getAllProviders } from "@/backend/providers/providers";
 import { Button } from "@/components/buttons/Button";
-import { SearchBarInput } from "@/components/form/SearchBar";
-import { ThinContainer } from "@/components/layout/ThinContainer";
 import { WideContainer } from "@/components/layout/WideContainer";
 import { UserIcons } from "@/components/UserIcon";
-import { Divider } from "@/components/utils/Divider";
 import { Heading1 } from "@/components/utils/Text";
 import { Transition } from "@/components/utils/Transition";
 import { useAuth } from "@/hooks/auth/useAuth";
@@ -30,8 +26,10 @@ import { AppearancePart } from "@/pages/parts/settings/AppearancePart";
 import { CaptionsPart } from "@/pages/parts/settings/CaptionsPart";
 import { ConnectionsPart } from "@/pages/parts/settings/ConnectionsPart";
 import { DeviceListPart } from "@/pages/parts/settings/DeviceListPart";
+import { PreferencesPart } from "@/pages/parts/settings/PreferencesPart";
+import { ProvidersPart } from "@/pages/parts/settings/ProvidersPart";
 import { RegisterCalloutPart } from "@/pages/parts/settings/RegisterCalloutPart";
-import { SidebarPart } from "@/pages/parts/settings/SidebarPart";
+import { SettingsNavigation } from "@/pages/parts/settings/SettingsNavigation";
 import { PageTitle } from "@/pages/parts/util/PageTitle";
 import { AccountWithToken, useAuthStore } from "@/stores/auth";
 import { useBannerSize } from "@/stores/banner";
@@ -39,73 +37,40 @@ import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useSubtitleStore } from "@/stores/subtitles";
 import { usePreviewThemeStore, useThemeStore } from "@/stores/theme";
-import { scrollToElement, scrollToHash } from "@/utils/scroll";
+import { scrollToHash } from "@/utils/scroll";
 
 import { SubPageLayout } from "./layouts/SubPageLayout";
-import { AppInfoPart } from "./parts/settings/AppInfoPart";
-import { PreferencesPart } from "./parts/settings/PreferencesPart";
 
 function SettingsLayout(props: {
   className?: string;
   children: React.ReactNode;
-  searchQuery: string;
-  onSearchChange: (value: string, force: boolean) => void;
-  onSearchUnFocus: (newSearch?: string) => void;
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
 }) {
   const { className } = props;
-  const { t } = useTranslation();
   const { isMobile } = useIsMobile();
-  const searchRef = useRef<HTMLInputElement>(null);
   const bannerSize = useBannerSize();
 
   // Navbar height is 80px (h-20)
   const navbarHeight = 80;
-  // On desktop: inline with navbar (same top position + 14px adjustment)
-  // On mobile: below navbar (navbar height + banner)
+  // Calculate top offset for sticky navigation
   const topOffset = isMobile ? navbarHeight + bannerSize : bannerSize + 14;
 
   return (
     <WideContainer ultraWide classNames="overflow-visible">
-      {/* Floating Search Bar - starts in sticky state */}
+      {/* Navigation positioned at top */}
       <div
-        className="fixed left-0 right-0 z-50"
+        className="sticky z-40"
         style={{
           top: `${topOffset}px`,
         }}
       >
-        <ThinContainer>
-          <SearchBarInput
-            ref={searchRef}
-            onChange={props.onSearchChange}
-            value={props.searchQuery}
-            onUnFocus={props.onSearchUnFocus}
-            placeholder={t("settings.search.placeholder")}
-            isSticky
-            hideTooltip
-          />
-        </ThinContainer>
-      </div>
-
-      <div
-        className={classNames(
-          "grid gap-12",
-          isMobile ? "grid-cols-1" : "lg:grid-cols-[280px,1fr]",
-        )}
-        data-settings-content
-      >
-        <SidebarPart
+        <SettingsNavigation
           selectedCategory={props.selectedCategory}
           setSelectedCategory={props.setSelectedCategory}
-          searchQuery={props.searchQuery}
         />
-        <div className={className}>{props.children}</div>
-        <div className="block lg:hidden">
-          <Divider />
-          <AppInfoPart />
-        </div>
       </div>
+      <div className={className}>{props.children}</div>
     </WideContainer>
   );
 }
@@ -159,8 +124,11 @@ export function AccountSettings(props: {
 }
 
 export function SettingsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    "settings-account",
+  );
+  const { logout } = useAuth();
   const prevCategoryRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -174,6 +142,7 @@ export function SettingsPage() {
         "settings-appearance",
         "settings-captions",
         "settings-connection",
+        "settings-providers",
       ];
 
       // Map sub-section hashes to their parent categories
@@ -224,6 +193,7 @@ export function SettingsPage() {
           "settings-appearance",
           "settings-captions",
           "settings-connection",
+          "settings-providers",
         ];
         const subSectionToCategory: Record<string, string> = {
           "source-order": "settings-preferences",
@@ -283,77 +253,6 @@ export function SettingsPage() {
   const setPreviewTheme = usePreviewThemeStore((s) => s.setPreviewTheme);
 
   // Simple text search with highlighting
-  const handleSearchChange = useCallback((value: string, _force: boolean) => {
-    setSearchQuery(value);
-    // When searching, clear category selection to show all sections
-    if (value.trim()) {
-      setSelectedCategory(null);
-    }
-
-    // Remove existing highlights
-    const existingHighlights = document.querySelectorAll(".search-highlight");
-    existingHighlights.forEach((el) => {
-      const parent = el.parentNode;
-      if (parent) {
-        parent.replaceChild(document.createTextNode(el.textContent || ""), el);
-        parent.normalize();
-      }
-    });
-
-    if (value.trim()) {
-      // Find and highlight matching text
-      const walker = document.createTreeWalker(
-        document.querySelector("[data-settings-content]") || document.body,
-        NodeFilter.SHOW_TEXT,
-        null,
-      );
-
-      let node = walker.nextNode();
-
-      while (node) {
-        const text = node.textContent || "";
-        const lowerText = text.toLowerCase();
-        const lowerValue = value.toLowerCase();
-
-        if (lowerText.includes(lowerValue)) {
-          const regex = new RegExp(
-            `(${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-            "gi",
-          );
-          const highlightedText = text.replace(
-            regex,
-            '<span class="search-highlight bg-yellow-200 text-black px-1 rounded">$1</span>',
-          );
-
-          if (highlightedText !== text) {
-            const wrapper = document.createElement("div");
-            wrapper.innerHTML = highlightedText;
-            const parent = node.parentNode;
-            if (parent) {
-              while (wrapper.firstChild) {
-                parent.insertBefore(wrapper.firstChild, node);
-              }
-              parent.removeChild(node);
-            }
-          }
-        }
-        node = walker.nextNode();
-      }
-
-      // Scroll to first highlighted element
-      scrollToElement(".search-highlight", {
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  }, []);
-
-  const handleSearchUnFocus = useCallback((newSearch?: string) => {
-    if (newSearch !== undefined) {
-      setSearchQuery(newSearch);
-    }
-  }, []);
-
   const appLanguage = useLanguageStore((s) => s.language);
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
 
@@ -502,8 +401,6 @@ export function SettingsPage() {
   }, [account, t]);
 
   const backendUrl = useBackendUrl();
-
-  const { logout } = useAuth();
   const user = useAuthStore();
 
   useEffect(() => {
@@ -762,9 +659,6 @@ export function SettingsPage() {
     <SubPageLayout>
       <PageTitle subpage k="global.pages.settings" />
       <SettingsLayout
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        onSearchUnFocus={handleSearchUnFocus}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         className="space-y-28"
@@ -894,6 +788,16 @@ export function SettingsPage() {
               setdebridService={state.debridService.set}
               proxyTmdb={state.proxyTmdb.state}
               setProxyTmdb={state.proxyTmdb.set}
+            />
+          </div>
+        )}
+        {(searchQuery.trim() ||
+          !selectedCategory ||
+          selectedCategory === "settings-providers") && (
+          <div id="settings-providers">
+            <ProvidersPart
+              disabledSources={state.disabledSources.state}
+              setDisabledSources={state.disabledSources.set}
             />
           </div>
         )}

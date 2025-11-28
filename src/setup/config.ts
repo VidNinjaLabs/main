@@ -33,6 +33,8 @@ interface Config {
   BANNER_MESSAGE: string;
   VIDNINJA_API_URL: string;
   VIDNINJA_API_KEY: string;
+  FEBBOX_API_URL: string;
+  FEBBOX_UI_TOKEN: string;
   BANNER_ID: string;
   USE_TRAKT: boolean;
 }
@@ -66,6 +68,8 @@ export interface RuntimeConfig {
   USE_TRAKT: boolean;
   VIDNINJA_API_URL: string | null;
   VIDNINJA_API_KEY: string | null;
+  FEBBOX_API_URL: string | null;
+  FEBBOX_UI_TOKEN: string | null;
 }
 
 const env: Record<keyof Config, undefined | string> = {
@@ -100,6 +104,8 @@ const env: Record<keyof Config, undefined | string> = {
   USE_TRAKT: import.meta.env.VITE_USE_TRAKT,
   VIDNINJA_API_URL: import.meta.env.VITE_VIDNINJA_API_URL,
   VIDNINJA_API_KEY: import.meta.env.VITE_VIDNINJA_API_KEY,
+  FEBBOX_API_URL: import.meta.env.VITE_FEBBOX_API_URL,
+  FEBBOX_UI_TOKEN: import.meta.env.VITE_FEBBOX_UI_TOKEN,
 };
 
 function coerceUndefined(value: string | null | undefined): string | undefined {
@@ -177,5 +183,7 @@ export function conf(): RuntimeConfig {
     USE_TRAKT: getKey("USE_TRAKT", "false") === "true",
     VIDNINJA_API_URL: getKey("VIDNINJA_API_URL"),
     VIDNINJA_API_KEY: getKey("VIDNINJA_API_KEY"),
+    FEBBOX_API_URL: getKey("FEBBOX_API_URL"),
+    FEBBOX_UI_TOKEN: getKey("FEBBOX_UI_TOKEN"),
   };
 }

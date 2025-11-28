@@ -187,11 +187,5 @@ export function Tips() {
     return t(`player.scraping.tips.${randomIndex}`);
   });
 
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-type-secondary text-center text-sm text-bold">
-        Tip: {tip}
-      </p>
-    </div>
-  );
+  return <div className="flex flex-col gap-3" />;
 }

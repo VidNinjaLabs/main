@@ -15,7 +15,7 @@ export function CenterMobileControls(props: {
     >
       <div
         className={classNames([
-          "absolute inset-0 flex space-x-6 items-center justify-center pointer-events-none [&>*]:pointer-events-auto",
+          "absolute inset-0 flex justify-between items-center px-48 pointer-events-none [&>*]:pointer-events-auto",
           props.className,
         ])}
       >

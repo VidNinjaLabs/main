@@ -27,4 +27,4 @@ yarn.lock
 package-lock.json
 
 # config
-# .env
+.env

@@ -33,7 +33,7 @@ import { SettingsSyncer } from "@/stores/subtitles/SettingsSyncer";
 import { ThemeProvider } from "@/stores/theme";
 import { detectRegion, useRegionStore } from "@/utils/detectRegion";
 
-import { initializeVidNinja } from "./backend/api/init";
+import { initializeFebbox, initializeVidNinja } from "./backend/api/init";
 import {
   extensionInfo,
   isExtensionActiveCached,
@@ -46,6 +46,7 @@ import { initializeOldStores } from "./stores/__old/migrations";
 initializeChromecast();
 initializeImageFadeIn();
 initializeVidNinja();
+initializeFebbox();
 
 function LoadingScreen(props: { type: "user" | "lazy" }) {
   const mapping = {
