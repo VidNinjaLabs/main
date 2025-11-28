@@ -1,4 +1,4 @@
-import { Captions, Server, SlidersHorizontal } from "lucide-react";
+import { Captions, Download, Server, SlidersHorizontal } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -97,8 +97,8 @@ export function SettingsMenu({ id }: { id: string }) {
           </Menu.ChevronLink>
         )} */}
       </Menu.Section>
-      <Menu.Section>
-        {/* <Menu.Link
+      {/* <Menu.Section>
+        <Menu.Link
           clickable
           onClick={() =>
             router.navigate(downloadable ? "/download" : "/download/unable")
@@ -107,7 +107,7 @@ export function SettingsMenu({ id }: { id: string }) {
           className={downloadable ? "opacity-100" : "opacity-50"}
         >
           {t("player.menus.settings.downloadItem")}
-        </Menu.Link> */}
+        </Menu.Link>
         <Menu.Link
           clickable
           onClick={() =>
@@ -118,8 +118,8 @@ export function SettingsMenu({ id }: { id: string }) {
         >
           {t("player.menus.watchparty.watchpartyItem")}
         </Menu.Link>
-      </Menu.Section>
-      <Menu.SectionTitle />
+      </Menu.Section> */}
+      {/* <Menu.SectionTitle /> */}
       <Menu.Section>
         <Menu.Link
           rightSide={

@@ -20,7 +20,7 @@ export function SectionHeading(props: SectionHeadingProps) {
               {props.customIcon}
             </span>
           ) : props.icon ? (
-            <span className="mr-2 text-xl">
+            <span className="mr-2 text-2xl">
               <Icon icon={props.icon} />
             </span>
           ) : null}

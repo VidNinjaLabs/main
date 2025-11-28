@@ -145,7 +145,7 @@ export function Navigation(props: NavigationProps) {
                 <BrandPill
                   clickable
                   header
-                  className="h-14 px-6 !py-0"
+                  className="h-14 p-2 !py-0"
                   iconClass="text-3xl"
                 />
               </Link>
