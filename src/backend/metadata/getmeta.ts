@@ -9,6 +9,7 @@ import {
   TMDBMediaToMediaType,
   formatTMDBMeta,
   getEpisodes,
+  getMediaBackdrop,
   getMediaDetails,
   getMediaPoster,
   getMovieFromExternalId,
@@ -46,6 +47,7 @@ export function formatTMDBMetaResult(
       title: movie.title,
       object_type: mediaTypeToTMDB(type),
       poster: getMediaPoster(movie.poster_path) ?? undefined,
+      backdrop: getMediaBackdrop(movie.backdrop_path) ?? undefined,
       original_release_date: new Date(movie.release_date),
     };
   }
@@ -61,6 +63,7 @@ export function formatTMDBMetaResult(
         title: v.name,
       })),
       poster: getMediaPoster(show.poster_path) ?? undefined,
+      backdrop: getMediaBackdrop(show.backdrop_path) ?? undefined,
       original_release_date: new Date(show.first_air_date),
     };
   }

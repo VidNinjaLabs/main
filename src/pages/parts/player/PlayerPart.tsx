@@ -1,7 +1,6 @@
 import { ReactNode, useRef, useState } from "react";
 
 import { Player } from "@/components/player";
-import { ActionFeedback } from "@/components/player/atoms/ActionFeedback";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
@@ -20,6 +19,7 @@ export interface PlayerPartProps {
   backUrl: string;
   onLoad?: () => void;
   onMetaChange?: (meta: PlayerMeta) => void;
+  backdropUrl?: string | null;
 }
 
 export function PlayerPart(props: PlayerPartProps) {
@@ -40,9 +40,12 @@ export function PlayerPart(props: PlayerPartProps) {
   const [isShifting, setIsShifting] = useState(false);
   const [isHoldingFullscreen, setIsHoldingFullscreen] = useState(false);
   const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [feedbackAction, setFeedbackAction] = useState<
+  const [, setFeedbackAction] = useState<
     "play" | "pause" | "forward" | "backward" | null
   >(null);
+
+  // Show backdrop during all loading states, hide only when video is playing
+  const showBackdrop = status !== playerStatus.PLAYING;
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Shift") {
@@ -77,6 +80,18 @@ export function PlayerPart(props: PlayerPartProps) {
 
   return (
     <Player.Container onLoad={props.onLoad} showingControls={showTargets}>
+      {/* Persistent Backdrop Layer */}
+      {props.backdropUrl && showBackdrop && (
+        <div className="absolute inset-0 overflow-hidden z-0">
+          <img
+            src={props.backdropUrl}
+            className="absolute inset-0 w-full h-full object-cover scale-110"
+            alt=""
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+      )}
+
       {props.children}
       <Player.BlackOverlay
         show={showTargets && status === playerStatus.PLAYING}

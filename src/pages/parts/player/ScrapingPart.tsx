@@ -10,15 +10,10 @@ import {
 import { Button } from "@/components/buttons/Button";
 import { Loading } from "@/components/layout/Loading";
 import {
-  ScrapeCard,
-  ScrapeItem,
-} from "@/components/player/internals/ScrapeCard";
-import {
   RunOutput,
   ScrapeMedia,
   ScrapingItems,
   ScrapingSegment,
-  useListCenter,
   useScrape,
 } from "@/hooks/useProviderScrape";
 
@@ -35,19 +30,13 @@ export interface ScrapingProps {
 
 export function ScrapingPart(props: ScrapingProps) {
   const { report } = useReportProviders();
-  const { startScraping, sourceOrder, sources, currentSource } = useScrape();
+  const { startScraping, sourceOrder, sources } = useScrape();
   const isMounted = useMountedState();
   const { t } = useTranslation();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const listRef = useRef<HTMLDivElement | null>(null);
   const [failedStartScrape, setFailedStartScrape] = useState<boolean>(false);
-  const renderedOnce = useListCenter(
-    containerRef,
-    listRef,
-    sourceOrder,
-    currentSource,
-  );
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const resultRef = useRef({
     sourceOrder,
@@ -82,74 +71,35 @@ export function ScrapingPart(props: ScrapingProps) {
     })().catch(() => setFailedStartScrape(true));
   }, [startScraping, props, report, isMounted]);
 
-  let currentProviderIndex = sourceOrder.findIndex(
-    (s) => s.id === currentSource || s.children.includes(currentSource ?? ""),
-  );
-  if (currentProviderIndex === -1)
-    currentProviderIndex = sourceOrder.length - 1;
-
   if (failedStartScrape)
     return <WarningPart>{t("player.turnstile.error")}</WarningPart>;
 
   return (
     <div
-      className="h-full w-full relative dir-neutral:origin-top-left flex"
+      className="h-full w-full relative flex items-center justify-center"
       ref={containerRef}
     >
-      {!sourceOrder || sourceOrder.length === 0 ? (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center flex flex-col justify-center z-0">
-          <Loading className="mb-8" />
-          <p>{t("player.turnstile.verifyingHumanity")}</p>
+      {/* Backdrop Image */}
+      {props.media.backdropPath && (
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={props.media.backdropPath}
+            className={classNames(
+              "absolute inset-0 w-full h-full object-cover blur-xl scale-110 transition-opacity duration-300",
+              imageLoaded ? "opacity-30" : "opacity-0",
+            )}
+            onLoad={() => setImageLoaded(true)}
+            alt=""
+          />
+          <div className="absolute inset-0 bg-black/50" />
         </div>
-      ) : null}
-      <div
-        className={classNames({
-          "absolute transition-[transform,opacity] opacity-0 dir-neutral:left-0": true,
-          "!opacity-100": renderedOnce,
-        })}
-        ref={listRef}
-      >
-        {sourceOrder.map((order) => {
-          const source = sources[order.id];
-          const distance = Math.abs(
-            sourceOrder.findIndex((o) => o.id === order.id) -
-              currentProviderIndex,
-          );
-          return (
-            <div
-              className="transition-opacity duration-100"
-              style={{ opacity: Math.max(0, 1 - distance * 0.3) }}
-              key={order.id}
-            >
-              <ScrapeCard
-                id={order.id}
-                name={source.name}
-                status={source.status}
-                hasChildren={order.children.length > 0}
-                percentage={source.percentage}
-              >
-                <div
-                  className={classNames({
-                    "space-y-6 mt-8": order.children.length > 0,
-                  })}
-                >
-                  {order.children.map((embedId) => {
-                    const embed = sources[embedId];
-                    return (
-                      <ScrapeItem
-                        id={embedId}
-                        name={embed.name}
-                        status={embed.status}
-                        percentage={embed.percentage}
-                        key={embedId}
-                      />
-                    );
-                  })}
-                </div>
-              </ScrapeCard>
-            </div>
-          );
-        })}
+      )}
+
+      {/* Centered Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center">
+        <div className="mb-8 scale-150">
+          <Loading />
+        </div>
       </div>
     </div>
   );

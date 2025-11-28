@@ -11,6 +11,7 @@ import { Menu } from "@/components/player/internals/ContextMenu";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { usePlayerStore } from "@/stores/player/store";
 import { qualityToString } from "@/stores/player/utils/qualities";
+import { usePreferencesStore } from "@/stores/preferences";
 import { useSubtitleStore } from "@/stores/subtitles";
 import { getPrettyLanguageNameFromLocale } from "@/utils/language";
 
@@ -23,13 +24,14 @@ export function SettingsMenu({ id }: { id: string }) {
   );
   const subtitlesEnabled = useSubtitleStore((s) => s.enabled);
   const currentSourceId = usePlayerStore((s) => s.sourceId);
+  const providerNames = usePreferencesStore((s) => s.providerNames);
   const sourceName = useMemo(() => {
     if (!currentSourceId) return "...";
     const source = getCachedMetadata().find(
       (src) => src.id === currentSourceId,
     );
-    return source?.name ?? "...";
-  }, [currentSourceId]);
+    return providerNames[currentSourceId] ?? source?.name ?? "...";
+  }, [currentSourceId, providerNames]);
   const { toggleLastUsed } = useCaptions();
 
   const selectedLanguagePretty = selectedCaptionLanguage

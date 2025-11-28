@@ -30,6 +30,7 @@ export interface ScrapeMedia {
   releaseYear: number;
   tmdbId: string;
   imdbId?: string;
+  backdropPath?: string;
   episode?: {
     number: number;
     tmdbId: string;

@@ -34,6 +34,7 @@ export function usePlayerMeta() {
           releaseYear: +(m.meta.year ?? 0),
           title: m.meta.title,
           poster: m.meta.poster,
+          backdrop: m.meta.backdrop,
           tmdbId: m.tmdbId ?? "",
           imdbId: m.imdbId,
           episodes: m.meta.seasonData.episodes.map((v) => ({
@@ -60,6 +61,7 @@ export function usePlayerMeta() {
           releaseYear: +(m.meta.year ?? 0),
           title: m.meta.title,
           poster: m.meta.poster,
+          backdrop: m.meta.backdrop,
           tmdbId: m.tmdbId ?? "",
           imdbId: m.imdbId,
         };

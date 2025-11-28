@@ -34,6 +34,7 @@ export interface PlayerMeta {
   imdbId?: string;
   releaseYear: number;
   poster?: string;
+  backdrop?: string;
   episodes?: PlayerMetaEpisode[];
   episode?: PlayerMetaEpisode;
   season?: {
@@ -116,6 +117,7 @@ export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
       imdbId: meta.imdbId,
       episode: meta.episode,
       season: meta.season,
+      backdropPath: meta.backdrop,
     };
   }
 
@@ -125,6 +127,7 @@ export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
     tmdbId: meta.tmdbId,
     type: "movie",
     imdbId: meta.imdbId,
+    backdropPath: meta.backdrop,
   };
 }
 

@@ -76,6 +76,7 @@ export function formatTMDBMeta(
     id: media.id.toString(),
     year: media.original_release_date?.getFullYear()?.toString(),
     poster: media.poster,
+    backdrop: media.backdrop,
     type,
     seasons: seasons as any,
     seasonData: season
@@ -387,13 +388,11 @@ export async function getMediaDetails<
 export function getMediaBackdrop(
   backdropPath: string | null,
 ): string | undefined {
-  const shouldProxyTmdb = usePreferencesStore.getState().proxyTmdb;
-  const imgUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
-  const proxyUrl = getProxyUrls()[0];
-  if (proxyUrl && shouldProxyTmdb) {
-    return `${proxyUrl}/?destination=${imgUrl}`;
-  }
-  if (backdropPath) return imgUrl;
+  if (!backdropPath) return undefined;
+
+  // Use wsrv.nl as a reliable image proxy with optimization
+  const tmdbUrl = `https://image.tmdb.org/t/p/w780${backdropPath}`;
+  return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&w=1280`;
 }
 
 export function getMediaPoster(posterPath: string | null): string | undefined {

@@ -65,6 +65,14 @@ export function RealPlayerView() {
   const router = useOverlayRouter("settings");
   const openedWatchPartyRef = useRef<boolean>(false);
   const progressItems = useProgressStore((s) => s.items);
+  const [backdropUrl, setBackdropUrl] = useState<string | null>(null);
+
+  const handleBackdropLoaded = useCallback((url: string) => {
+    console.log("[PlayerView] Backdrop loaded, setting URL:", url);
+    setBackdropUrl(url);
+  }, []);
+
+  console.log("[PlayerView] Current backdropUrl state:", backdropUrl);
 
   // Reset last successful source when leaving the player
   useEffect(() => {
@@ -185,9 +193,17 @@ export function RealPlayerView() {
   );
 
   return (
-    <PlayerPart backUrl={backUrl} onMetaChange={metaChange}>
+    <PlayerPart
+      backUrl={backUrl}
+      onMetaChange={metaChange}
+      backdropUrl={backdropUrl}
+    >
       {status === playerStatus.IDLE ? (
-        <MetaPart onGetMeta={handleMetaReceived} />
+        <MetaPart
+          onGetMeta={handleMetaReceived}
+          onBackdropLoaded={handleBackdropLoaded}
+          backdropUrl={backdropUrl}
+        />
       ) : null}
       {status === playerStatus.RESUME ? (
         <ResumePart

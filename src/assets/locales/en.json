@@ -238,6 +238,11 @@
       "migration": "Migrate Account",
       "jip": "Jip"
     },
+    "save": "Save",
+    "cancel": "Cancel",
+    "rename": "Rename",
+    "enable": "Enable",
+    "disable": "Disable",
     "keyboardShortcuts": {
       "title": "Keyboard Shortcuts",
       "subtitle": "Hold ` to show this help anytime",
@@ -335,11 +340,7 @@
       },
       "empty": {
         "default": "Welcome, find media to watch here!",
-        "extra": [
-          "There's nothing here :(",
-          "So empty...",
-          "Such emptiness."
-        ]
+        "extra": ["There's nothing here :(", "So empty...", "Such emptiness."]
       },
       "sectionTitle": "Search results",
       "discoverMore": "Discover more",
@@ -1165,6 +1166,17 @@
         "dropShadow": "Drop Shadow"
       },
       "BorderThicknessLabel": "Border Thickness"
+    },
+    "providers": {
+      "title": "Providers",
+      "description": "Manage your media providers, check their status, and customize their display names.",
+      "providerList": "Provider List",
+      "additionalSettings": "Additional Settings",
+      "placeholder": "Additional provider settings and controls will appear here.",
+      "uptime": "Uptime",
+      "latency": "Latency",
+      "status": "Status",
+      "noSources": "No providers available."
     },
     "unsaved": "You have unsaved changes..."
   },

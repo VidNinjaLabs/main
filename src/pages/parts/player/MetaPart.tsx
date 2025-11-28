@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+import classNames from "classnames";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAsync } from "react-use";
@@ -20,6 +23,8 @@ import { conf } from "@/setup/config";
 
 export interface MetaPartProps {
   onGetMeta?: (meta: DetailedMeta, episodeId?: string) => void;
+  onBackdropLoaded?: (backdropUrl: string) => void;
+  backdropUrl?: string | null;
 }
 
 function isDisallowedMedia(id: string, type: MWMediaType): boolean {
@@ -37,6 +42,7 @@ export function MetaPart(props: MetaPartProps) {
     season?: string;
   }>();
   const navigate = useNavigate();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const { error, value, loading } = useAsync(async () => {
     const info = await extensionInfo();
@@ -78,6 +84,12 @@ export function MetaPart(props: MetaPartProps) {
     }
     if (!meta) return null;
 
+    // Preload backdrop image to make the transition to scraping screen smoother
+    if (meta.meta.backdrop) {
+      const img = new Image();
+      img.src = meta.meta.backdrop;
+    }
+
     // replace link with new link if youre not already on the right link
     let epId = params.episode;
     if (meta.meta.type === MWMediaType.SERIES) {
@@ -96,7 +108,15 @@ export function MetaPart(props: MetaPartProps) {
       }
     }
 
+    // Pass backdrop to parent immediately - BEFORE changing status
+    if (meta.meta.backdrop) {
+      props.onBackdropLoaded?.(meta.meta.backdrop);
+    }
+
     props.onGetMeta?.(meta, epId);
+
+    // Return meta to make it available for backdrop display
+    return meta;
   }, []);
 
   if (error && error.message === "extension-no-permission") {
@@ -215,10 +235,29 @@ export function MetaPart(props: MetaPartProps) {
   }
 
   return (
-    <ErrorLayout>
-      <div className="flex items-center justify-center">
-        <Loading />
+    <div className="h-full w-full relative flex items-center justify-center">
+      {/* Backdrop Image */}
+      {props.backdropUrl && (
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={props.backdropUrl}
+            className={classNames(
+              "absolute inset-0 w-full h-full object-cover blur-xl scale-110 transition-opacity duration-300",
+              imageLoaded ? "opacity-30" : "opacity-0",
+            )}
+            onLoad={() => setImageLoaded(true)}
+            alt=""
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+      )}
+
+      {/* Centered Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center">
+        <div className="mb-8 scale-150">
+          <Loading />
+        </div>
       </div>
-    </ErrorLayout>
+    </div>
   );
 }

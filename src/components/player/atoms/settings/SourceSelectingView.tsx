@@ -141,6 +141,7 @@ export function SourceSelectionView({
     (s) => s.enableLastSuccessfulSource,
   );
   const disabledSources = usePreferencesStore((s) => s.disabledSources);
+  const providerNames = usePreferencesStore((s) => s.providerNames);
 
   const sources = useMemo(() => {
     if (!metaType) return [];
@@ -228,7 +229,7 @@ export function SourceSelectionView({
             }}
             selected={v.id === currentSourceId}
           >
-            {v.name}
+            {providerNames[v.id] ?? v.name}
           </SelectableLink>
         ))}
       </Menu.Section>

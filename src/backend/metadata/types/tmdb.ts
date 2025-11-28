@@ -21,6 +21,7 @@ export type TMDBEpisodeShort = {
 export type TMDBMediaResult = {
   title: string;
   poster?: string;
+  backdrop?: string;
   id: number;
   original_release_date?: Date;
   object_type: TMDBContentTypes;
