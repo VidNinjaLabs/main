@@ -114,7 +114,7 @@ const qualityNameMap: Record<SourceQuality, string> = {
   "360": "360p",
   "480": "480p",
   "720": "720p",
-  unknown: "unknown",
+  unknown: "Auto",
 };
 
 export const allQualities = Object.keys(qualityNameMap) as SourceQuality[];

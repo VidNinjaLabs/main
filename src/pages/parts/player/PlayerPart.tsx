@@ -236,17 +236,20 @@ export function PlayerPart(props: PlayerPartProps) {
               status === playerStatus.PLAYING ? (
                 <Player.Captions iconSizeClass="text-5xl w-12 h-12" />
               ) : null}
-              <Player.Settings iconSizeClass="text-5xl w-12 h-12" />
-              {isShifting || isHoldingFullscreen ? (
-                <Player.Widescreen iconSizeClass="text-5xl w-12 h-12" />
-              ) : (
-                <Player.Fullscreen iconSizeClass="text-5xl w-12 h-12" />
+              {status === playerStatus.PLAYING && (
+                <Player.Settings iconSizeClass="text-5xl w-12 h-12" />
               )}
+              {status === playerStatus.PLAYING &&
+                (isShifting || isHoldingFullscreen ? (
+                  <Player.Widescreen iconSizeClass="text-5xl w-12 h-12" />
+                ) : (
+                  <Player.Fullscreen iconSizeClass="text-5xl w-12 h-12" />
+                ))}
             </div>
           </div>
-          <div className="flex justify-center items-center gap-6 lg:hidden px-4">
-            {/* Episodes - Only show for TV shows */}
-            {status === playerStatus.PLAYING && (
+          {status === playerStatus.PLAYING && (
+            <div className="flex justify-center items-center gap-6 lg:hidden px-4">
+              {/* Episodes - Only show for TV shows */}
               <div className="flex flex-row items-center gap-2">
                 <Player.Episodes
                   inControl={inControl}
@@ -254,20 +257,18 @@ export function PlayerPart(props: PlayerPartProps) {
                 />
                 <span className="text-sm text-white">Episodes</span>
               </div>
-            )}
-            {/* Captions */}
-            {status === playerStatus.PLAYING ? (
+              {/* Captions */}
               <div className="flex flex-row items-center gap-2">
                 <Player.Captions iconSizeClass="text-2xl" />
                 <span className="text-sm text-white">Subtitle</span>
               </div>
-            ) : null}
-            {/* Settings */}
-            <div className="flex flex-row items-center gap-2">
-              <Player.Settings iconSizeClass="text-2xl" />
-              <span className="text-sm text-white">Settings</span>
+              {/* Settings */}
+              <div className="flex flex-row items-center gap-2">
+                <Player.Settings iconSizeClass="text-2xl" />
+                <span className="text-sm text-white">Settings</span>
+              </div>
             </div>
-          </div>
+          )}
         </Player.BottomControls>
 
         <Player.VolumeChangedPopout />
