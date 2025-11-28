@@ -119,7 +119,7 @@ export function SettingsMenu({ id }: { id: string }) {
           {t("player.menus.watchparty.watchpartyItem")}
         </Menu.Link>
       </Menu.Section> */}
-      {/* <Menu.SectionTitle /> */}
+      <Menu.SectionTitle />
       <Menu.Section>
         <Menu.Link
           rightSide={

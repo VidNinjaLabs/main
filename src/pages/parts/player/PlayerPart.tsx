@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Player } from "@/components/player";
+import { MobileVolumeSlider } from "@/components/player/atoms/MobileVolumeSlider";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
@@ -35,8 +36,8 @@ export function PlayerPart(props: PlayerPartProps) {
 
   const inControl = !enabled || isHost;
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isPWA = window.matchMedia("(display-mode: standalone)").matches;
+  const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const _isPWA = window.matchMedia("(display-mode: standalone)").matches;
 
   const [isShifting, setIsShifting] = useState(false);
   const [isHoldingFullscreen, setIsHoldingFullscreen] = useState(false);
@@ -69,7 +70,7 @@ export function PlayerPart(props: PlayerPartProps) {
     }
   });
 
-  const handleTouchStart = () => {
+  const _handleTouchStart = () => {
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
     }
@@ -78,7 +79,7 @@ export function PlayerPart(props: PlayerPartProps) {
     }, 100);
   };
 
-  const handleTouchEnd = () => {
+  const _handleTouchEnd = () => {
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
     }
@@ -104,6 +105,12 @@ export function PlayerPart(props: PlayerPartProps) {
         )}
 
         {props.children}
+
+        {/* Mobile Volume Slider */}
+        {isMobile && status === playerStatus.PLAYING && (
+          <MobileVolumeSlider show={showTargets} />
+        )}
+
         <Player.BlackOverlay
           show={showTargets && status === playerStatus.PLAYING}
         />
@@ -237,36 +244,28 @@ export function PlayerPart(props: PlayerPartProps) {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-[2.5rem,1fr,2.5rem] gap-3 lg:hidden">
-            <div />
-            <div className="flex justify-center space-x-3">
-              {/* Disable PiP for iOS PWA */}
-              {!(isPWA && isIOS) && status === playerStatus.PLAYING && (
-                <Player.Pip />
-              )}
-              <Player.Episodes inControl={inControl} />
-              {status === playerStatus.PLAYING ? (
-                <div className="hidden ssm:block">
-                  <Player.Captions />
-                </div>
-              ) : null}
-              <Player.Settings />
-            </div>
-            <div>
-              {status === playerStatus.PLAYING && (
-                <div
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                  className="select-none touch-none"
-                  style={{ WebkitTapHighlightColor: "transparent" }}
-                >
-                  {isHoldingFullscreen ? (
-                    <Player.Widescreen />
-                  ) : (
-                    <Player.Fullscreen />
-                  )}
-                </div>
-              )}
+          <div className="flex justify-center items-center gap-6 lg:hidden px-4">
+            {/* Episodes - Only show for TV shows */}
+            {status === playerStatus.PLAYING && (
+              <div className="flex flex-row items-center gap-2">
+                <Player.Episodes
+                  inControl={inControl}
+                  iconSizeClass="text-2xl"
+                />
+                <span className="text-sm text-white">Episodes</span>
+              </div>
+            )}
+            {/* Captions */}
+            {status === playerStatus.PLAYING ? (
+              <div className="flex flex-row items-center gap-2">
+                <Player.Captions iconSizeClass="text-2xl" />
+                <span className="text-sm text-white">Subtitle</span>
+              </div>
+            ) : null}
+            {/* Settings */}
+            <div className="flex flex-row items-center gap-2">
+              <Player.Settings iconSizeClass="text-2xl" />
+              <span className="text-sm text-white">Settings</span>
             </div>
           </div>
         </Player.BottomControls>
