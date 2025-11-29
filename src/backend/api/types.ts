@@ -21,6 +21,10 @@ export interface VidNinjaStream {
   flags: string[];
   captions: VidNinjaCaption[];
   qualities?: Record<string, VidNinjaQuality>;
+  // Stream metadata for multi-language/multi-server support
+  language?: string; // ISO 639-1 language code (e.g., "en", "hi", "ta")
+  label?: string; // Human-readable display name (e.g., "AllMovies (Hindi)")
+  quality?: string; // Quality/server identifier (e.g., "HD", "LS-25", "GS-25")
 }
 
 export interface VidNinjaStreamResponse {

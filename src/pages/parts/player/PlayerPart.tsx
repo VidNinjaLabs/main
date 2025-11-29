@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
+import { Icon, Icons } from "@/components/Icon";
 import { Player } from "@/components/player";
 import { MobileVolumeSlider } from "@/components/player/atoms/MobileVolumeSlider";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
@@ -9,12 +10,60 @@ import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
 import { useShouldShowControls } from "@/components/player/hooks/useShouldShowControls";
 import { useSkipTime } from "@/components/player/hooks/useSkipTime";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWatchPartyStore } from "@/stores/watchParty";
 
 import { Tips } from "./ScrapingPart";
+
+// Helper components for mobile controls with clickable labels
+function EpisodesButton({ inControl }: { inControl: boolean }) {
+  const router = useOverlayRouter("episodes");
+  const type = usePlayerStore((s) => s.meta?.type);
+
+  if (type !== "show" || !inControl) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => router.open()}
+      className="flex flex-row items-center"
+    >
+      <Icon icon={Icons.EPISODES} className="text-2xl" />
+      <span className="text-sm text-white">Episodes</span>
+    </button>
+  );
+}
+
+function CaptionsButton() {
+  const router = useOverlayRouter("settings");
+  return (
+    <button
+      type="button"
+      onClick={() => router.open("/captionsOverlay")}
+      className="flex flex-row items-center"
+    >
+      <Player.Captions iconSizeClass="text-2xl" />
+      <span className="text-sm text-white">Subtitle</span>
+    </button>
+  );
+}
+
+function SettingsButton() {
+  const router = useOverlayRouter("settings");
+  return (
+    <button
+      type="button"
+      onClick={() => router.open()}
+      className="flex flex-row items-center"
+    >
+      <Player.Settings iconSizeClass="text-2xl" />
+      <span className="text-sm text-white">Settings</span>
+    </button>
+  );
+}
 
 export interface PlayerPartProps {
   children?: ReactNode;
@@ -259,28 +308,14 @@ export function PlayerPart(props: PlayerPartProps) {
             <div className="flex justify-between items-center gap-6 lg:hidden px-4">
               <div className="flex justify-center items-center gap-6">
                 {/* Episodes - Only show for TV shows */}
-                <div className="flex flex-row items-center gap-2">
-                  <Player.Episodes
-                    inControl={inControl}
-                    iconSizeClass="text-2xl"
-                  />
-                  <span className="text-sm text-white">Episodes</span>
-                </div>
+                <EpisodesButton inControl={inControl} />
                 {/* Captions */}
-                <div className="flex flex-row items-center gap-2">
-                  <Player.Captions iconSizeClass="text-2xl" />
-                  <span className="text-sm text-white">Subtitle</span>
-                </div>
-                {/* Settings */}
-                <div className="flex flex-row items-center gap-2">
-                  <Player.Settings iconSizeClass="text-2xl" />
-                  <span className="text-sm text-white">Settings</span>
-                </div>
+                <CaptionsButton />
               </div>
-              {/* Fullscreen - Right corner */}
-              <div className="flex flex-row items-center gap-2">
+              {/* Settings and Fullscreen - Right corner */}
+              <div className="flex items-center gap-6">
+                <SettingsButton />
                 <Player.Fullscreen iconSizeClass="text-2xl" />
-                <span className="text-sm text-white">Fullscreen</span>
               </div>
             </div>
           )}

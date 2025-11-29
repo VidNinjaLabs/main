@@ -74,6 +74,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
 
     try {
       let stream;
+      let allStreams: any[] = [];
 
       // Route to correct client based on source ID
       if (sourceId === "febbox") {
@@ -85,6 +86,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
           season: scrapeMedia.season?.number,
           episode: scrapeMedia.episode?.number,
         });
+        allStreams = stream ? [stream] : [];
       } else {
         // Use VidNinja client
         const result = await vidNinjaClient.getStream({
@@ -97,6 +99,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
 
         stream =
           result.stream && result.stream.length > 0 ? result.stream[0] : null;
+        allStreams = result.stream || [];
       }
 
       if (stream) {
@@ -118,6 +121,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
           convertRunoutputToSource({ stream: stream as any }),
           convertProviderCaption((stream as any).captions),
           getSavedProgress(progressItems, meta),
+          allStreams,
         );
         setSourceId(sourceId);
 

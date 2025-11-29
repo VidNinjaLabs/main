@@ -21,7 +21,6 @@ import { DownloadRoutes } from "./settings/Downloads";
 import { PlaybackSettingsView } from "./settings/PlaybackSettingsView";
 import { QualityView } from "./settings/QualityView";
 import { SettingsMenu } from "./settings/SettingsMenu";
-import { WatchPartyView } from "./settings/WatchPartyView";
 
 function SettingsOverlay({ id }: { id: string }) {
   const [chosenSourceId, setChosenSourceId] = useState<string | null>(null);
@@ -40,18 +39,18 @@ function SettingsOverlay({ id }: { id: string }) {
   return (
     <Overlay id={id}>
       <OverlayRouter id={id}>
-        <OverlayPage id={id} path="/" width={343} height={452}>
+        <OverlayPage id={id} path="/" width={343} height={295}>
           <SettingsMenu id={id} />
         </OverlayPage>
-        <OverlayPage id={id} path="/quality" width={343} height={452}>
+        <OverlayPage id={id} path="/quality" width={343} height={380}>
           <Menu.Card>
             <QualityView id={id} />
           </Menu.Card>
         </OverlayPage>
-        <OverlayPage id={id} path="/audio" width={343} height={452}>
-          <Menu.Card>
+        <OverlayPage id={id} path="/audio" width={343} height={380}>
+          <Menu.CardWithScrollable>
             <AudioView id={id} />
-          </Menu.Card>
+          </Menu.CardWithScrollable>
         </OverlayPage>
         <OverlayPage id={id} path="/captions" width={343} height={452}>
           <Menu.CardWithScrollable>
@@ -80,27 +79,22 @@ function SettingsOverlay({ id }: { id: string }) {
             <CaptionSettingsView id={id} overlayBackLink />
           </Menu.Card>
         </OverlayPage>
-        <OverlayPage id={id} path="/source" width={343} height={452}>
+        <OverlayPage id={id} path="/source" width={343} height={390}>
           <Menu.CardWithScrollable>
             <SourceSelectionView id={id} onChoose={setChosenSourceId} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/source/embeds" width={343} height={452}>
+        <OverlayPage id={id} path="/source/embeds" width={343} height={490}>
           <Menu.CardWithScrollable>
             <EmbedSelectionView id={id} sourceId={chosenSourceId} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/playback" width={343} height={330}>
+        <OverlayPage id={id} path="/playback" width={343} height={280}>
           <Menu.Card>
             <PlaybackSettingsView id={id} />
           </Menu.Card>
         </OverlayPage>
         <DownloadRoutes id={id} />
-        <OverlayPage id={id} path="/watchparty" width={343} height={455}>
-          <Menu.CardWithScrollable>
-            <WatchPartyView id={id} />
-          </Menu.CardWithScrollable>
-        </OverlayPage>
       </OverlayRouter>
     </Overlay>
   );

@@ -38,6 +38,12 @@ export function AudioView({ id }: { id: string }) {
   const currentAudioTrack = usePlayerStore((s) => s.currentAudioTrack);
   const changeAudioTrack = usePlayerStore((s) => s.display?.changeAudioTrack);
 
+  const availableStreams = usePlayerStore((s) => s.availableStreams);
+  const currentStreamIndex = usePlayerStore((s) => s.currentStreamIndex);
+  const switchStream = usePlayerStore((s) => s.switchStream);
+
+  const hasMultipleStreams = availableStreams && availableStreams.length > 1;
+
   const change = useCallback(
     (track: AudioTrack) => {
       changeAudioTrack?.(track);
@@ -45,6 +51,39 @@ export function AudioView({ id }: { id: string }) {
     },
     [router, changeAudioTrack],
   );
+
+  const handleStreamSwitch = useCallback(
+    (index: number) => {
+      switchStream(index);
+      router.close();
+    },
+    [router, switchStream],
+  );
+
+  if (hasMultipleStreams) {
+    return (
+      <>
+        <Menu.BackLink onClick={() => router.navigate("/")}>
+          Audio
+        </Menu.BackLink>
+        <Menu.Section className="flex flex-col pb-4">
+          {availableStreams.map((stream, index) => (
+            <AudioOption
+              key={stream.id || `stream-${index}`}
+              selected={index === currentStreamIndex}
+              langCode={stream.language || "en"}
+              onClick={() => handleStreamSwitch(index)}
+            >
+              {stream.label?.match(/\(([^)]+)\)$/)?.[1] ??
+                stream.label ??
+                stream.quality ??
+                `Stream ${index + 1}`}
+            </AudioOption>
+          ))}
+        </Menu.Section>
+      </>
+    );
+  }
 
   return (
     <>

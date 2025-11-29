@@ -59,7 +59,7 @@ export function MobileVolumeSlider(props: MobileVolumeSliderProps) {
   if (!props.show) return null;
 
   return (
-    <div className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center pointer-events-auto">
+    <div className="fixed right-3 top-[40%] -translate-y-1/2 z-40 flex flex-col items-center pointer-events-auto">
       {/* Volume Icon Button */}
       <div className="p-2 text-white cursor-pointer" onClick={handleClick}>
         <VolumeIconComponent className="text-2xl" />

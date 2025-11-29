@@ -98,6 +98,9 @@ export function OverlayRouter(props: OverlayRouterProps) {
   const { isMobile } = useIsMobile();
   const content = <RouterBase id={props.id}>{props.children}</RouterBase>;
 
-  if (isMobile) return <OverlayMobilePosition>{content}</OverlayMobilePosition>;
+  if (isMobile)
+    return (
+      <OverlayMobilePosition id={props.id}>{content}</OverlayMobilePosition>
+    );
   return <OverlayAnchorPosition>{content}</OverlayAnchorPosition>;
 }

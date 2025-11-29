@@ -743,8 +743,8 @@
         "editOrder": "Edit order"
       },
       "subtitles": {
-        "customChoice": "Drop or upload file",
-        "pasteChoice": "Paste subtitle data",
+        "customChoice": "Upload",
+        "pasteChoice": "Paste",
         "doubleClickToCopy": "Double click to copy subtitle data",
         "customizeLabel": "Customize",
         "previewLabel": "Subtitle preview:",

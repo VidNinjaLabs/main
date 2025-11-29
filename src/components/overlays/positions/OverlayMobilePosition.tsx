@@ -8,11 +8,12 @@ import { useInternalOverlayRouter } from "@/hooks/useOverlayRouter";
 interface MobilePositionProps {
   children?: ReactNode;
   className?: string;
+  id?: string;
 }
 
 export function OverlayMobilePosition(props: MobilePositionProps) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const router = useInternalOverlayRouter("hello world :)");
+  const router = useInternalOverlayRouter(props.id || "unknown");
   const { t } = useTranslation();
 
   const togglePreview = () => {
@@ -22,6 +23,18 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
   const isCaptionsSettings = window.location.href.endsWith(
     "settings%2Fcaptions%2Fsettings",
   );
+
+  let positionClass = "left-0 right-0 mx-auto"; // Default center
+
+  if (props.id === "episodes") {
+    positionClass = "left-4 right-auto";
+  } else if (props.id === "settings") {
+    if (router.activeRoute === "/captionsOverlay") {
+      positionClass = "left-4 right-auto";
+    } else {
+      positionClass = "right-4 left-auto";
+    }
+  }
 
   return (
     <>
@@ -42,7 +55,8 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
       {/* Main Overlay */}
       <div
         className={classNames([
-          "pointer-events-auto px-4 pb-6 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-0 origin-top-left inset-x-0 absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
+          "pointer-events-auto px-4 pb-6 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-0 origin-top-left max-w-md w-[calc(100%-2rem)] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
+          positionClass,
           props.className,
           "transition-all duration-300",
           isPreviewMode ? "opacity-50" : "opacity-100",

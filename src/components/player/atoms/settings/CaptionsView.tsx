@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import { Ear, Upload } from "lucide-react";
+import { Clipboard as ClipboardIcon, Ear, Upload } from "lucide-react";
 import { type DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsyncFn } from "react-use";
@@ -189,18 +189,52 @@ export function useSubtitleList(subs: CaptionListItem[], searchQuery: string) {
   }, [subs, searchQuery, unknownChoice]);
 }
 
-export function CustomCaptionOption() {
+export function CustomCaptionOption({ compact }: { compact?: boolean }) {
   const { t } = useTranslation();
   const lang = usePlayerStore((s) => s.caption.selected?.language);
   const setCaption = usePlayerStore((s) => s.setCaption);
   const setCustomSubs = useSubtitleStore((s) => s.setCustomSubs);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const handleClick = () => fileInput.current?.click();
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className="flex-1 flex items-center justify-center gap-2 p-1.5 rounded-lg bg-video-context-type-accent hover:bg-opacity-80 transition-colors text-white font-medium"
+      >
+        <LucideIcon icon={Upload} className="text-lg" />
+        <span>{t("player.menus.subtitles.customChoice")}</span>
+        <input
+          className="hidden"
+          ref={fileInput}
+          accept={subtitleTypeList.join(",")}
+          type="file"
+          onChange={(e) => {
+            if (!e.target.files) return;
+            const reader = new FileReader();
+            reader.addEventListener("load", (event) => {
+              if (!event.target || typeof event.target.result !== "string")
+                return;
+              const converted = convert(event.target.result, "srt");
+              setCaption({
+                language: "custom",
+                srtData: converted,
+                id: "custom-caption",
+              });
+              setCustomSubs();
+            });
+            reader.readAsText(e.target.files[0], "utf-8");
+          }}
+        />
+      </button>
+    );
+  }
+
   return (
-    <CaptionOption
-      selected={lang === "custom"}
-      onClick={() => fileInput.current?.click()}
-    >
+    <CaptionOption selected={lang === "custom"} onClick={handleClick}>
       {t("player.menus.subtitles.customChoice")}
       <input
         className="hidden"
@@ -228,7 +262,10 @@ export function CustomCaptionOption() {
   );
 }
 
-export function PasteCaptionOption(props: { selected?: boolean }) {
+export function PasteCaptionOption(props: {
+  selected?: boolean;
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
   const setCaption = usePlayerStore((s) => s.setCaption);
   const setCustomSubs = useSubtitleStore((s) => s.setCustomSubs);
@@ -285,6 +322,24 @@ export function PasteCaptionOption(props: { selected?: boolean }) {
       setIsLoading(false);
     }
   };
+
+  if (props.compact) {
+    return (
+      <button
+        type="button"
+        onClick={handlePaste}
+        className={classNames(
+          "flex-1 flex items-center justify-center gap-2 p-1.5 rounded-lg transition-colors text-white font-medium",
+          props.selected
+            ? "bg-video-context-type-accent"
+            : "bg-video-context-light bg-opacity-20 hover:bg-opacity-30",
+        )}
+      >
+        <LucideIcon icon={ClipboardIcon} className="text-lg" />
+        <span>{t("player.menus.subtitles.pasteChoice")}</span>
+      </button>
+    );
+  }
 
   return (
     <CaptionOption
@@ -534,13 +589,16 @@ export function CaptionsView({
             {t("player.menus.subtitles.offChoice")}
           </CaptionOption>
 
-          {/* Custom upload option */}
-          <CustomCaptionOption />
+          <div className="flex gap-3 mb-3">
+            {/* Custom upload option */}
+            <CustomCaptionOption compact />
 
-          {/* Paste subtitle option */}
-          <PasteCaptionOption
-            selected={selectedCaptionId === "pasted-caption"}
-          />
+            {/* Paste subtitle option */}
+            <PasteCaptionOption
+              compact
+              selected={selectedCaptionId === "pasted-caption"}
+            />
+          </div>
 
           <div className="h-1" />
 
