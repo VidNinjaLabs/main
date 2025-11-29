@@ -256,24 +256,31 @@ export function PlayerPart(props: PlayerPartProps) {
             </div>
           </div>
           {status === playerStatus.PLAYING && (
-            <div className="flex justify-center items-center gap-6 lg:hidden px-4">
-              {/* Episodes - Only show for TV shows */}
-              <div className="flex flex-row items-center gap-2">
-                <Player.Episodes
-                  inControl={inControl}
-                  iconSizeClass="text-2xl"
-                />
-                <span className="text-sm text-white">Episodes</span>
+            <div className="flex justify-between items-center gap-6 lg:hidden px-4">
+              <div className="flex justify-center items-center gap-6">
+                {/* Episodes - Only show for TV shows */}
+                <div className="flex flex-row items-center gap-2">
+                  <Player.Episodes
+                    inControl={inControl}
+                    iconSizeClass="text-2xl"
+                  />
+                  <span className="text-sm text-white">Episodes</span>
+                </div>
+                {/* Captions */}
+                <div className="flex flex-row items-center gap-2">
+                  <Player.Captions iconSizeClass="text-2xl" />
+                  <span className="text-sm text-white">Subtitle</span>
+                </div>
+                {/* Settings */}
+                <div className="flex flex-row items-center gap-2">
+                  <Player.Settings iconSizeClass="text-2xl" />
+                  <span className="text-sm text-white">Settings</span>
+                </div>
               </div>
-              {/* Captions */}
+              {/* Fullscreen - Right corner */}
               <div className="flex flex-row items-center gap-2">
-                <Player.Captions iconSizeClass="text-2xl" />
-                <span className="text-sm text-white">Subtitle</span>
-              </div>
-              {/* Settings */}
-              <div className="flex flex-row items-center gap-2">
-                <Player.Settings iconSizeClass="text-2xl" />
-                <span className="text-sm text-white">Settings</span>
+                <Player.Fullscreen iconSizeClass="text-2xl" />
+                <span className="text-sm text-white">Fullscreen</span>
               </div>
             </div>
           )}
