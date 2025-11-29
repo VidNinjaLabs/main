@@ -29,7 +29,8 @@ export function MobileVolumeSlider(props: MobileVolumeSliderProps) {
   const { dragging, dragPercentage, dragMouseDown } = useProgressBar(
     ref,
     commitVolume,
-    false, // vertical
+    false,
+    true, // vertical
   );
 
   const handleClick = useCallback(() => {
@@ -58,9 +59,9 @@ export function MobileVolumeSlider(props: MobileVolumeSliderProps) {
   if (!props.show) return null;
 
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center pointer-events-auto">
+    <div className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center pointer-events-auto">
       {/* Volume Icon Button */}
-      <div className="mb-2 p-2 text-white cursor-pointer" onClick={handleClick}>
+      <div className="p-2 text-white cursor-pointer" onClick={handleClick}>
         <VolumeIconComponent className="text-2xl" />
       </div>
 

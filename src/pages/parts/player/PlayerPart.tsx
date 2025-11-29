@@ -52,6 +52,14 @@ export function PlayerPart(props: PlayerPartProps) {
   useEffect(() => {
     if (isMobile && display) {
       display.toggleFullscreen();
+      // Attempt to lock orientation to landscape
+      const orientation = window.screen?.orientation as any;
+      if (orientation && orientation.lock) {
+        orientation.lock("landscape").catch(() => {
+          // Orientation lock failed, likely not supported or permission denied
+          // We can silently ignore this as it's a progressive enhancement
+        });
+      }
     }
   }, [isMobile, display]);
 

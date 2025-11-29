@@ -26,10 +26,15 @@ const getEventX = (evt: ActivityEvent) => {
   return isClickEvent(evt) ? evt.pageX : evt.changedTouches[0].pageX;
 };
 
+const getEventY = (evt: ActivityEvent) => {
+  return isClickEvent(evt) ? evt.pageY : evt.changedTouches[0].pageY;
+};
+
 export function useProgressBar(
   barRef: RefObject<HTMLElement>,
   commit: (percentage: number) => void,
   commitImmediately = false,
+  vertical = false,
 ) {
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -38,7 +43,18 @@ export function useProgressBar(
     function mouseMove(ev: ActivityEvent) {
       if (!mouseDown || !barRef.current) return;
       const rect = barRef.current.getBoundingClientRect();
-      const pos = (getEventX(ev) - rect.left) / barRef.current.offsetWidth;
+      let pos: number;
+
+      if (vertical) {
+        // For vertical sliders, calculate from bottom to top
+        const y = getEventY(ev);
+        pos = 1 - (y - rect.top) / barRef.current.offsetHeight;
+      } else {
+        // For horizontal sliders, calculate from left to right
+        const x = getEventX(ev);
+        pos = (x - rect.left) / barRef.current.offsetWidth;
+      }
+
       setProgress(pos * 100);
       if (commitImmediately) commit(pos);
     }
@@ -50,7 +66,16 @@ export function useProgressBar(
 
       if (!barRef.current) return;
       const rect = barRef.current.getBoundingClientRect();
-      const pos = (getEventX(ev) - rect.left) / barRef.current.offsetWidth;
+      let pos: number;
+
+      if (vertical) {
+        const y = getEventY(ev);
+        pos = 1 - (y - rect.top) / barRef.current.offsetHeight;
+      } else {
+        const x = getEventX(ev);
+        pos = (x - rect.left) / barRef.current.offsetWidth;
+      }
+
       commit(pos);
     }
 
@@ -65,7 +90,7 @@ export function useProgressBar(
       document.removeEventListener("mouseup", mouseUp);
       document.removeEventListener("touchend", mouseUp);
     };
-  }, [mouseDown, barRef, commit, commitImmediately]);
+  }, [mouseDown, barRef, commit, commitImmediately, vertical]);
 
   const dragMouseDown = useCallback(
     (ev: ActivityEvent) => {
@@ -74,11 +99,19 @@ export function useProgressBar(
 
       if (!barRef.current) return;
       const rect = barRef.current.getBoundingClientRect();
-      const pos =
-        ((getEventX(ev) - rect.left) / barRef.current.offsetWidth) * 100;
+      let pos: number;
+
+      if (vertical) {
+        const y = getEventY(ev);
+        pos = (1 - (y - rect.top) / barRef.current.offsetHeight) * 100;
+      } else {
+        const x = getEventX(ev);
+        pos = ((x - rect.left) / barRef.current.offsetWidth) * 100;
+      }
+
       setProgress(pos);
     },
-    [setProgress, barRef],
+    [setProgress, barRef, vertical],
   );
 
   return {

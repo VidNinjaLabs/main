@@ -68,11 +68,8 @@ export function RealPlayerView() {
   const [backdropUrl, setBackdropUrl] = useState<string | null>(null);
 
   const handleBackdropLoaded = useCallback((url: string) => {
-    console.log("[PlayerView] Backdrop loaded, setting URL:", url);
     setBackdropUrl(url);
   }, []);
-
-  console.log("[PlayerView] Current backdropUrl state:", backdropUrl);
 
   // Reset last successful source when leaving the player
   useEffect(() => {

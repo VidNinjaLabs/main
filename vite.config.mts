@@ -177,6 +177,10 @@ export default defineConfig(({ mode }) => {
       },
     },
 
+    server: {
+      allowedHosts: ["f48550021215.ngrok-free.app"],
+    },
+
     test: {
       environment: "jsdom",
     },
