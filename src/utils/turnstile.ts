@@ -81,11 +81,19 @@ export async function getTurnstileToken(
 
       const cleanup = () => {
         if (timeoutId) clearTimeout(timeoutId);
-        if (widgetId && (window as any).turnstile) {
+        if (widgetId !== undefined && (window as any).turnstile) {
           try {
-            (window as any).turnstile.remove(widgetId);
+            // Check if the widget still exists before trying to remove it
+            const turnstile = (window as any).turnstile;
+            if (
+              turnstile.getResponse &&
+              turnstile.getResponse(widgetId) !== undefined
+            ) {
+              turnstile.remove(widgetId);
+            }
           } catch (e) {
-            // Ignore errors during cleanup
+            // Silently ignore errors during cleanup - widget may already be removed
+            console.debug("Turnstile cleanup error (safe to ignore):", e);
           }
         }
         if (container.parentNode) {

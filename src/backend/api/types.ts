@@ -42,7 +42,7 @@ export interface VidNinjaSource {
 
 export interface VidNinjaProviderStatus {
   status: "operational" | "degraded" | "offline" | "untested";
-  responseTime: number;
+  latency: number;
   uptime: number;
 }
 

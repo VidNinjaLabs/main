@@ -40,28 +40,26 @@ function EpisodesButton({ inControl }: { inControl: boolean }) {
 function CaptionsButton() {
   const router = useOverlayRouter("settings");
   return (
-    <button
-      type="button"
+    <div
       onClick={() => router.open("/captionsOverlay")}
-      className="flex flex-row items-center"
+      className="flex flex-row items-center cursor-pointer"
     >
       <Player.Captions iconSizeClass="text-2xl" />
       <span className="text-sm text-white">Subtitle</span>
-    </button>
+    </div>
   );
 }
 
 function SettingsButton() {
   const router = useOverlayRouter("settings");
   return (
-    <button
-      type="button"
+    <div
       onClick={() => router.open()}
-      className="flex flex-row items-center"
+      className="flex flex-row items-center cursor-pointer"
     >
       <Player.Settings iconSizeClass="text-2xl" />
       <span className="text-sm text-white">Settings</span>
-    </button>
+    </div>
   );
 }
 

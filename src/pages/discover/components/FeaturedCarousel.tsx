@@ -220,11 +220,24 @@ export function FeaturedCarousel({
           try {
             const discoverData = await getDiscoverContent();
 
+            // Check if discoverData is null or doesn't have the required data
+            if (
+              !discoverData ||
+              (!discoverData.movie_tmdb_ids && !discoverData.tv_tmdb_ids)
+            ) {
+              throw new Error("No discover data available from Trakt");
+            }
+
             let tmdbIds: number[] = [];
             if (effectiveCategory === "movies") {
-              tmdbIds = discoverData.movie_tmdb_ids;
+              tmdbIds = discoverData.movie_tmdb_ids || [];
             } else {
-              tmdbIds = discoverData.tv_tmdb_ids;
+              tmdbIds = discoverData.tv_tmdb_ids || [];
+            }
+
+            // If no IDs were returned, throw to fallback to TMDB
+            if (tmdbIds.length === 0) {
+              throw new Error("No TMDB IDs returned from Trakt");
             }
 
             // Then fetch full details for each movie/show to get external_ids

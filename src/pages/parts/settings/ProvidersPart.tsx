@@ -173,9 +173,7 @@ export function ProvidersPart(props: {
                         {t("settings.providers.latency", "Latency")}
                       </div>
                       <div className="font-mono font-medium">
-                        {status?.responseTime != null
-                          ? `${status.responseTime}ms`
-                          : "-"}
+                        {status?.latency != null ? `${status.latency}ms` : "-"}
                       </div>
                     </div>
                     <div className="text-center min-w-[100px]">

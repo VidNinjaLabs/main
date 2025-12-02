@@ -19,7 +19,7 @@ export function ErrorContainer(props: {
 
 export function ErrorLayout(props: { children?: ReactNode }) {
   return (
-    <div className="w-full h-full flex justify-center items-center flex-col">
+    <div className="relative z-10 w-full h-full flex justify-center items-center flex-col">
       {props.children}
     </div>
   );

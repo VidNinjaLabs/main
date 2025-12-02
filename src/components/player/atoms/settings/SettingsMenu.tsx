@@ -66,7 +66,7 @@ export function SettingsMenu({ id }: { id: string }) {
       <Menu.Section>
         <Menu.ChevronLink
           onClick={() => router.navigate("/quality")}
-          rightText={currentQuality ? qualityToString(currentQuality) : ""}
+          rightText={currentQuality ? qualityToString(currentQuality) : "Auto"}
         >
           <div className="flex items-center gap-3">
             <LucideIcon icon={SlidersHorizontal} className="text-xl" />

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { type SubtitleData, searchSubtitles } from "wyzie-lib";
+import { type SubtitleData } from "wyzie-lib";
 
 import { CaptionListItem, PlayerMeta } from "@/stores/player/slices/source";
 
@@ -125,7 +125,27 @@ export async function scrapeWyzieCaptions(
     }
 
     console.log("Searching Wyzie subtitles with params:", searchParams);
-    const wyzieSubtitles: SubtitleData[] = await searchSubtitles(searchParams);
+
+    // Build the URL with query parameters
+    const queryString = new URLSearchParams(searchParams).toString();
+    const targetUrl = `https://libre-subs.fifthwit.net/search?${queryString}`;
+
+    // Get CORS proxy URL from config
+    const corsProxyUrl = import.meta.env.VITE_CORS_PROXY_URL;
+    if (!corsProxyUrl) {
+      console.warn("No CORS proxy configured, subtitle fetching may fail");
+      return [];
+    }
+
+    // Fetch through CORS proxy
+    const proxyUrl = `${corsProxyUrl}${encodeURIComponent(targetUrl)}`;
+    const response = await fetch(proxyUrl);
+
+    if (!response.ok) {
+      throw new Error(`Wyzie API returned ${response.status}`);
+    }
+
+    const wyzieSubtitles: SubtitleData[] = await response.json();
 
     const wyzieCaptions: CaptionListItem[] = wyzieSubtitles.map((subtitle) => ({
       id: subtitle.id,
