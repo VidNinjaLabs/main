@@ -29,11 +29,8 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
   if (props.id === "episodes") {
     positionClass = "left-4 right-auto";
   } else if (props.id === "settings") {
-    if (router.activeRoute === "/captionsOverlay") {
-      positionClass = "left-4 right-auto";
-    } else {
-      positionClass = "right-4 left-auto";
-    }
+    // Settings and captions overlay on the right side
+    positionClass = "right-4 left-auto";
   }
 
   return (
@@ -63,15 +60,6 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
         ])}
       >
         {props.children}
-
-        {/* Close button */}
-        <button
-          className="w-full text-video-context-type-main bg-video-context-background/60 backdrop-blur-md z-10 relative hover:bg-video-context-closeHover active:scale-95 rounded-2xl pointer-events-auto transition-all duration-100 flex justify-center items-center py-3 mt-3 font-bold border border-video-context-border hover:text-white"
-          type="button"
-          onClick={() => router.close()}
-        >
-          {t("overlays.close")}
-        </button>
         {/* Gradient to hide the progress */}
         <div className="pointer-events-none absolute z-0 bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent" />
       </div>
