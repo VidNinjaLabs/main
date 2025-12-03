@@ -140,7 +140,7 @@ export function ProgressBar() {
 
       <div className="w-full" ref={ref}>
         <div
-          className="group w-full h-8 flex items-center cursor-pointer"
+          className="group w-full h-4 flex items-center cursor-pointer"
           onMouseDown={dragMouseDown}
           onTouchStart={dragMouseDown}
           onMouseLeave={mouseLeave}

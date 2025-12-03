@@ -302,7 +302,16 @@ export function KeyboardEvents() {
         const action = dataRef.current.mediaPlaying.isPaused ? "play" : "pause";
         dataRef.current.display?.[action]();
       }
-      if (k === "Escape") dataRef.current.router.close();
+      // Navigate back or close overlay with Escape
+      if (k === "Escape") {
+        // If we're on a sub-route, navigate back to root first
+        if (dataRef.current.router.route !== "/") {
+          dataRef.current.router.navigate("/");
+        } else {
+          // If already on root, close the overlay
+          dataRef.current.router.close();
+        }
+      }
 
       // captions
       if (keyL === "c") dataRef.current.toggleLastUsed().catch(() => {}); // ignore errors

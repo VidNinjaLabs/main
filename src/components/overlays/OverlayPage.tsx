@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Transition,
@@ -14,7 +14,8 @@ interface Props {
   path: string;
   children?: ReactNode;
   className?: string;
-  height: number;
+  height?: number; // Optional - will be measured if not provided
+  maxHeight?: number; // Maximum height constraint
   width: number;
   fullWidth?: boolean;
 }
@@ -27,13 +28,47 @@ export function OverlayPage(props: Props) {
   const path = useMemo(() => router.makePath(props.path), [props.path, router]);
   const { isMobile } = useIsMobile();
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [measuredHeight, setMeasuredHeight] = useState<number>(
+    props.height || 400,
+  );
+
+  // Measure content height dynamically
   useEffect(() => {
+    if (props.height || !contentRef.current) return; // Skip if height is explicitly set
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        const height = entry.contentRect.height;
+        // Apply max-height constraint if specified
+        const finalHeight = props.maxHeight
+          ? Math.min(height, props.maxHeight)
+          : height;
+        setMeasuredHeight(finalHeight);
+      }
+    });
+
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [props.height, props.maxHeight]);
+
+  // Register route with final height
+  useEffect(() => {
+    const finalHeight = props.height || measuredHeight;
     registerRoute({
       id: path,
       width: props.fullWidth ? window.innerWidth - 60 : props.width,
-      height: props.height,
+      height: finalHeight,
     });
-  }, [props.height, props.width, props.fullWidth, path, registerRoute]);
+  }, [
+    measuredHeight,
+    props.height,
+    props.width,
+    props.fullWidth,
+    path,
+    registerRoute,
+  ]);
 
   const width = !isMobile
     ? props.fullWidth
@@ -44,6 +79,8 @@ export function OverlayPage(props: Props) {
   if (backwards === "yes" || backwards === "no")
     animation = backwards === "yes" ? "slide-full-left" : "slide-full-right";
 
+  const finalHeight = props.height || measuredHeight;
+
   return (
     <Transition
       animation={animation}
@@ -52,13 +89,15 @@ export function OverlayPage(props: Props) {
       show={show}
     >
       <div
+        ref={contentRef}
         className={classNames([
           "grid grid-rows-1 max-h-full",
           props.className,
           props.fullWidth ? "max-w-none" : "",
         ])}
         style={{
-          height: props.height ? `${props.height}px` : undefined,
+          height: finalHeight ? `${finalHeight}px` : undefined,
+          maxHeight: props.maxHeight ? `${props.maxHeight}px` : undefined,
           width: props.width ? width : undefined,
         }}
       >

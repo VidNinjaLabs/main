@@ -1,9 +1,7 @@
 import classNames from "classnames";
 import { ReactNode, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { Icon, Icons } from "@/components/Icon";
-import { useInternalOverlayRouter } from "@/hooks/useOverlayRouter";
 
 interface MobilePositionProps {
   children?: ReactNode;
@@ -13,8 +11,6 @@ interface MobilePositionProps {
 
 export function OverlayMobilePosition(props: MobilePositionProps) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const router = useInternalOverlayRouter(props.id || "unknown");
-  const { t } = useTranslation();
 
   const togglePreview = () => {
     setIsPreviewMode(!isPreviewMode);
@@ -52,7 +48,7 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
       {/* Main Overlay */}
       <div
         className={classNames([
-          "pointer-events-auto px-4 pb-6 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-0 origin-top-left w-[280px] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
+          "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[280px] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
           positionClass,
           props.className,
           "transition-all duration-300",
@@ -61,7 +57,7 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
       >
         {props.children}
         {/* Gradient to hide the progress */}
-        <div className="pointer-events-none absolute z-0 bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent" />
+        <div className="pointer-events-none absolute z-0 bottom-0 left-0 w-full h-32" />
       </div>
     </>
   );

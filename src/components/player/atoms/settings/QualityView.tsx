@@ -86,19 +86,17 @@ export function QualityView({ id }: { id: string }) {
         >
           {t("player.menus.quality.automaticLabel")}
         </Menu.Link>
-        <Menu.SmallText>
-          <Trans
-            i18nKey={
-              isIosHls
-                ? "player.menus.quality.iosNoQuality"
-                : "player.menus.quality.hint"
-            }
-          >
-            <Menu.Anchor onClick={() => router.navigate("/source")}>
-              text
-            </Menu.Anchor>
-          </Trans>
-        </Menu.SmallText>
+        <Trans
+          i18nKey={
+            isIosHls
+              ? "player.menus.quality.iosNoQuality"
+              : "player.menus.quality.hint"
+          }
+        >
+          <Menu.Anchor onClick={() => router.navigate("/source")}>
+            text
+          </Menu.Anchor>
+        </Trans>
       </Menu.Section>
     </>
   );

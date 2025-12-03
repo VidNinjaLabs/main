@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-prop-types */
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import { Clipboard as ClipboardIcon, Ear, Upload } from "lucide-react";
@@ -8,11 +9,9 @@ import { convert } from "subsrt-ts";
 
 import { subtitleTypeList } from "@/backend/helpers/subs";
 import { FileDropHandler } from "@/components/DropFile";
-import { FlagIcon } from "@/components/FlagIcon";
 import { LucideIcon } from "@/components/LucideIcon";
 import { useCaptions } from "@/components/player/hooks/useCaptions";
 import { Menu } from "@/components/player/internals/ContextMenu";
-import { Input } from "@/components/player/internals/ContextMenu/Input";
 import { SelectableLink } from "@/components/player/internals/ContextMenu/Links";
 import {
   captionIsVisible,
@@ -28,7 +27,6 @@ import {
 } from "@/utils/language";
 
 export function CaptionOption(props: {
-  countryCode?: string;
   children: React.ReactNode;
   selected?: boolean;
   loading?: boolean;
@@ -116,31 +114,7 @@ export function CaptionOption(props: {
           data-active-link={props.selected ? true : undefined}
           className="flex items-center"
         >
-          {props.flag ? (
-            <span data-code={props.countryCode} className="mr-3 inline-flex">
-              <FlagIcon langCode={props.countryCode} />
-            </span>
-          ) : null}
           <span>{props.children}</span>
-          {props.subtitleType && (
-            <span className="ml-2 px-2 py-0.5 rounded bg-video-context-hoverColor bg-opacity-80 text-video-context-type-main text-xs font-semibold">
-              {props.subtitleType.toUpperCase()}
-            </span>
-          )}
-          {props.subtitleSource && (
-            <span
-              className={classNames(
-                "ml-2 px-2 py-0.5 rounded text-white text-xs font-semibold overflow-hidden text-ellipsis whitespace-nowrap",
-                {
-                  "bg-blue-500": props.subtitleSource.includes("wyzie"),
-                  "bg-orange-500": props.subtitleSource === "opensubs",
-                  "bg-purple-500": props.subtitleSource === "febbox",
-                },
-              )}
-            >
-              {props.subtitleSource.toUpperCase()}
-            </span>
-          )}
           {props.isHearingImpaired && (
             <LucideIcon icon={Ear} className="ml-2" />
           )}
@@ -203,7 +177,7 @@ export function CustomCaptionOption({ compact }: { compact?: boolean }) {
       <button
         type="button"
         onClick={handleClick}
-        className="flex-1 flex items-center justify-center gap-2 p-1.5 rounded-lg bg-video-context-type-accent hover:bg-opacity-80 transition-colors text-white font-medium"
+        className="flex-1 flex w-full items-center justify-center gap-2 p-1.5 rounded-lg bg-video-context-type-accent hover:bg-opacity-80 transition-colors text-white font-medium"
       >
         <LucideIcon icon={Upload} className="text-lg" />
         <span>{t("player.menus.subtitles.customChoice")}</span>
@@ -363,10 +337,9 @@ export function CaptionsView({
   const { t } = useTranslation();
   const router = useOverlayRouter(id);
   const selectedCaptionId = usePlayerStore((s) => s.caption.selected?.id);
-  const { disable, selectCaptionById } = useCaptions();
+  const { selectCaptionById } = useCaptions();
   const [dragging, setDragging] = useState(false);
   const setCaption = usePlayerStore((s) => s.setCaption);
-  const [searchQuery, setSearchQuery] = useState("");
   const [currentlyDownloading, setCurrentlyDownloading] = useState<
     string | null
   >(null);
@@ -397,9 +370,9 @@ export function CaptionsView({
     [captions],
   );
 
-  // Filter lists based on search query
-  const sourceList = useSubtitleList(sourceCaptions, searchQuery);
-  const externalList = useSubtitleList(externalCaptions, searchQuery);
+  // Filter lists based on search query (search removed, using empty string)
+  const sourceList = useSubtitleList(sourceCaptions, "");
+  const externalList = useSubtitleList(externalCaptions, "");
 
   // Get current subtitle text preview
   const currentSubtitleText = useMemo(() => {
@@ -477,7 +450,6 @@ export function CaptionsView({
     return (
       <CaptionOption
         key={v.id}
-        countryCode={v.language}
         selected={v.id === selectedCaptionId}
         loading={v.id === currentlyDownloading && downloadReq.loading}
         error={
@@ -515,37 +487,6 @@ export function CaptionsView({
             </span>
           </div>
         </div>
-
-        {backLink ? (
-          <Menu.BackLink
-            onClick={() => router.navigate("/")}
-            rightSide={
-              <button
-                type="button"
-                onClick={() => router.navigate("/captions/settings")}
-                className="-mr-2 -my-1 px-2 p-[0.4em] rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
-              >
-                {t("player.menus.subtitles.customizeLabel")}
-              </button>
-            }
-          >
-            {t("player.menus.subtitles.title")}
-          </Menu.BackLink>
-        ) : (
-          <Menu.Title
-            rightSide={
-              <button
-                type="button"
-                onClick={() => router.navigate("/captions/settingsOverlay")}
-                className="-mr-2 -my-1 px-2 p-[0.4em] rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
-              >
-                {t("player.menus.subtitles.customizeLabel")}
-              </button>
-            }
-          >
-            {t("player.menus.subtitles.title")}
-          </Menu.Title>
-        )}
       </div>
       <FileDropHandler
         className={`transition duration-300 ${dragging ? "opacity-20" : ""}`}
@@ -580,32 +521,27 @@ export function CaptionsView({
           </div>
         )}
 
-        <Menu.ScrollToActiveSection className="!pt-1 mt-2 pb-3">
-          {/* Off button */}
-          <CaptionOption
-            onClick={() => disable()}
-            selected={!selectedCaptionId}
-          >
-            {t("player.menus.subtitles.offChoice")}
-          </CaptionOption>
-
-          <div className="flex gap-3 mb-3">
+        <Menu.ScrollToActiveSection className="px-2">
+          <div className="space-y-2">
             {/* Custom upload option */}
             <CustomCaptionOption compact />
 
-            {/* Paste subtitle option */}
-            <PasteCaptionOption
-              compact
-              selected={selectedCaptionId === "pasted-caption"}
-            />
+            {/* Customize button */}
+            <button
+              type="button"
+              onClick={() =>
+                router.navigate(
+                  backLink ? "/captions/settings" : "/captions/settingsOverlay",
+                )
+              }
+              className="w-full flex items-center justify-center gap-2 p-1.5 rounded-lg bg-video-context-light bg-opacity-20 hover:bg-opacity-30 transition-colors text-white font-medium"
+            >
+              <span>{t("player.menus.subtitles.customizeLabel")}</span>
+            </button>
           </div>
 
-          <div className="h-1" />
-
-          {/* Search input */}
-          {(sourceCaptions.length || externalCaptions.length) > 0 && (
-            <Input value={searchQuery} onInput={setSearchQuery} />
-          )}
+          {/* Divider */}
+          <div className="my-2 border-t border-video-context-border opacity-30" />
 
           {/* No subtitles available message */}
           {!isLoadingExternalSubtitles &&
@@ -627,45 +563,9 @@ export function CaptionsView({
             </div>
           )}
 
-          {/* Source Subtitles Section */}
-          {sourceCaptions.length > 0 && (
-            <>
-              <div className="text-sm font-semibold text-video-context-type-secondary pt-2 mb-2">
-                {t("player.menus.subtitles.SourceChoice")}
-              </div>
-              {sourceList.length > 0 ? (
-                sourceList.map(renderSubtitleOption)
-              ) : (
-                <div className="text-center text-video-context-type-secondary py-2">
-                  {t("player.menus.subtitles.notFound")}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* External Subtitles Section */}
-          {externalCaptions.length > 0 && (
-            <>
-              <div className="text-sm font-semibold text-video-context-type-secondary pt-2 mb-2">
-                {t("player.menus.subtitles.OpenSubtitlesChoice")}
-              </div>
-              {externalList.length > 0 ? (
-                externalList.map(renderSubtitleOption)
-              ) : (
-                <div className="text-center text-video-context-type-secondary py-2">
-                  {t("player.menus.subtitles.notFound")}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Loading indicator for external subtitles while source exists */}
-          {isLoadingExternalSubtitles && sourceCaptions.length > 0 && (
-            <div className="text-center text-video-context-type-secondary py-4 mt-2">
-              {t("player.menus.subtitles.loadingExternal") ||
-                "Loading external subtitles..."}
-            </div>
-          )}
+          {/* All Subtitles - No sections, just a clean list */}
+          {sourceList.length > 0 && sourceList.map(renderSubtitleOption)}
+          {externalList.length > 0 && externalList.map(renderSubtitleOption)}
         </Menu.ScrollToActiveSection>
       </FileDropHandler>
     </>

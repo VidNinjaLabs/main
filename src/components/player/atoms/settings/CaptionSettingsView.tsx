@@ -449,7 +449,7 @@ export function CaptionSettingsView({
       >
         {t("player.menus.subtitles.settings.backlink")}
       </Menu.BackLink>
-      <Menu.Section className="space-y-6 pb-5">
+      <Menu.Section className="space-y-3 pb-2">
         {!enableNativeSubtitles ? (
           <>
             <div className="flex justify-between items-center">

@@ -176,7 +176,7 @@ export function PlayerPart(props: PlayerPartProps) {
           )}
           <div className="flex flex-col w-full">
             {/* Mobile Time Display - Above Progress Bar */}
-            <div className="lg:hidden flex justify-end px-4 pb-1">
+            <div className="lg:hidden flex justify-end px-4">
               <Player.Time />
             </div>
 
