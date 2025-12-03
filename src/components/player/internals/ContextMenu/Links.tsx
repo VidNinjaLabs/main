@@ -94,7 +94,7 @@ export function Link(props: {
   disabled?: boolean;
 }) {
   const classes = classNames(
-    "flex py-1.5 transition-colors duration-100 rounded-lg",
+    "flex py-1.5 transition-colors duration-75 rounded-lg",
     props.box ? "bg-video-context-light/10 h-20" : "",
     {
       "cursor-default": !props.clickable,

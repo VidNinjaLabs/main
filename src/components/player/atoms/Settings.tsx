@@ -130,8 +130,8 @@ export function Settings(props: { iconSizeClass?: string }) {
         iconSizeClass={props.iconSizeClass}
         className={
           router.isRouterActive
-            ? "rotate-90 transition-transform duration-300"
-            : "transition-transform duration-300"
+            ? "rotate-90 transition-transform duration-150"
+            : "transition-transform duration-150"
         }
       />
     </OverlayAnchor>

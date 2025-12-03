@@ -85,7 +85,7 @@ export function OverlayPage(props: Props) {
     <Transition
       animation={animation}
       className="absolute inset-0"
-      durationClass="duration-[400ms]"
+      durationClass="duration-150"
       show={show}
     >
       <div
