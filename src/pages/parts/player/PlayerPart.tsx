@@ -15,6 +15,7 @@ import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWatchPartyStore } from "@/stores/watchParty";
+import { antiDebug } from "@/utils/antiDebug";
 
 import { Tips } from "./ScrapingPart";
 
@@ -80,6 +81,7 @@ export function PlayerPart(props: PlayerPartProps) {
   );
   const isLoading = usePlayerStore((s) => s.mediaPlaying.isLoading);
   const { isHost, enabled } = useWatchPartyStore();
+  const mediaPlaying = usePlayerStore((s) => s.mediaPlaying);
 
   const inControl = !enabled || isHost;
 
@@ -93,22 +95,29 @@ export function PlayerPart(props: PlayerPartProps) {
     "play" | "pause" | "forward" | "backward" | null
   >(null);
 
-  const display = usePlayerStore((s) => s.display);
-
-  // Auto-rotate to landscape on mobile mount
+  // Anti-debugging protection - pause video when DevTools is detected
   useEffect(() => {
-    if (isMobile && display) {
-      display.toggleFullscreen();
-      // Attempt to lock orientation to landscape
-      const orientation = window.screen?.orientation as any;
-      if (orientation && orientation.lock) {
-        orientation.lock("landscape").catch(() => {
-          // Orientation lock failed, likely not supported or permission denied
-          // We can silently ignore this as it's a progressive enhancement
-        });
-      }
+    if (status === playerStatus.PLAYING) {
+      // Start anti-debugging monitoring
+      antiDebug.start((isDevToolsOpen) => {
+        // Get the video element
+        const video = document.querySelector("video");
+        if (video) {
+          if (isDevToolsOpen) {
+            // Pause the video when DevTools is detected
+            video.pause();
+          }
+          // Note: We don't auto-resume when DevTools closes
+          // User must manually resume playback
+        }
+      });
+
+      return () => {
+        // Cleanup: stop monitoring when leaving player or playback stops
+        antiDebug.stop();
+      };
     }
-  }, [isMobile, display]);
+  }, [status, mediaPlaying]);
 
   // Show backdrop during all loading states, hide only when video is playing
   const showBackdrop = status !== playerStatus.PLAYING;
