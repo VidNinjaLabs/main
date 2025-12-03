@@ -1,26 +1,26 @@
 {
   "about": {
-    "description": "CloudClash on movie-webin haarukka, joka pysyy pystyssä, vaikka movie-web.app suljettiin. CloudClash pyörii yksityisellä, itse ylläpitämälläni VPS:llä. Pyöritän sivua tappiolla; mainoksia ei ole, koska uskon ilmaiseen mediaan.",
+    "description": "VidNinja on movie-webin haarukka, joka pysyy pystyssä, vaikka movie-web.app suljettiin. VidNinja pyörii yksityisellä, itse ylläpitämälläni VPS:llä. Pyöritän sivua tappiolla; mainoksia ei ole, koska uskon ilmaiseen mediaan.",
     "faqTitle": "Yleisiä kysymyksiä",
     "q1": {
-      "body": "CloudClash ei isännöi mitään sisältöä. Kun klikkaat jotain katsottavaa, valittua mediaa etsitään internetistä (latausnäytössä ja 'videolähteet'-välilehdellä näet, mitä lähdettä käytät). CloudClash ei koskaan lataa mediaa, kaikki tapahtuu tämän hakumekanismin kautta.",
+      "body": "VidNinja ei isännöi mitään sisältöä. Kun klikkaat jotain katsottavaa, valittua mediaa etsitään internetistä (latausnäytössä ja 'videolähteet'-välilehdellä näet, mitä lähdettä käytät). VidNinja ei koskaan lataa mediaa, kaikki tapahtuu tämän hakumekanismin kautta.",
       "title": "Mistä sisältö tulee?"
     },
     "q2": {
-      "body": "Ohjelmaa tai elokuvaa ei voi pyytää, CloudClash ei hallinnoi sisältöä. Kaikki sisältö katsotaan internetin lähteistä.",
+      "body": "Ohjelmaa tai elokuvaa ei voi pyytää, VidNinja ei hallinnoi sisältöä. Kaikki sisältö katsotaan internetin lähteistä.",
       "title": "Missä voin pyytää sarjaa tai elokuvaa?"
     },
     "q3": {
       "body": "Hakutuloksemme perustuvat The Movie Database (TMDB) -tietokantaan, ja ne näkyvät riippumatta siitä, onko sisältöä oikeasti lähteissämme.",
       "title": "Hakutuloksissa näytetään ohjelma tai elokuva. Miksi en voi toistaa sitä?"
     },
-    "title": "Tietoja CloudClashistä",
+    "title": "Tietoja VidNinjaistä",
     "q4": {
       "body": "Kaikki data synkronoidaan yhteisön taustajärjestelmään, ja kuka tahansa voi vapaasti käyttää tätä.",
       "title": "Entä tietoni ja muut asiat?"
     },
     "q5": {
-      "body": "CloudClashilla on Discord-palvelin, jonka löydät tämän sivun yläosasta!",
+      "body": "VidNinjailla on Discord-palvelin, jonka löydät tämän sivun yläosasta!",
       "title": "Miten voin saada lisätietoa?"
     }
   },
@@ -90,7 +90,7 @@
   "footer": {
     "legal": {
       "disclaimer": "Vastuuvapauslauseke",
-      "disclaimerText": "CloudClash ei isännöi tiedostoja, se vain linkittää kolmannen osapuolen palveluihin. Lakiasioista tulee ottaa yhteyttä tiedostoisäntään ja palveluntarjoajiin. CloudClash ei ole vastuussa videontarjoajien näyttämistä mediatiedostoista."
+      "disclaimerText": "VidNinja ei isännöi tiedostoja, se vain linkittää kolmannen osapuolen palveluihin. Lakiasioista tulee ottaa yhteyttä tiedostoisäntään ja palveluntarjoajiin. VidNinja ei ole vastuussa videontarjoajien näyttämistä mediatiedostoista."
     },
     "links": {
       "discord": "Discord",
@@ -102,13 +102,13 @@
     "tagline": "Katso suosikkiohjelmiasi ja elokuviasi täysin ilmaiseksi ilman mainoksia! (っ'ヮ'c)"
   },
   "global": {
-    "name": "CloudClash",
+    "name": "VidNinja",
     "pages": {
       "about": "Tietoja",
       "legal": "Legal / DMCA",
       "login": "Kirjaudu sisään",
       "onboarding": "asetus",
-      "pagetitle": "{{title}} - CloudClash",
+      "pagetitle": "{{title}} - VidNinja",
       "register": "Rekisteröidy",
       "settings": "Asetukset",
       "migration": "Siirrä käyttäjätili",
@@ -138,11 +138,11 @@
           "Mitä tekisi mieli?",
           "Poistetaanko selaushistoriasi?",
           "Mitä haluat striimata?",
-          "CloudClash on paras sivusto ikinä!",
+          "VidNinja on paras sivusto ikinä!",
           "Mitä katselulistallasi on tänään?",
           "Miten päiväsi sujui?",
           "Pahoittelut, sivusto ei toimi koskaan...",
-          "Eikö CloudClash olekin paras?",
+          "Eikö VidNinja olekin paras?",
           ">ᴗ<"
         ]
       },

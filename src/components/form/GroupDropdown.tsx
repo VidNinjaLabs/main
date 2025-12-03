@@ -1,4 +1,5 @@
 import { t } from "i18next";
+import { Plus } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { Icon, Icons } from "@/components/Icon";
@@ -183,7 +184,7 @@ export function GroupDropdown({
                 disabled={!newGroup.trim()}
                 className="h-6 w-6 min-w-12 md:min-w-6 justify-center items-center"
               >
-                <Icon icon={Icons.PLUS} className="text-white w-4 h-4" />
+                <Plus className="text-white" />
               </Button>
             </div>
             {newGroup.trim().length > 0 && (

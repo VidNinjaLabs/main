@@ -101,7 +101,7 @@ function VideoElement() {
     subtitleTrack = (
       <track
         ref={trackEl}
-        label="CloudClash Captions"
+        label="VidNinja Captions"
         kind="subtitles"
         srcLang={language}
         src={trackObjectUrl}

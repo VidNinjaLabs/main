@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { Brush, ChevronRight } from "lucide-react";
 
 import { Icon, Icons } from "../Icon";
 
@@ -56,7 +57,7 @@ export function ColorPicker(props: {
                 : "#333",
             }}
           >
-            <Icon icon={Icons.BRUSH} />
+            <Brush className="text-white" />
           </button>
         </div>
       </div>

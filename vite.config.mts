@@ -67,8 +67,8 @@ export default defineConfig(({ mode }) => {
           "safari-pinned-tab.svg",
         ],
         manifest: {
-          name: "CloudClash",
-          short_name: "CloudClash",
+          name: "VidNinja",
+          short_name: "VidNinja",
           description:
             "Watch your favorite shows and movies for free with no ads ever! (っ'ヮ'c)",
           theme_color: "#000000",
@@ -166,7 +166,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "@cloudclash/providers": path.resolve(
+        "@vidninja/providers": path.resolve(
           __dirname,
           "./src/backend/providers/lib",
         ),

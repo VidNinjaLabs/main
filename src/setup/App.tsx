@@ -37,6 +37,10 @@ import { OnboardingPage } from "@/pages/onboarding/Onboarding";
 import { OnboardingExtensionPage } from "@/pages/onboarding/OnboardingExtension";
 import { OnboardingProxyPage } from "@/pages/onboarding/OnboardingProxy";
 import { RegisterPage } from "@/pages/Register";
+import {
+  StandaloneMoviePlayer,
+  StandaloneTVPlayer,
+} from "@/pages/StandalonePlayers";
 import { SupportPage } from "@/pages/Support";
 import { Layout } from "@/setup/Layout";
 import { useHistoryListener } from "@/stores/history";
@@ -135,6 +139,14 @@ function App() {
           <Route path="/s/:query" element={<QuickSearch />} />
           <Route path="/search/:type" element={<Navigate to="/browse" />} />
           <Route path="/search/:type/:query?" element={<QueryView />} />
+
+          {/* Standalone player routes for embedding */}
+          <Route path="/movie/:tmdbId" element={<StandaloneMoviePlayer />} />
+          <Route
+            path="/tv/:tmdbId/:season/:episode"
+            element={<StandaloneTVPlayer />}
+          />
+
           {/* pages */}
           <Route
             path="/media/:media"

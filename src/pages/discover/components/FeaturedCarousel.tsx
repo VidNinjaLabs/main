@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { t } from "i18next";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
@@ -666,7 +667,7 @@ export function FeaturedCarousel({
         )}
         aria-label="Previous slide"
       >
-        <Icon icon={Icons.CHEVRON_LEFT} className="text-white w-8 h-8" />
+        <ChevronLeft className="text-white" />
       </button>
       <button
         type="button"
@@ -677,7 +678,7 @@ export function FeaturedCarousel({
         )}
         aria-label="Next slide"
       >
-        <Icon icon={Icons.CHEVRON_RIGHT} className="text-white w-8 h-8" />
+        <ChevronRight className="text-white" />
       </button>
 
       {/* Navigation Dots */}

@@ -1,6 +1,6 @@
 export function Card(props: { children: React.ReactNode }) {
   return (
-    <div className="max-h-full flex flex-col">
+    <div className="flex-col">
       <div className="px-6 flex flex-col justify-start overflow-y-auto overflow-x-hidden pb-2 scrollbar-none">
         {props.children}
       </div>

@@ -1,3 +1,4 @@
+import { ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -47,7 +48,7 @@ export function ScrollToTopButton() {
           transition: "opacity 0.4s ease-in-out, transform 0.2s ease-in-out",
         }}
       >
-        <Icon icon={Icons.CHEVRON_UP} className="text-2xl z-10" />
+        <ChevronUp className="text-white" />
         <span className="z-10 hidden md:block">
           {t("discover.scrollToTop")}
         </span>

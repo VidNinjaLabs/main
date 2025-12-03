@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { t } from "i18next";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -536,7 +537,7 @@ export function EpisodeCarousel({
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
             onClick={() => handleScroll("left")}
           >
-            <Icon icon={Icons.CHEVRON_LEFT} className="text-white/80" />
+            <ChevronLeft className="text-white" />
           </button>
         </div>
 
@@ -789,7 +790,7 @@ export function EpisodeCarousel({
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
             onClick={() => handleScroll("right")}
           >
-            <Icon icon={Icons.CHEVRON_RIGHT} className="text-white/80" />
+            <ChevronRight className="text-white" />
           </button>
         </div>
       </div>

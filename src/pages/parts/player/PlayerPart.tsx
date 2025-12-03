@@ -1,68 +1,19 @@
 import classNames from "classnames";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 
-import { Icon, Icons } from "@/components/Icon";
 import { Player } from "@/components/player";
-import { MobileVolumeSlider } from "@/components/player/atoms/MobileVolumeSlider";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
 import { useShouldShowControls } from "@/components/player/hooks/useShouldShowControls";
 import { useSkipTime } from "@/components/player/hooks/useSkipTime";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useWatchPartyStore } from "@/stores/watchParty";
-import { antiDebug } from "@/utils/antiDebug";
 
 import { Tips } from "./ScrapingPart";
-
-// Helper components for mobile controls with clickable labels
-function EpisodesButton({ inControl }: { inControl: boolean }) {
-  const router = useOverlayRouter("episodes");
-  const type = usePlayerStore((s) => s.meta?.type);
-
-  if (type !== "show" || !inControl) return null;
-
-  return (
-    <button
-      type="button"
-      onClick={() => router.open()}
-      className="flex flex-row items-center"
-    >
-      <Icon icon={Icons.EPISODES} className="text-2xl" />
-      <span className="text-sm text-white">Episodes</span>
-    </button>
-  );
-}
-
-function CaptionsButton() {
-  const router = useOverlayRouter("settings");
-  return (
-    <div
-      onClick={() => router.open("/captionsOverlay")}
-      className="flex flex-row items-center cursor-pointer"
-    >
-      <Player.Captions iconSizeClass="text-2xl" />
-      <span className="text-sm text-white">Subtitle</span>
-    </div>
-  );
-}
-
-function SettingsButton() {
-  const router = useOverlayRouter("settings");
-  return (
-    <div
-      onClick={() => router.open()}
-      className="flex flex-row items-center cursor-pointer"
-    >
-      <Player.Settings iconSizeClass="text-2xl" />
-      <span className="text-sm text-white">Settings</span>
-    </div>
-  );
-}
 
 export interface PlayerPartProps {
   children?: ReactNode;
@@ -73,7 +24,7 @@ export interface PlayerPartProps {
 }
 
 export function PlayerPart(props: PlayerPartProps) {
-  const { showTargets, showTouchTargets } = useShouldShowControls();
+  const { showTargets } = useShouldShowControls();
   const status = usePlayerStore((s) => s.status);
   const { isMobile } = useIsMobile();
   const manualSourceSelection = usePreferencesStore(
@@ -81,7 +32,6 @@ export function PlayerPart(props: PlayerPartProps) {
   );
   const isLoading = usePlayerStore((s) => s.mediaPlaying.isLoading);
   const { isHost, enabled } = useWatchPartyStore();
-  const mediaPlaying = usePlayerStore((s) => s.mediaPlaying);
 
   const inControl = !enabled || isHost;
 
@@ -94,30 +44,6 @@ export function PlayerPart(props: PlayerPartProps) {
   const [, setFeedbackAction] = useState<
     "play" | "pause" | "forward" | "backward" | null
   >(null);
-
-  // Anti-debugging protection - pause video when DevTools is detected
-  useEffect(() => {
-    if (status === playerStatus.PLAYING) {
-      // Start anti-debugging monitoring
-      antiDebug.start((isDevToolsOpen) => {
-        // Get the video element
-        const video = document.querySelector("video");
-        if (video) {
-          if (isDevToolsOpen) {
-            // Pause the video when DevTools is detected
-            video.pause();
-          }
-          // Note: We don't auto-resume when DevTools closes
-          // User must manually resume playback
-        }
-      });
-
-      return () => {
-        // Cleanup: stop monitoring when leaving player or playback stops
-        antiDebug.stop();
-      };
-    }
-  }, [status, mediaPlaying]);
 
   // Show backdrop during all loading states, hide only when video is playing
   const showBackdrop = status !== playerStatus.PLAYING;
@@ -170,11 +96,6 @@ export function PlayerPart(props: PlayerPartProps) {
 
         {props.children}
 
-        {/* Mobile Volume Slider */}
-        {isMobile && status === playerStatus.PLAYING && (
-          <MobileVolumeSlider show={showTargets} />
-        )}
-
         <Player.BlackOverlay
           show={showTargets && status === playerStatus.PLAYING}
         />
@@ -195,24 +116,27 @@ export function PlayerPart(props: PlayerPartProps) {
           </Player.CenterControls>
         ) : null}
 
-        <Player.CenterMobileControls
-          className="text-white"
-          show={showTouchTargets && status === playerStatus.PLAYING}
-        >
-          <Player.SkipBackward
-            iconSizeClass="text-5xl"
-            onAction={() => setFeedbackAction("backward")}
-          />
-          <Player.Pause
-            iconSizeClass="text-6xl"
-            className={isLoading ? "opacity-0" : "opacity-100"}
-            onAction={(action) => setFeedbackAction(action)}
-          />
-          <Player.SkipForward
-            iconSizeClass="text-5xl"
-            onAction={() => setFeedbackAction("forward")}
-          />
-        </Player.CenterMobileControls>
+        {/* Center Playback Controls - Visible only on small/medium screens */}
+        <div className="lg:hidden">
+          <Player.CenterMobileControls
+            className="text-white"
+            show={showTargets && status === playerStatus.PLAYING}
+          >
+            <Player.SkipBackward
+              iconSizeClass="text-5xl"
+              onAction={() => setFeedbackAction("backward")}
+            />
+            <Player.Pause
+              iconSizeClass="text-6xl"
+              className={isLoading ? "opacity-0" : "opacity-100"}
+              onAction={(action) => setFeedbackAction(action)}
+            />
+            <Player.SkipForward
+              iconSizeClass="text-5xl"
+              onAction={() => setFeedbackAction("forward")}
+            />
+          </Player.CenterMobileControls>
+        </div>
 
         <div
           className={`absolute right-4 z-50 transition-all duration-300 ease-in-out ${
@@ -250,82 +174,76 @@ export function PlayerPart(props: PlayerPartProps) {
           {status !== playerStatus.PLAYING && !manualSourceSelection && (
             <Tips />
           )}
-          <div className="flex items-center justify-center space-x-3 h-full">
-            {status === playerStatus.PLAYING ? (
-              <>
-                <Player.ProgressBar />
-                {isMobile ? <Player.Time short /> : null}
-              </>
-            ) : null}
+          <div className="flex flex-col w-full">
+            {/* Mobile Time Display - Above Progress Bar */}
+            <div className="lg:hidden flex justify-end px-4 pb-1">
+              <Player.Time />
+            </div>
+
+            <div className="flex items-center justify-center space-x-3 h-full">
+              {status === playerStatus.PLAYING ? <Player.ProgressBar /> : null}
+            </div>
           </div>
-          <div className="hidden lg:flex justify-between" dir="ltr">
+
+          <div className="flex justify-between w-full" dir="ltr">
             <Player.LeftSideControls>
               {status === playerStatus.PLAYING ? (
                 <>
-                  <Player.Pause
-                    iconSizeClass="text-5xl w-12 h-12"
-                    onAction={(action) => setFeedbackAction(action)}
-                  />
-                  <Player.SkipBackward
-                    iconSizeClass="text-5xl w-12 h-12"
-                    onAction={() => setFeedbackAction("backward")}
-                  />
-                  <Player.SkipForward
-                    iconSizeClass="text-5xl w-12 h-12"
-                    onAction={() => setFeedbackAction("forward")}
-                  />
-                  <Player.Volume iconSizeClass="text-5xl w-12 h-12" />
-                  <Player.Time />
+                  {/* Desktop Playback Controls - Hidden on mobile */}
+                  <div className="hidden lg:flex items-center">
+                    <Player.Pause
+                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      onAction={(action) => setFeedbackAction(action)}
+                    />
+                    <Player.SkipBackward
+                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      onAction={() => setFeedbackAction("backward")}
+                    />
+                    <Player.SkipForward
+                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      onAction={() => setFeedbackAction("forward")}
+                    />
+                  </div>
+                  <Player.Volume iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  {/* Desktop Time Display - Hidden on mobile */}
+                  <div className="hidden lg:block">
+                    <Player.Time />
+                  </div>
                 </>
               ) : null}
             </Player.LeftSideControls>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 xl:space-x-3">
               <Player.Episodes
                 inControl={inControl}
-                iconSizeClass="text-5xl w-12 h-12"
+                iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10"
               />
               <Player.SkipEpisodeButton
                 inControl={inControl}
                 onChange={props.onMetaChange}
-                iconSizeClass="text-5xl w-12 h-12"
+                iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10"
               />
               {status === playerStatus.PLAYING ? (
                 <>
-                  <Player.Pip iconSizeClass="text-5xl w-12 h-12" />
-                  <Player.Airplay iconSizeClass="text-5xl w-12 h-12" />
-                  <Player.Chromecast iconSizeClass="text-5xl w-12 h-12" />
+                  <Player.Pip iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  <Player.Airplay iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  <Player.Chromecast iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                 </>
               ) : null}
               {status === playerStatus.PLAYBACK_ERROR ||
               status === playerStatus.PLAYING ? (
-                <Player.Captions iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Captions iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
               ) : null}
               {status === playerStatus.PLAYING && (
-                <Player.Settings iconSizeClass="text-5xl w-12 h-12" />
+                <Player.Settings iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
               )}
               {status === playerStatus.PLAYING &&
                 (isShifting || isHoldingFullscreen ? (
-                  <Player.Widescreen iconSizeClass="text-5xl w-12 h-12" />
+                  <Player.Widescreen iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                 ) : (
-                  <Player.Fullscreen iconSizeClass="text-5xl w-12 h-12" />
+                  <Player.Fullscreen iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                 ))}
             </div>
           </div>
-          {status === playerStatus.PLAYING && (
-            <div className="flex justify-between items-center gap-6 lg:hidden px-4">
-              <div className="flex justify-center items-center gap-6">
-                {/* Episodes - Only show for TV shows */}
-                <EpisodesButton inControl={inControl} />
-                {/* Captions */}
-                <CaptionsButton />
-              </div>
-              {/* Settings and Fullscreen - Right corner */}
-              <div className="flex items-center gap-6">
-                <SettingsButton />
-                <Player.Fullscreen iconSizeClass="text-2xl" />
-              </div>
-            </div>
-          )}
         </Player.BottomControls>
 
         <Player.VolumeChangedPopout />

@@ -1,3 +1,5 @@
+import { ChevronLeft } from "lucide-react";
+
 import { Icon, Icons } from "@/components/Icon";
 
 import { SettingsViewProps } from "../types";
@@ -36,7 +38,7 @@ export function SettingsView({
           onClick={onClose}
           className="text-type-link hover:text-type-linkHover transition-colors flex items-center gap-1 text-sm"
         >
-          <Icon icon={Icons.CHEVRON_LEFT} />
+          <ChevronLeft className="text-white" />
           <span>Back to notifications</span>
         </button>
       </div>

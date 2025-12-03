@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Navigate,
   useLocation,
@@ -33,13 +33,38 @@ import { getProgressPercentage, useProgressStore } from "@/stores/progress";
 import { needsOnboarding } from "@/utils/onboarding";
 import { parseTimestamp } from "@/utils/timestamp";
 
-export function RealPlayerView() {
+export interface PlayerViewProps {
+  media?: string;
+  season?: string;
+  episode?: string;
+  isStandalone?: boolean;
+}
+
+export function RealPlayerView(props: PlayerViewProps) {
   const navigate = useNavigate();
-  const params = useParams<{
+  const routeParams = useParams<{
     media: string;
     episode?: string;
     season?: string;
   }>();
+
+  // Use props if provided, otherwise fall back to route params
+  const params = useMemo(
+    () => ({
+      media: props.media ?? routeParams.media,
+      season: props.season ?? routeParams.season,
+      episode: props.episode ?? routeParams.episode,
+    }),
+    [
+      props.media,
+      props.season,
+      props.episode,
+      routeParams.media,
+      routeParams.season,
+      routeParams.episode,
+    ],
+  );
+
   const [errorData, setErrorData] = useState<{
     sources: Record<string, ScrapingSegment>;
     sourceOrder: ScrapingItems[];
@@ -66,10 +91,53 @@ export function RealPlayerView() {
   const openedWatchPartyRef = useRef<boolean>(false);
   const progressItems = useProgressStore((s) => s.items);
   const [backdropUrl, setBackdropUrl] = useState<string | null>(null);
+  const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
 
   const handleBackdropLoaded = useCallback((url: string) => {
     setBackdropUrl(url);
   }, []);
+
+  // Continuous DevTools monitoring to block API calls
+  // Only enabled in production to allow development with DevTools
+  useEffect(() => {
+    // Skip anti-debug in development mode
+    if (import.meta.env.DEV) {
+      return;
+    }
+
+    // Import antiDebug dynamically to avoid issues
+    import("@/utils/antiDebug").then(({ antiDebug }) => {
+      antiDebug.start((devToolsDetected) => {
+        setIsDevToolsOpen(devToolsDetected);
+
+        // If DevTools opens during playback, reset the player
+        if (devToolsDetected && status === playerStatus.PLAYING) {
+          reset();
+        }
+      });
+    });
+
+    return () => {
+      import("@/utils/antiDebug").then(({ antiDebug }) => {
+        antiDebug.stop();
+      });
+    };
+  }, [status, reset]);
+
+  // Auto-resume when DevTools is closed
+  // This triggers a fresh scraping with new tokens
+  useEffect(() => {
+    // Only act if we were previously blocked and now DevTools is closed
+    if (!isDevToolsOpen && status === playerStatus.IDLE) {
+      // Small delay to ensure DevTools is fully closed
+      const timer = setTimeout(() => {
+        // Trigger a reset to restart the flow
+        reset();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isDevToolsOpen, status, reset]);
 
   // Reset last successful source when leaving the player
   useEffect(() => {
@@ -106,13 +174,27 @@ export function RealPlayerView() {
 
   const metaChange = useCallback(
     (meta: PlayerMeta) => {
-      if (meta?.type === "show")
-        navigate(
-          `/media/${params.media}/${meta.season?.tmdbId}/${meta.episode?.tmdbId}`,
-        );
-      else navigate(`/media/${params.media}`);
+      if (!meta) return;
+
+      if (meta.type === "show") {
+        if (props.isStandalone) {
+          // Navigate to the standalone TV route
+          navigate(
+            `/tv/${meta.tmdbId}/${meta.season?.tmdbId}/${meta.episode?.tmdbId}`,
+          );
+        } else {
+          navigate(
+            `/media/${params.media}/${meta.season?.tmdbId}/${meta.episode?.tmdbId}`,
+          );
+        }
+      } else if (props.isStandalone) {
+        // For movies, we don't usually change metadata, but if we did:
+        navigate(`/movie/${meta.tmdbId}`);
+      } else {
+        navigate(`/media/${params.media}`);
+      }
     },
-    [navigate, params],
+    [navigate, params, props.isStandalone],
   );
 
   // Check if episode is more than 80% watched
@@ -149,12 +231,17 @@ export function RealPlayerView() {
 
   const handleMetaReceived = useCallback(
     (detailedMeta: DetailedMeta, episodeId?: string) => {
+      // Don't proceed if DevTools is open - stay in loading state
+      if (isDevToolsOpen) {
+        return;
+      }
+
       const playerMeta = setPlayerMeta(detailedMeta, episodeId);
       if (playerMeta && shouldShowResumeScreen(playerMeta)) {
         setStatus(playerStatus.RESUME);
       }
     },
-    [shouldShowResumeScreen, setStatus, setPlayerMeta],
+    [shouldShowResumeScreen, setStatus, setPlayerMeta, isDevToolsOpen],
   );
 
   const handleResume = useCallback(() => {
@@ -200,6 +287,9 @@ export function RealPlayerView() {
           onGetMeta={handleMetaReceived}
           onBackdropLoaded={handleBackdropLoaded}
           backdropUrl={backdropUrl}
+          media={params.media}
+          season={params.season}
+          episode={params.episode}
         />
       ) : null}
       {status === playerStatus.RESUME ? (
@@ -234,7 +324,7 @@ export function RealPlayerView() {
   );
 }
 
-export function PlayerView() {
+function PlayerView(props: PlayerViewProps) {
   const loc = useLocation();
   const { loading, error, value } = useAsync(() => {
     return needsOnboarding();
@@ -252,7 +342,7 @@ export function PlayerView() {
         }}
       />
     );
-  return <RealPlayerView />;
+  return <RealPlayerView {...props} />;
 }
 
 export default PlayerView;

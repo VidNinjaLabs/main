@@ -25,6 +25,9 @@ export interface MetaPartProps {
   onGetMeta?: (meta: DetailedMeta, episodeId?: string) => void;
   onBackdropLoaded?: (backdropUrl: string) => void;
   backdropUrl?: string | null;
+  media?: string;
+  season?: string;
+  episode?: string;
 }
 
 function isDisallowedMedia(id: string, type: MWMediaType): boolean {
@@ -36,11 +39,16 @@ function isDisallowedMedia(id: string, type: MWMediaType): boolean {
 
 export function MetaPart(props: MetaPartProps) {
   const { t } = useTranslation();
-  const params = useParams<{
+  const routeParams = useParams<{
     media: string;
     episode?: string;
     season?: string;
   }>();
+  const params = {
+    media: props.media ?? routeParams.media,
+    season: props.season ?? routeParams.season,
+    episode: props.episode ?? routeParams.episode,
+  };
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
 

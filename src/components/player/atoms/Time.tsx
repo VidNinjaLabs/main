@@ -57,20 +57,10 @@ export function Time(props: { short?: boolean }) {
 
   return (
     <VideoPlayerButton onClick={() => toggleMode()}>
-      <span>
-        {t(`player.time.${localizationKey}`, {
-          timeFinished,
-          timeWatched,
-          timeLeft,
-          duration,
-          formatParams: {
-            timeFinished: {
-              hour: "numeric",
-              minute: "numeric",
-              hour12: uses12HourClock(),
-            },
-          },
-        })}
+      <span className="tabular-nums">
+        {timeFormat === VideoPlayerTimeFormat.REGULAR
+          ? timeWatched
+          : `-${timeLeft}`}
       </span>
     </VideoPlayerButton>
   );

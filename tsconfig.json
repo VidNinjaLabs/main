@@ -18,7 +18,7 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
-      "@cloudclash/providers": ["backend/providers/lib"],
+      "@vidninja/providers": ["backend/providers/lib"],
       "@sozialhelden/ietf-language-tags": [
         "../node_modules/@sozialhelden/ietf-language-tags/dist/cjs"
       ]
