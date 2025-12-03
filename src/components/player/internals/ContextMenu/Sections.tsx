@@ -26,7 +26,7 @@ export function Section(props: {
   return (
     <div
       className={classNames(
-        props.grid ? "grid grid-cols-2 gap-3 pt-6" : "px-2 space-y-1",
+        props.grid ? "grid grid-cols-2 gap-3 pt-6" : "space-y-1",
         props.className,
       )}
     >
@@ -61,7 +61,7 @@ export function ScrollToActiveSection(props: {
   return (
     <div
       ref={scrollingContainer}
-      className={classNames("py-2 space-y-1", props.className)}
+      className={classNames("space-y-1", props.className)}
     >
       {props.children}
     </div>

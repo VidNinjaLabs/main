@@ -328,22 +328,22 @@ function IOSExplanationView({ id }: { id: string }) {
 export function DownloadRoutes({ id }: { id: string }) {
   return (
     <>
-      <OverlayPage id={id} path="/download" width={343} height={490}>
+      <OverlayPage id={id} path="/download" width={343} maxHeight={550}>
         <Menu.CardWithScrollable>
           <DownloadView id={id} />
         </Menu.CardWithScrollable>
       </OverlayPage>
-      <OverlayPage id={id} path="/download/ios" width={343} height={440}>
+      <OverlayPage id={id} path="/download/ios" width={343} maxHeight={450}>
         <Menu.CardWithScrollable>
           <IOSExplanationView id={id} />
         </Menu.CardWithScrollable>
       </OverlayPage>
-      <OverlayPage id={id} path="/download/android" width={343} height={440}>
+      <OverlayPage id={id} path="/download/android" width={343} maxHeight={450}>
         <Menu.CardWithScrollable>
           <AndroidExplanationView id={id} />
         </Menu.CardWithScrollable>
       </OverlayPage>
-      <OverlayPage id={id} path="/download/pc" width={343} height={440}>
+      <OverlayPage id={id} path="/download/pc" width={343} maxHeight={450}>
         <Menu.CardWithScrollable>
           <PCExplanationView id={id} />
         </Menu.CardWithScrollable>

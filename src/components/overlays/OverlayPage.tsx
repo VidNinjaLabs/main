@@ -1,10 +1,6 @@
 import classNames from "classnames";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  Transition,
-  TransitionAnimations,
-} from "@/components/utils/Transition";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useInternalOverlayRouter } from "@/hooks/useOverlayRouter";
 import { useOverlayStore } from "@/stores/overlay/store";
@@ -14,8 +10,8 @@ interface Props {
   path: string;
   children?: ReactNode;
   className?: string;
-  height?: number; // Optional - will be measured if not provided
-  maxHeight?: number; // Maximum height constraint
+  height?: number; // Optional - if provided, use fixed height
+  maxHeight?: number; // Maximum allowed height
   width: number;
   fullWidth?: boolean;
 }
@@ -28,81 +24,101 @@ export function OverlayPage(props: Props) {
   const { isMobile } = useIsMobile();
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const [measuredHeight, setMeasuredHeight] = useState<number>(
-    props.height || 400,
-  );
+  const [measuredHeight, setMeasuredHeight] = useState<number>(0);
 
-  // Measure content height dynamically
+  /**
+   * Measure and register route - synchronous, no delays
+   */
   useEffect(() => {
-    if (props.height || !contentRef.current) return; // Skip if height is explicitly set
+    if (!contentRef.current) return;
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        const height = entry.contentRect.height;
-        // Apply max-height constraint if specified
-        const finalHeight = props.maxHeight
-          ? Math.min(height, props.maxHeight)
-          : height;
-        setMeasuredHeight(finalHeight);
+    const measure = () => {
+      if (!contentRef.current) return;
+
+      // Use explicit height if provided
+      if (props.height) {
+        setMeasuredHeight(props.height);
+        registerRoute({
+          id: path,
+          width: props.fullWidth ? window.innerWidth - 60 : props.width,
+          height: props.height,
+        });
+        return;
       }
-    });
 
+      // Otherwise measure from content
+      const rawHeight = contentRef.current.scrollHeight;
+      const finalHeight = props.maxHeight
+        ? Math.min(rawHeight, props.maxHeight)
+        : rawHeight;
+
+      setMeasuredHeight(finalHeight);
+
+      // Register immediately with measured height
+      registerRoute({
+        id: path,
+        width: props.fullWidth ? window.innerWidth - 60 : props.width,
+        height: finalHeight,
+      });
+    };
+
+    // Measure and register synchronously
+    measure();
+
+    // ResizeObserver will catch any subsequent changes
+    const observer = new ResizeObserver(measure);
     observer.observe(contentRef.current);
-    return () => observer.disconnect();
-  }, [props.height, props.maxHeight]);
 
-  // Register route with final height
-  useEffect(() => {
-    const finalHeight = props.height || measuredHeight;
-    registerRoute({
-      id: path,
-      width: props.fullWidth ? window.innerWidth - 60 : props.width,
-      height: finalHeight,
-    });
+    return () => {
+      observer.disconnect();
+    };
   }, [
-    measuredHeight,
     props.height,
+    props.maxHeight,
+    props.children,
+    props.path,
     props.width,
     props.fullWidth,
     path,
     registerRoute,
   ]);
 
+  /**
+   * Width calculation
+   */
   const width = !isMobile
     ? props.fullWidth
       ? "calc(100vw - 60px)"
       : `${props.width}px`
     : "100%";
-  const animation: TransitionAnimations = "none";
-  // Disable slide animations for instant switching
-  // if (backwards === "yes" || backwards === "no")
-  //   animation = backwards === "yes" ? "slide-full-left" : "slide-full-right";
 
-  const finalHeight = props.height || measuredHeight;
+  /**
+   * Final height (auto if dynamic)
+   */
+  const finalHeight = props.height ? `${props.height}px` : "auto";
 
   return (
-    <Transition
-      animation={animation}
-      className="absolute inset-0"
-      durationClass="duration-150"
-      show={show}
+    <div
+      className={classNames([
+        "absolute inset-0",
+        !show && "pointer-events-none opacity-0", // Hide but keep in DOM
+      ])}
     >
       <div
         ref={contentRef}
         className={classNames([
-          "grid grid-rows-1 max-h-full",
+          "grid grid-rows-[auto] max-h-full",
           props.className,
           props.fullWidth ? "max-w-none" : "",
         ])}
         style={{
-          height: finalHeight ? `${finalHeight}px` : undefined,
+          height: finalHeight, // Auto height unless overridden
           maxHeight: props.maxHeight ? `${props.maxHeight}px` : undefined,
-          width: props.width ? width : undefined,
+          width,
         }}
       >
         {props.children}
       </div>
-    </Transition>
+    </div>
   );
 }

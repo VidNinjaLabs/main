@@ -1,4 +1,4 @@
-import { AudioLines, Captions, Server, SlidersHorizontal } from "lucide-react";
+import { AudioLines, Server, SlidersHorizontal } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,17 +82,7 @@ export function SettingsMenu({ id }: { id: string }) {
             <span>{t("player.menus.settings.sourceItem")}</span>
           </div>
         </Menu.ChevronLink>
-        <Menu.ChevronLink
-          onClick={() => router.navigate("/captions")}
-          rightText={
-            selectedLanguagePretty ?? t("player.menus.subtitles.offChoice")
-          }
-        >
-          <div className="flex items-center gap-3">
-            <LucideIcon icon={Captions} className="text-xl" />
-            <span>{t("player.menus.settings.subtitleItem")}</span>
-          </div>
-        </Menu.ChevronLink>
+
         {showAudioMenu ? (
           <Menu.ChevronLink
             onClick={() => router.navigate("/audio")}

@@ -94,25 +94,25 @@ export function Link(props: {
   disabled?: boolean;
 }) {
   const classes = classNames(
-    "flex py-1.5 rounded-lg",
-    props.box ? "bg-video-context-light/10 h-20" : "",
+    "flex items-center px-2 rounded-lg", // items-center for vertical alignment
+    props.box ? "bg-video-context-light/10 h-20" : "h-10", // 40px per item
     {
       "cursor-default": !props.clickable,
       "hover:bg-video-context-light hover:bg-opacity-20 cursor-pointer tabbable":
         props.clickable,
       "bg-video-context-light bg-opacity-20": props.active,
-      "-ml-3 px-3 w-full": !props.box,
+      "w-full": !props.box,
       "opacity-50 pointer-events-none": props.disabled,
     },
   );
-  const styles = { width: "calc(100% + 1.5rem)" };
+  const styles = {};
 
   const content = (
     <div
       className={classNames("flex items-center flex-1 h-full", props.className)}
     >
-      <div className="flex-1 text-left flex h-full">{props.children}</div>
-      <div className="flex">{props.rightSide}</div>
+      <div className="flex-1 text-left flex items-center">{props.children}</div>
+      <div className="flex items-center">{props.rightSide}</div>
     </div>
   );
 

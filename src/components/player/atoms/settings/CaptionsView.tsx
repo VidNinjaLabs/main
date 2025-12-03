@@ -521,7 +521,7 @@ export function CaptionsView({
           </div>
         )}
 
-        <Menu.ScrollToActiveSection className="px-2">
+        <Menu.ScrollToActiveSection className="">
           <div className="space-y-2">
             {/* Custom upload option */}
             <CustomCaptionOption compact />
@@ -534,7 +534,7 @@ export function CaptionsView({
                   backLink ? "/captions/settings" : "/captions/settingsOverlay",
                 )
               }
-              className="w-full flex items-center justify-center gap-2 p-1.5 rounded-lg bg-video-context-light bg-opacity-20 hover:bg-opacity-30 transition-colors text-white font-medium"
+              className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg bg-video-context-light bg-opacity-20 hover:bg-opacity-30 transition-colors text-white font-medium"
             >
               <span>{t("player.menus.subtitles.customizeLabel")}</span>
             </button>
