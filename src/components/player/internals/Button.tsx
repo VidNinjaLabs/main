@@ -28,7 +28,7 @@ export const VideoPlayerButton = forwardRef<
       type="button"
       onClick={(e) => props.onClick?.(e.currentTarget as HTMLButtonElement)}
       className={classNames([
-        "tabbable p-2 rounded-full transition-transform duration-75 flex items-center gap-3",
+        "tabbable p-2 rounded-full flex items-center gap-3",
         props.activeClass ?? "active:scale-110 active:text-white",
         props.className ?? "",
       ])}

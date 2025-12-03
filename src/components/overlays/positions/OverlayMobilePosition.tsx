@@ -33,7 +33,7 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
     <>
       {isCaptionsSettings ? (
         <button
-          className="fixed top-1 right-4 w-12 h-12 text-video-context-type-main bg-video-context-background z-10 hover:bg-video-context-closeHover active:scale-95 rounded-2xl pointer-events-auto transition-all duration-100 flex justify-center items-center py-3 mt-3 font-bold border border-video-context-border hover:text-white"
+          className="fixed top-1 right-4 w-12 h-12 text-video-context-type-main bg-video-context-background z-10 hover:bg-video-context-closeHover active:scale-95 rounded-2xl pointer-events-auto flex justify-center items-center py-3 mt-3 font-bold border border-video-context-border hover:text-white"
           type="button"
           onClick={togglePreview}
         >
@@ -51,7 +51,6 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
           "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[280px] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
           positionClass,
           props.className,
-          "transition-all duration-300",
           isPreviewMode ? "opacity-50" : "opacity-100",
         ])}
       >

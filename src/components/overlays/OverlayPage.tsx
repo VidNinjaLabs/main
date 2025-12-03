@@ -22,7 +22,6 @@ interface Props {
 
 export function OverlayPage(props: Props) {
   const router = useInternalOverlayRouter(props.id);
-  const backwards = router.showBackwardsTransition(props.path);
   const show = router.isCurrentPage(props.path);
   const registerRoute = useOverlayStore((s) => s.registerRoute);
   const path = useMemo(() => router.makePath(props.path), [props.path, router]);
@@ -75,9 +74,10 @@ export function OverlayPage(props: Props) {
       ? "calc(100vw - 60px)"
       : `${props.width}px`
     : "100%";
-  let animation: TransitionAnimations = "none";
-  if (backwards === "yes" || backwards === "no")
-    animation = backwards === "yes" ? "slide-full-left" : "slide-full-right";
+  const animation: TransitionAnimations = "none";
+  // Disable slide animations for instant switching
+  // if (backwards === "yes" || backwards === "no")
+  //   animation = backwards === "yes" ? "slide-full-left" : "slide-full-right";
 
   const finalHeight = props.height || measuredHeight;
 

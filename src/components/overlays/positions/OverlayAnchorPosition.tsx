@@ -14,6 +14,7 @@ function useCalculatePositions() {
   const [left, setLeft] = useState<number>(0);
   const [top, setTop] = useState<number>(0);
   const [cardRect, setCardRect] = useState<DOMRect | null>(null);
+  const [isPositioned, setIsPositioned] = useState(false);
 
   const calculateAndSetCoords = useCallback(
     (anchor: typeof anchorPoint, card: DOMRect) => {
@@ -28,6 +29,7 @@ function useCalculatePositions() {
           window.innerWidth - card.width - 30,
         ),
       );
+      setIsPositioned(true);
     },
     [],
   );
@@ -51,17 +53,18 @@ function useCalculatePositions() {
     };
   }, []);
 
-  return [ref, left, top] as const;
+  return [ref, left, top, isPositioned] as const;
 }
 
 export function OverlayAnchorPosition(props: AnchorPositionProps) {
-  const [ref, left, top] = useCalculatePositions();
+  const [ref, left, top, isPositioned] = useCalculatePositions();
 
   return (
     <div
       ref={ref}
       style={{
         transform: `translateX(${left}px) translateY(${top}px)`,
+        opacity: isPositioned ? 1 : 0,
       }}
       className={classNames([
         "[&>*]:pointer-events-auto z-10 flex dir-neutral:items-start rtl:justify-start ltr:justify-end dir-neutral:origin-top-left touch-none",

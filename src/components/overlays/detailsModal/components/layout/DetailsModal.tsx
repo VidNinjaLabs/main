@@ -132,13 +132,7 @@ export function DetailsModal({ id, data: _data, minimal }: DetailsModalProps) {
   }, [isShown, modalData, _data, isLoading, hide]);
 
   return (
-    <OverlayPortal
-      darken
-      close={hide}
-      show={shouldShow}
-      durationClass="duration-500"
-      zIndex={zIndex}
-    >
+    <OverlayPortal darken close={hide} show={shouldShow} zIndex={zIndex}>
       <Helmet>
         <html data-no-scroll />
       </Helmet>

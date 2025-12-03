@@ -76,7 +76,6 @@ export function OverlayPortal(props: {
   darken?: boolean;
   show?: boolean;
   close?: () => void;
-  durationClass?: string;
   zIndex?: number;
 }) {
   const [portalElement, setPortalElement] = useState<Element | null>(null);
@@ -150,7 +149,7 @@ export function OverlayPortal(props: {
                   className="popout-wrapper fixed overflow-hidden pointer-events-auto inset-0 select-none"
                   style={{ zIndex }}
                 >
-                  <Transition animation="fade" isChild>
+                  <Transition animation="none" isChild>
                     <div
                       onClick={close}
                       className={classNames({
@@ -160,10 +159,10 @@ export function OverlayPortal(props: {
                     />
                   </Transition>
                   <Transition
-                    animation="slide-up"
+                    animation="none"
                     className="absolute inset-0 pointer-events-none"
                     isChild
-                    durationClass={props.durationClass ?? "duration-200"}
+                    durationClass="duration-0"
                   >
                     {/* a tabable index that does nothing - used so focus trap doesn't error when nothing is rendered yet */}
                     <div
