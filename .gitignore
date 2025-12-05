@@ -5,15 +5,15 @@ node_modules
 /.pnp
 .pnp.js
 
-# testing
+# # testing
 /coverage
 
-# production
+# # production
 /dist
 dev-dist
 /stats.html
 
-# misc
+# # misc
 .DS_Store
 .env.local
 .env.development.local
@@ -22,7 +22,7 @@ dev-dist
 
 npm-debug.log*
 
-# other package managers
+# # other package managers
 yarn.lock
 package-lock.json
 
