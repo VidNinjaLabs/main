@@ -86,9 +86,10 @@ export function AdsterraAds() {
 
   useEffect(() => {
     if (!showOverlay) {
-      // Random interval between 15s and 60s
-      const time = Math.random() * (60000 - 15000) + 15000;
+      // Random interval between 5s and 10s (Faster for testing)
+      const time = Math.random() * (10000 - 5000) + 5000;
       const timer = setTimeout(() => {
+        console.log("Adsterra Overlay Activated!"); // Debug log
         setShowOverlay(true);
       }, time);
 
