@@ -241,7 +241,7 @@ export function DownloadView({ id }: { id: string }) {
                 {t("player.menus.downloads.onAndroid.title")}
               </Menu.ChevronLink>
 
-              <Menu.Divider />
+              {/* <Menu.Divider /> */}
 
               <Menu.Paragraph marginClass="my-6">
                 <StyleTrans k="player.menus.downloads.disclaimer" />

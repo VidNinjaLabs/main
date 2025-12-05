@@ -490,7 +490,7 @@ export function CaptionSettingsView({
                 />
               </div>
             </div>
-            <Menu.Divider />
+            {/* <Menu.Divider /> */}
             <CaptionSetting
               label={t("settings.subtitles.backgroundLabel")}
               max={100}

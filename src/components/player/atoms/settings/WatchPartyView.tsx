@@ -439,7 +439,7 @@ export function WatchPartyView({ id }: { id: string }) {
               </div>
             ))}
 
-          {backendSupportsWatchParty && <Menu.Divider />}
+          {/* {backendSupportsWatchParty && <Menu.Divider />} */}
 
           <Menu.Link
             clickable

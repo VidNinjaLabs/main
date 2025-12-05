@@ -219,7 +219,7 @@ export function SourceSelectionView({
       >
         {t("player.menus.sources.title")}
       </Menu.BackLink>
-      <Menu.Section className="pb-2">
+      <Menu.Section className="pt-1.5">
         {sources.map((v) => (
           <SelectableLink
             key={v.id}

@@ -42,17 +42,17 @@ function SettingsOverlay({ id }: { id: string }) {
         <OverlayPage id={id} path="/" width={290} maxHeight={400}>
           <SettingsMenu id={id} />
         </OverlayPage>
-        <OverlayPage id={id} path="/quality" width={300} maxHeight={400}>
+        <OverlayPage id={id} path="/quality" width={280} maxHeight={400}>
           <Menu.Card>
             <QualityView id={id} />
           </Menu.Card>
         </OverlayPage>
-        <OverlayPage id={id} path="/audio" width={300} maxHeight={500}>
+        <OverlayPage id={id} path="/audio" width={280} maxHeight={500}>
           <Menu.CardWithScrollable>
             <AudioView id={id} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/captions" width={300} maxHeight={500}>
+        <OverlayPage id={id} path="/captions" width={280} maxHeight={500}>
           <Menu.CardWithScrollable>
             <CaptionsView id={id} backLink />
           </Menu.CardWithScrollable>
@@ -79,17 +79,17 @@ function SettingsOverlay({ id }: { id: string }) {
             <CaptionSettingsView id={id} overlayBackLink />
           </Menu.Card>
         </OverlayPage>
-        <OverlayPage id={id} path="/source" width={300} maxHeight={500}>
+        <OverlayPage id={id} path="/source" width={280} maxHeight={500}>
           <Menu.CardWithScrollable>
             <SourceSelectionView id={id} onChoose={setChosenSourceId} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/source/embeds" width={300} maxHeight={500}>
+        <OverlayPage id={id} path="/source/embeds" width={280} maxHeight={510}>
           <Menu.CardWithScrollable>
             <EmbedSelectionView id={id} sourceId={chosenSourceId} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/playback" width={300}>
+        <OverlayPage id={id} path="/playback" width={280}>
           <Menu.Card>
             <PlaybackSettingsView id={id} />
           </Menu.Card>

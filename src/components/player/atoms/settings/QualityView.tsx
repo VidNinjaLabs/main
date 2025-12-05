@@ -67,7 +67,7 @@ export function QualityView({ id }: { id: string }) {
       <Menu.BackLink onClick={() => router.navigate("/")}>
         {t("player.menus.quality.title")}
       </Menu.BackLink>
-      <Menu.Section className="flex flex-col pb-4">
+      <Menu.Section className="flex flex-col pb-2 pt-2">
         {visibleQualities.map((v) => (
           <SelectableLink
             key={v}
@@ -80,7 +80,7 @@ export function QualityView({ id }: { id: string }) {
             {qualityToString(v)}
           </SelectableLink>
         ))}
-        <Menu.Divider />
+        {/* <Menu.Divider /> */}
         <Menu.Link
           rightSide={<Toggle onClick={changeAutomatic} enabled={autoQuality} />}
         >
