@@ -31,7 +31,9 @@ export function PopAds() {
 
     return () => {
       // Cleanup script on unmount
-      const existingScript = document.querySelector(`script[src*="popads.net"]`);
+      const existingScript = document.querySelector(
+        `script[src*="popads.net"]`,
+      );
       if (existingScript) {
         existingScript.remove();
       }
@@ -41,4 +43,3 @@ export function PopAds() {
   // This is an invisible component
   return null;
 }
-
