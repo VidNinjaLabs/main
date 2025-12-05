@@ -93,26 +93,30 @@ export function OverlayPage(props: Props) {
     : "100%";
 
   /**
-   * Final height (auto if dynamic)
+   * Final height - use measured height in pixels when content overflows maxHeight
    */
-  const finalHeight = props.height ? `${props.height}px` : "auto";
+  const finalHeight = measuredHeight
+    ? `${measuredHeight}px`
+    : props.height
+      ? `${props.height}px`
+      : "auto";
 
   return (
     <div
       className={classNames([
-        "absolute inset-0",
+        "absolute inset-0 transition-opacity duration-150 ease-out",
         !show && "pointer-events-none opacity-0", // Hide but keep in DOM
       ])}
     >
       <div
         ref={contentRef}
         className={classNames([
-          "grid grid-rows-[auto] max-h-full",
+          "max-h-full h-full", // Removed grid-rows-[auto] - it was overriding explicit height!
           props.className,
           props.fullWidth ? "max-w-none" : "",
         ])}
         style={{
-          height: finalHeight, // Auto height unless overridden
+          height: finalHeight, // Explicit height (e.g., 500px)
           maxHeight: props.maxHeight ? `${props.maxHeight}px` : undefined,
           width,
         }}
