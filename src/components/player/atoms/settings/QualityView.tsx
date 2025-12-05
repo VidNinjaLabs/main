@@ -80,7 +80,7 @@ export function QualityView({ id }: { id: string }) {
             {qualityToString(v)}
           </SelectableLink>
         ))}
-        {/* <Menu.Divider /> */}
+        <Menu.Divider />
         <Menu.Link
           rightSide={<Toggle onClick={changeAutomatic} enabled={autoQuality} />}
         >
