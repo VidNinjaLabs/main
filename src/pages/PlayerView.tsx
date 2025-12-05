@@ -40,6 +40,8 @@ export interface PlayerViewProps {
   isStandalone?: boolean;
 }
 
+const ENABLE_ANTI_DEBUG = false;
+
 export function RealPlayerView(props: PlayerViewProps) {
   const navigate = useNavigate();
   const routeParams = useParams<{
@@ -100,8 +102,8 @@ export function RealPlayerView(props: PlayerViewProps) {
   // Continuous DevTools monitoring to block API calls
   // Only enabled in production to allow development with DevTools
   useEffect(() => {
-    // Skip anti-debug in development mode
-    if (import.meta.env.DEV) {
+    // Skip anti-debug in development mode or if disabled
+    if (import.meta.env.DEV || !ENABLE_ANTI_DEBUG) {
       return;
     }
 
