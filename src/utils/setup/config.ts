@@ -21,6 +21,7 @@ interface Config {
   ONBOARDING_CHROME_EXTENSION_INSTALL_LINK: string;
   ONBOARDING_FIREFOX_EXTENSION_INSTALL_LINK: string;
   ONBOARDING_PROXY_INSTALL_LINK: string;
+  POPADS_API_KEY: string;
 }
 
 export interface RuntimeConfig {
@@ -39,6 +40,7 @@ export interface RuntimeConfig {
   ONBOARDING_CHROME_EXTENSION_INSTALL_LINK: string | null;
   ONBOARDING_FIREFOX_EXTENSION_INSTALL_LINK: string | null;
   ONBOARDING_PROXY_INSTALL_LINK: string | null;
+  POPADS_API_KEY: string | null;
 }
 
 const env: Record<keyof Config, undefined | string> = {
@@ -60,6 +62,7 @@ const env: Record<keyof Config, undefined | string> = {
   TURNSTILE_KEY: import.meta.env.VITE_TURNSTILE_KEY,
   CDN_REPLACEMENTS: import.meta.env.VITE_CDN_REPLACEMENTS,
   HAS_ONBOARDING: import.meta.env.VITE_HAS_ONBOARDING,
+  POPADS_API_KEY: import.meta.env.VITE_POPADS_API_KEY,
 };
 
 // loads from different locations, in order: environment (VITE_{KEY}), window (public/config.js)
@@ -84,6 +87,7 @@ export function conf(): RuntimeConfig {
   const firefoxExtension = getKey("ONBOARDING_FIREFOX_EXTENSION_INSTALL_LINK");
   const proxyInstallLink = getKey("ONBOARDING_PROXY_INSTALL_LINK");
   const turnstileKey = getKey("TURNSTILE_KEY");
+  const popadsApiKey = getKey("POPADS_API_KEY");
   return {
     APP_VERSION,
     GITHUB_LINK,
@@ -103,6 +107,7 @@ export function conf(): RuntimeConfig {
     NORMAL_ROUTER: getKey("NORMAL_ROUTER", "false") === "true",
     HAS_ONBOARDING: getKey("HAS_ONBOARDING", "false") === "true",
     TURNSTILE_KEY: turnstileKey.length > 0 ? turnstileKey : null,
+    POPADS_API_KEY: popadsApiKey.length > 0 ? popadsApiKey : null,
     DISALLOWED_IDS: getKey("DISALLOWED_IDS", "")
       .split(",")
       .map((v) => v.trim())
