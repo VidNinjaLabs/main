@@ -1,6 +1,5 @@
-/* eslint-disable no-promise-executor-return */
 import { FormEvent, useState } from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { Trans } from "react-i18next";
 import Turnstile from "react-turnstile";
 
 import { Button } from "@/components/buttons/Button";
@@ -14,18 +13,18 @@ import { MwLink } from "@/components/text/Link";
 import { AuthInputBox } from "@/components/text-inputs/AuthInputBox";
 import { useAuthContext } from "@/contexts/AuthContext";
 
-interface LoginFormPartProps {
-  onLogin?: () => void;
+interface SignupFormPartProps {
+  onSignup?: () => void;
 }
 
-export function LoginFormPart(props: LoginFormPartProps) {
+export function SignupFormPart(props: SignupFormPartProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const { t } = useTranslation();
-  const { login } = useAuthContext();
+  const { signup } = useAuthContext();
 
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
@@ -36,8 +35,16 @@ export function LoginFormPart(props: LoginFormPartProps) {
 
     try {
       // Validate inputs
-      if (!email || !password) {
-        throw new Error(t("auth.login.validationError") ?? "Please fill in all fields");
+      if (!email || !password || !confirmPassword) {
+        throw new Error("Please fill in all fields");
+      }
+
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+
+      if (password.length < 8) {
+        throw new Error("Password must be at least 8 characters");
       }
 
       // Check Turnstile token if enabled
@@ -45,13 +52,13 @@ export function LoginFormPart(props: LoginFormPartProps) {
         throw new Error("Please complete the security check");
       }
 
-      // Call login API
-      await login(email, password, turnstileToken || undefined);
+      // Call signup API
+      await signup(email, password, turnstileToken || undefined);
 
-      // Success - call onLogin callback
-      props.onLogin?.();
+      // Success - call onSignup callback
+      props.onSignup?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -59,8 +66,8 @@ export function LoginFormPart(props: LoginFormPartProps) {
 
   return (
     <LargeCard top={<BrandPill backgroundClass="bg-[#161527]" />}>
-      <LargeCardText title={t("auth.login.title")}>
-        Sign in with your email and password
+      <LargeCardText title="Create your account">
+        Sign up with your email and password
       </LargeCardText>
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInputBox
@@ -69,15 +76,23 @@ export function LoginFormPart(props: LoginFormPartProps) {
           autoComplete="email"
           name="email"
           onChange={setEmail}
-          placeholder="admin@cloudclash.local"
+          placeholder="your@email.com"
         />
         <AuthInputBox
           label="Password"
           value={password}
           onChange={setPassword}
-          placeholder="Enter your password"
+          placeholder="At least 8 characters"
           passwordToggleable
-          autoComplete="current-password"
+          autoComplete="new-password"
+        />
+        <AuthInputBox
+          label="Confirm Password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="Re-enter your password"
+          passwordToggleable
+          autoComplete="new-password"
         />
         {turnstileSiteKey && (
           <div className="flex justify-center">
@@ -93,17 +108,13 @@ export function LoginFormPart(props: LoginFormPartProps) {
       </form>
 
       <LargeCardButtons>
-        <Button
-          theme="purple"
-          loading={loading}
-          onClick={() => handleSubmit()}
-        >
-          {t("auth.login.submit")}
+        <Button theme="purple" loading={loading} onClick={() => handleSubmit()}>
+          Create Account
         </Button>
       </LargeCardButtons>
       <p className="text-center mt-6">
-        <Trans i18nKey="auth.createAccount">
-          <MwLink to="/register">.</MwLink>
+        <Trans i18nKey="auth.hasAccount">
+          Already have an account? <MwLink to="/login">Login here.</MwLink>
         </Trans>
       </p>
     </LargeCard>

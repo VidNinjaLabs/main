@@ -19,6 +19,7 @@ export interface NavigationProps {
   noLightbar?: boolean;
   doBackground?: boolean;
   clearBackground?: boolean;
+  hideSettings?: boolean;
 }
 
 export function Navigation(props: NavigationProps) {
@@ -187,22 +188,23 @@ export function Navigation(props: NavigationProps) {
                   </a>
                 )}
               {/* Hide settings icon on mobile browse page, show on desktop */}
-              {(!window.location.pathname.startsWith("/browse") ||
-                window.innerWidth >= 768) && (
-                <div
-                  className={
-                    window.location.pathname === "/discover"
-                      ? "hidden md:block"
-                      : ""
-                  }
-                >
-                  <LinksDropdown>
-                    <a className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200">
-                      <Settings size={28} />
-                    </a>
-                  </LinksDropdown>
-                </div>
-              )}
+              {!props.hideSettings &&
+                (!window.location.pathname.startsWith("/browse") ||
+                  window.innerWidth >= 768) && (
+                  <div
+                    className={
+                      window.location.pathname === "/discover"
+                        ? "hidden md:block"
+                        : ""
+                    }
+                  >
+                    <LinksDropdown>
+                      <a className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200">
+                        <Settings size={28} />
+                      </a>
+                    </LinksDropdown>
+                  </div>
+                )}
             </div>
           </div>
         </div>

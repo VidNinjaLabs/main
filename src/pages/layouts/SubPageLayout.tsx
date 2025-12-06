@@ -23,7 +23,11 @@ export function BlurEllipsis(props: { positionClass?: string }) {
   );
 }
 
-export function SubPageLayout(props: { children: React.ReactNode }) {
+export function SubPageLayout(props: {
+  children: React.ReactNode;
+  hideSettings?: boolean;
+  hideFooter?: boolean;
+}) {
   return (
     <div
       className="bg-background-main"
@@ -34,10 +38,25 @@ export function SubPageLayout(props: { children: React.ReactNode }) {
     >
       <BlurEllipsis />
       {/* Main page */}
-      <FooterView>
-        <Navigation doBackground noLightbar />
-        <div className="mt-20 relative">{props.children}</div>
-      </FooterView>
+      {props.hideFooter ? (
+        <>
+          <Navigation
+            doBackground
+            noLightbar
+            hideSettings={props.hideSettings}
+          />
+          <div className="mt-20 relative">{props.children}</div>
+        </>
+      ) : (
+        <FooterView>
+          <Navigation
+            doBackground
+            noLightbar
+            hideSettings={props.hideSettings}
+          />
+          <div className="mt-20 relative">{props.children}</div>
+        </FooterView>
+      )}
     </div>
   );
 }

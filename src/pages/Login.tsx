@@ -8,7 +8,7 @@ export function LoginPage() {
   const navigate = useNavigate();
 
   return (
-    <SubPageLayout>
+    <SubPageLayout hideSettings hideFooter>
       <PageTitle subpage k="global.pages.login" />
       <LoginFormPart
         onLogin={() => {

@@ -2,10 +2,9 @@ import classNames from "classnames";
 import {
   ArrowRight,
   CircleHelp,
-  Github,
+  LogIn,
   LogOut,
   LucideIcon as LucideIconType,
-  Minimize,
   Settings,
   TrendingUp,
 } from "lucide-react";
@@ -238,6 +237,11 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
   );
   const { logout } = useAuth();
 
+  // TODO: Replace with actual auth check when auth system is implemented
+  // For now, check if deviceName exists to determine if logged in
+  const isLoggedIn = !!deviceName;
+  const isAdmin = false; // TODO: Check actual admin role from auth context
+
   useEffect(() => {
     function onWindowClick(evt: MouseEvent) {
       if ((evt.target as HTMLElement).closest(".is-dropdown")) return;
@@ -268,7 +272,8 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
       </div>
       <Transition animation="slide-down" show={open}>
         <div className="rounded-xl absolute w-64 bg-dropdown-altBackground top-full mt-3 right-0">
-          {deviceName && bufferSeed ? (
+          {/* User profile or Login button */}
+          {isLoggedIn && deviceName && bufferSeed ? (
             <DropdownLink className="text-white" href="/settings">
               <UserAvatar />
               {(() => {
@@ -284,29 +289,36 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
               })()}
             </DropdownLink>
           ) : (
-            <DropdownLink href="/login" icon={TrendingUp} highlight>
-              {t("navigation.menu.register")}
+            <DropdownLink href="/login" icon={LogIn} highlight>
+              Login
             </DropdownLink>
           )}
           <Divider />
-          <DropdownLink href="/settings" icon={Settings}>
-            {t("navigation.menu.settings")}
-          </DropdownLink>
-          {process.env.NODE_ENV === "development" ? (
-            <DropdownLink href="/dev" icon={Minimize}>
-              {t("navigation.menu.development")}
+
+          {/* Settings - only show for admin */}
+          {isAdmin && (
+            <DropdownLink href="/settings" icon={Settings}>
+              {t("navigation.menu.settings")}
             </DropdownLink>
-          ) : null}
+          )}
+
+          {/* About and FAQ - always show */}
           <DropdownLink href="/about" icon={CircleHelp}>
             {t("navigation.menu.about")}
           </DropdownLink>
+
+          {/* Discover - always show (unless low performance mode) */}
           {!enableLowPerformanceMode && (
             <DropdownLink href="/discover" icon={TrendingUp}>
               {t("navigation.menu.discover")}
             </DropdownLink>
           )}
+
+          {/* Join a Watch Party - always show */}
           <WatchPartyInputLink />
-          {deviceName ? (
+
+          {/* Logout - only for logged in users */}
+          {isLoggedIn ? (
             <DropdownLink
               className="!text-type-danger opacity-75 hover:opacity-100"
               icon={LogOut}
@@ -315,20 +327,10 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
               {t("navigation.menu.logout")}
             </DropdownLink>
           ) : null}
+
           <Divider />
-          <div className="my-4 flex justify-center items-center gap-4">
-            {conf().GITHUB_LINK && (
-              <CircleDropdownLink href={conf().GITHUB_LINK} icon={Github} />
-            )}
-            <CircleDropdownLink
-              href={conf().DISCORD_LINK}
-              icon={Icons.DISCORD}
-            />
+          <div className="my-2 flex justify-center items-center gap-4">
             <CircleDropdownLink href="/support" icon={Icons.SUPPORT} />
-            <CircleDropdownLink
-              href="https://rentry.co/h5mypdfs"
-              icon={Icons.TIP_JAR}
-            />
           </div>
         </div>
       </Transition>
