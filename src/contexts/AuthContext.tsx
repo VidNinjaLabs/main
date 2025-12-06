@@ -71,8 +71,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Login failed");
+      // Try to parse JSON error, fallback to text
+      try {
+        const error = await response.json();
+        throw new Error(error.error || "Login failed");
+      } catch {
+        const text = await response.text();
+        if (text.includes("A server error")) {
+          throw new Error(
+            "API endpoint not available. Please deploy to Vercel or configure local API.",
+          );
+        }
+        throw new Error(`Login failed: ${text.substring(0, 100)}`);
+      }
     }
 
     const data = await response.json();
@@ -98,8 +109,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Signup failed");
+      // Try to parse JSON error, fallback to text
+      try {
+        const error = await response.json();
+        throw new Error(error.error || "Signup failed");
+      } catch {
+        const text = await response.text();
+        if (text.includes("A server error")) {
+          throw new Error(
+            "API endpoint not available. Please deploy to Vercel or configure local API.",
+          );
+        }
+        throw new Error(`Signup failed: ${text.substring(0, 100)}`);
+      }
     }
 
     const data = await response.json();
