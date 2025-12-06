@@ -15,6 +15,7 @@ export interface UserResponse {
     colorB: string;
     icon: string;
   };
+  premium_until?: string;
 }
 
 export interface UserEdit {

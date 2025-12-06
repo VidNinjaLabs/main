@@ -1,7 +1,13 @@
 import { useEffect } from "react";
 
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
+
 export function AdMaven() {
+  const isPremium = useIsPremium();
+
   useEffect(() => {
+    if (isPremium) return;
+
     try {
       // External Script
       const externalScript = document.createElement("script");
@@ -27,7 +33,7 @@ export function AdMaven() {
     } catch (err) {
       console.error("AdMaven script injection error:", err);
     }
-  }, []);
+  }, [isPremium]);
 
   return null;
 }

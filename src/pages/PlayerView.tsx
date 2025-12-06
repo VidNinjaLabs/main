@@ -8,10 +8,13 @@ import {
 import { useAsync } from "react-use";
 
 import { DetailedMeta } from "@/backend/metadata/getmeta";
+import { PremiumModal } from "@/components/overlays/PremiumModal";
 import { usePlayer } from "@/components/player/hooks/usePlayer";
 import { usePlayerMeta } from "@/components/player/hooks/usePlayerMeta";
+import { PremiumPreRoll } from "@/components/player/internals/PremiumPreRoll";
 import { convertProviderCaption } from "@/components/player/utils/captions";
 import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import {
   RunOutput,
@@ -255,26 +258,62 @@ export function RealPlayerView(props: PlayerViewProps) {
     setStatus(playerStatus.SCRAPING);
   }, [setShouldStartFromBeginning, setStatus]);
 
-  const playAfterScrape = useCallback(
-    (out: RunOutput | null) => {
-      if (!out) return;
+  const [showPreRoll, setShowPreRoll] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [pendingRunOutput, setPendingRunOutput] = useState<RunOutput | null>(
+    null,
+  );
+  const isPremium = useIsPremium();
 
+  const handleWatchWithAds = useCallback(() => {
+    setShowPreRoll(false);
+    if (pendingRunOutput) {
       let startAt: number | undefined;
       if (startAtParam) startAt = parseTimestamp(startAtParam) ?? undefined;
 
       playMedia(
-        convertRunoutputToSource(out),
-        convertProviderCaption(out.stream.captions),
-        out.sourceId,
+        convertRunoutputToSource(pendingRunOutput),
+        convertProviderCaption(pendingRunOutput.stream.captions),
+        pendingRunOutput.sourceId,
         shouldStartFromBeginning ? 0 : startAt,
       );
       setShouldStartFromBeginning(false);
+      setPendingRunOutput(null);
+    }
+  }, [
+    pendingRunOutput,
+    startAtParam,
+    shouldStartFromBeginning,
+    setShouldStartFromBeginning,
+    playMedia,
+  ]);
+
+  const playAfterScrape = useCallback(
+    (out: RunOutput | null) => {
+      if (!out) return;
+
+      if (isPremium || import.meta.env.VITE_ENABLE_PREMIUM !== "true") {
+        let startAt: number | undefined;
+        if (startAtParam) startAt = parseTimestamp(startAtParam) ?? undefined;
+
+        playMedia(
+          convertRunoutputToSource(out),
+          convertProviderCaption(out.stream.captions),
+          out.sourceId,
+          shouldStartFromBeginning ? 0 : startAt,
+        );
+        setShouldStartFromBeginning(false);
+      } else {
+        setPendingRunOutput(out);
+        setShowPreRoll(true);
+      }
     },
     [
       playMedia,
       startAtParam,
       shouldStartFromBeginning,
       setShouldStartFromBeginning,
+      isPremium,
     ],
   );
 
@@ -284,6 +323,20 @@ export function RealPlayerView(props: PlayerViewProps) {
       onMetaChange={metaChange}
       backdropUrl={backdropUrl}
     >
+      {showPreRoll && (
+        <PremiumPreRoll
+          onWatchWithAds={handleWatchWithAds}
+          onGoPremium={() => setShowPremiumModal(true)}
+        />
+      )}
+
+      {showPremiumModal && (
+        <PremiumModal
+          id="premium-modal"
+          onClose={() => setShowPremiumModal(false)}
+        />
+      )}
+
       {status === playerStatus.IDLE ? (
         <MetaPart
           onGetMeta={handleMetaReceived}

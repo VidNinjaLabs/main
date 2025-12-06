@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
+
 /**
  * Ad component for PopAds scripts
  */
 export function PopAds() {
+  const isPremium = useIsPremium();
   useEffect(() => {
+    if (isPremium) return;
     // Inject the ad script
     try {
       /* eslint-disable */
@@ -67,7 +71,7 @@ export function PopAds() {
     } catch (err) {
       console.error("Ad script error:", err);
     }
-  }, []);
+  }, [isPremium]);
 
   return null;
 }
@@ -77,6 +81,7 @@ export function PopAds() {
  */
 export function AdsterraAds() {
   const [showOverlay, setShowOverlay] = useState(false);
+  const isPremium = useIsPremium();
 
   // Adsterra Direct Links
   const links = [
@@ -85,6 +90,7 @@ export function AdsterraAds() {
   ];
 
   useEffect(() => {
+    if (isPremium) return;
     if (!showOverlay) {
       // Random interval between 5s and 10s (Faster for testing)
       const time = Math.random() * (10000 - 5000) + 5000;
@@ -95,7 +101,7 @@ export function AdsterraAds() {
 
       return () => clearTimeout(timer);
     }
-  }, [showOverlay]);
+  }, [showOverlay, isPremium]);
 
   const handleInteraction = () => {
     // Pick a random link

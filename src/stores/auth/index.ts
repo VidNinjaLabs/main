@@ -17,6 +17,7 @@ export type AccountWithToken = Account & {
   token: string;
   seed: string;
   deviceName: string;
+  premium_until?: string;
 };
 
 interface AuthStore {

@@ -17,6 +17,7 @@ import {
   createMP4ProxyUrl,
   isUrlAlreadyProxied,
 } from "@/components/player/utils/proxy";
+import { useAuthStore } from "@/stores/auth";
 import { useLanguageStore } from "@/stores/language";
 import {
   LoadableSource,
@@ -106,9 +107,21 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
   function reportLevels() {
     if (!hls) return;
     const levels = hls.levels;
+    const { account } = useAuthStore.getState();
+    const isPremium =
+      (account?.premium_until &&
+        new Date(account.premium_until) > new Date()) ||
+      import.meta.env.VITE_ENABLE_PREMIUM !== "true";
+
     const convertedLevels = levels
       .map((v) => hlsLevelToQuality(v))
-      .filter((v): v is SourceQuality => !!v);
+      .filter((v): v is SourceQuality => !!v)
+      .filter((q) => {
+        if (isPremium) return true;
+        // Filter out 1080p and 4k for non-premium
+        if (q === "1080" || q === "4k") return false;
+        return true;
+      });
     emit("qualities", convertedLevels);
   }
 
