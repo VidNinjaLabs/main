@@ -11,6 +11,7 @@ import {
 
 import { convertLegacyUrl, isLegacyUrl } from "@/backend/metadata/getmeta";
 import { generateQuickSearchMediaUrl } from "@/backend/metadata/tmdb";
+import { AdMaven } from "@/components/ads/AdMaven";
 import { AdsterraAds, PopAds } from "@/components/ads/PropellerAds";
 import { DetailsModal } from "@/components/overlays/detailsModal";
 import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsModal";
@@ -131,6 +132,7 @@ function App() {
     <TurnstileGate>
       <PopAds />
       <AdsterraAds />
+      <AdMaven />
       <Layout>
         <LanguageProvider />
         <NotificationModal id="notifications" />
