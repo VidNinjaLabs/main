@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-promise-executor-return */
 import { FormEvent, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -37,7 +38,9 @@ export function LoginFormPart(props: LoginFormPartProps) {
     try {
       // Validate inputs
       if (!email || !password) {
-        throw new Error(t("auth.login.validationError") ?? "Please fill in all fields");
+        throw new Error(
+          t("auth.login.validationError") ?? "Please fill in all fields",
+        );
       }
 
       // Check Turnstile token if enabled
@@ -93,11 +96,7 @@ export function LoginFormPart(props: LoginFormPartProps) {
       </form>
 
       <LargeCardButtons>
-        <Button
-          theme="purple"
-          loading={loading}
-          onClick={() => handleSubmit()}
-        >
+        <Button theme="purple" loading={loading} onClick={() => handleSubmit()}>
           {t("auth.login.submit")}
         </Button>
       </LargeCardButtons>

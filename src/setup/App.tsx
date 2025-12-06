@@ -17,6 +17,7 @@ import { DetailsModal } from "@/components/overlays/detailsModal";
 import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsModal";
 import { NotificationModal } from "@/components/overlays/notificationsModal";
 import { TurnstileGate } from "@/components/TurnstileGate";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { useGlobalKeyboardEvents } from "@/hooks/useGlobalKeyboardEvents";
 import { useOnlineListener } from "@/hooks/usePing";
 import { AboutPage } from "@/pages/About";

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { FormEvent, useState } from "react";
 import { Trans } from "react-i18next";
 import Turnstile from "react-turnstile";
