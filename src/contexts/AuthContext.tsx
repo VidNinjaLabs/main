@@ -71,19 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) {
-      // Try to parse JSON error, fallback to text
+      // Try to get error message
+      let errorMessage = "Login failed";
       try {
         const error = await response.json();
-        throw new Error(error.error || "Login failed");
+        errorMessage = error.error || errorMessage;
       } catch {
-        const text = await response.text();
-        if (text.includes("A server error")) {
-          throw new Error(
-            "API endpoint not available. Please deploy to Vercel or configure local API.",
-          );
-        }
-        throw new Error(`Login failed: ${text.substring(0, 100)}`);
+        // If JSON parsing fails, it's likely an HTML error page
+        errorMessage = `Server error (${response.status}). Please check Vercel logs.`;
       }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -109,19 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) {
-      // Try to parse JSON error, fallback to text
+      // Try to get error message
+      let errorMessage = "Signup failed";
       try {
         const error = await response.json();
-        throw new Error(error.error || "Signup failed");
+        errorMessage = error.error || errorMessage;
       } catch {
-        const text = await response.text();
-        if (text.includes("A server error")) {
-          throw new Error(
-            "API endpoint not available. Please deploy to Vercel or configure local API.",
-          );
-        }
-        throw new Error(`Signup failed: ${text.substring(0, 100)}`);
+        // If JSON parsing fails, it's likely an HTML error page
+        errorMessage = `Server error (${response.status}). Please check Vercel logs.`;
       }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
