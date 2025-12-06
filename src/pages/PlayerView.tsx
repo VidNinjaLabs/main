@@ -322,6 +322,7 @@ export function RealPlayerView(props: PlayerViewProps) {
       backUrl={backUrl}
       onMetaChange={metaChange}
       backdropUrl={backdropUrl}
+      isStandalone={props.isStandalone}
     >
       {showPreRoll && (
         <PremiumPreRoll

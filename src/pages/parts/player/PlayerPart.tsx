@@ -21,6 +21,7 @@ export interface PlayerPartProps {
   onLoad?: () => void;
   onMetaChange?: (meta: PlayerMeta) => void;
   backdropUrl?: string | null;
+  isStandalone?: boolean;
 }
 
 export function PlayerPart(props: PlayerPartProps) {
@@ -154,7 +155,7 @@ export function PlayerPart(props: PlayerPartProps) {
             )}
           >
             <div className="flex items-center justify-start">
-              <Player.BackLink url={props.backUrl} />
+              {!props.isStandalone && <Player.BackLink url={props.backUrl} />}
             </div>
             <div className="flex justify-center items-center text-center">
               <Player.Title />
