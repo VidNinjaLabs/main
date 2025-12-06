@@ -19,6 +19,8 @@ module.exports = {
   ignorePatterns: [
     "public/*",
     "dist/*",
+    "api/*",
+    ".eslintrc.cjs",
     "/*.js",
     "/*.ts",
     "/*.mts",

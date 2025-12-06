@@ -14,6 +14,7 @@ import {
 import { MwLink } from "@/components/text/Link";
 import { AuthInputBox } from "@/components/text-inputs/AuthInputBox";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useConfig } from "@/hooks/useConfig";
 
 interface LoginFormPartProps {
   onLogin?: () => void;
@@ -27,8 +28,9 @@ export function LoginFormPart(props: LoginFormPartProps) {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const { t } = useTranslation();
   const { login } = useAuthContext();
+  const { config } = useConfig();
 
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const turnstileSiteKey = config?.turnstileSiteKey || "";
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
