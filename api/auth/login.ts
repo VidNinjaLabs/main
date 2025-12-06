@@ -8,7 +8,12 @@ const prisma = new PrismaClient();
 // Verify Cloudflare Turnstile token
 async function verifyTurnstile(token: string): Promise<boolean> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
-  if (!secretKey) return true; // Skip if not configured
+  
+  // Skip verification if secret key is not configured
+  if (!secretKey) {
+    console.log('Turnstile verification skipped - no secret key configured');
+    return true;
+  }
 
   try {
     const response = await fetch(
