@@ -1,9 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
+
+// Email validation
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
 
 // Verify Cloudflare Turnstile token
 async function verifyTurnstile(token: string): Promise<boolean> {
@@ -40,6 +45,11 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -51,6 +61,11 @@ export default async function handler(
     // Validate input
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
     // Verify Turnstile if token provided
@@ -67,13 +82,20 @@ export default async function handler(
       include: { subscription: true },
     });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    // Prevent timing attacks: always run bcrypt even if user not found
+    const passwordHash = user?.password || '$2a$10$dummyhashtopreventtimingattack';
+    const isValidPassword = await bcrypt.compare(password, passwordHash);
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
+    // Check both conditions together to prevent timing attacks
+    if (!user || !isValidPassword) {
+      // Log failed attempt
+      console.log({
+        timestamp: new Date().toISOString(),
+        action: 'login_failed',
+        email: email.toLowerCase(),
+        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      });
+      
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -94,6 +116,15 @@ export default async function handler(
       { expiresIn: '7d' }
     );
 
+    // Log successful login
+    console.log({
+      timestamp: new Date().toISOString(),
+      action: 'login_success',
+      userId: user.id,
+      email: user.email,
+      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    });
+
     // Return user data and token
     return res.status(200).json({
       token,
@@ -108,7 +139,5 @@ export default async function handler(
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({ error: 'Internal server error' });
-  } finally {
-    await prisma.$disconnect();
   }
 }

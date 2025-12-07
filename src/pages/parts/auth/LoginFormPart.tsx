@@ -45,8 +45,8 @@ export function LoginFormPart(props: LoginFormPartProps) {
         );
       }
 
-      // Check Turnstile token if enabled
-      if (turnstileSiteKey && !turnstileToken) {
+      // Check Turnstile token if enabled (only in production)
+      if (import.meta.env.PROD && turnstileSiteKey && !turnstileToken) {
         throw new Error("Please complete the security check");
       }
 
@@ -84,7 +84,7 @@ export function LoginFormPart(props: LoginFormPartProps) {
           passwordToggleable
           autoComplete="current-password"
         />
-        {turnstileSiteKey && (
+        {turnstileSiteKey && import.meta.env.PROD && (
           <div className="flex justify-center">
             <Turnstile
               sitekey={turnstileSiteKey}

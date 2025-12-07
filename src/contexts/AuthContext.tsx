@@ -29,6 +29,7 @@ interface AuthContextType {
   signup: (
     email: string,
     password: string,
+    confirmPassword?: string,
     turnstileToken?: string,
   ) => Promise<void>;
   logout: () => void;
@@ -48,6 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (storedToken && storedUser) {
       try {
+        // Validate JWT expiry
+        const tokenParts = storedToken.split(".");
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          const now = Math.floor(Date.now() / 1000);
+
+          if (payload.exp && payload.exp < now) {
+            console.log("Token expired, clearing session");
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("auth_user");
+            setLoading(false);
+            return;
+          }
+        }
+
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch (error) {
@@ -64,7 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     turnstileToken?: string,
   ) => {
-    const response = await fetch("/api/auth/login", {
+    // Use localhost:3001 for local dev, /api for production
+    const apiUrl = import.meta.env.DEV
+      ? "http://localhost:3001/api/auth/login"
+      : "/api/auth/login";
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, turnstileToken }),
@@ -97,12 +118,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (
     email: string,
     password: string,
+    confirmPassword?: string,
     turnstileToken?: string,
   ) => {
-    const response = await fetch("/api/auth/signup", {
+    // Use localhost:3001 for local dev, /api for production
+    const apiUrl = import.meta.env.DEV
+      ? "http://localhost:3001/api/auth/signup"
+      : "/api/auth/signup";
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, turnstileToken }),
+      body: JSON.stringify({
+        email,
+        password,
+        confirmPassword,
+        turnstileToken,
+      }),
     });
 
     if (!response.ok) {

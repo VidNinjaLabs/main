@@ -132,9 +132,13 @@ function App() {
   return (
     <AuthProvider>
       <TurnstileGate>
-        <PopAds />
-        <AdsterraAds />
-        <AdMaven />
+        {import.meta.env.PROD && (
+          <>
+            <PopAds />
+            <AdsterraAds />
+            <AdMaven />
+          </>
+        )}
         <Layout>
           <LanguageProvider />
           <NotificationModal id="notifications" />

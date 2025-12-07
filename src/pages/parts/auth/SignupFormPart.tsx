@@ -50,13 +50,18 @@ export function SignupFormPart(props: SignupFormPartProps) {
         throw new Error("Password must be at least 8 characters");
       }
 
-      // Check Turnstile token if enabled
-      if (turnstileSiteKey && !turnstileToken) {
+      // Check Turnstile token if enabled (only in production)
+      if (import.meta.env.PROD && turnstileSiteKey && !turnstileToken) {
         throw new Error("Please complete the security check");
       }
 
       // Call signup API
-      await signup(email, password, turnstileToken || undefined);
+      await signup(
+        email,
+        password,
+        confirmPassword,
+        turnstileToken || undefined,
+      );
 
       // Success - call onSignup callback
       props.onSignup?.();
@@ -97,7 +102,7 @@ export function SignupFormPart(props: SignupFormPartProps) {
           passwordToggleable
           autoComplete="new-password"
         />
-        {turnstileSiteKey && (
+        {turnstileSiteKey && import.meta.env.PROD && (
           <div className="flex justify-center">
             <Turnstile
               sitekey={turnstileSiteKey}

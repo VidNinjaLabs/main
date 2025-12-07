@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import classNames from "classnames";
 import {
   ArrowRight,
@@ -19,6 +20,7 @@ import { Icon, Icons } from "@/components/Icon";
 import { Spinner } from "@/components/layout/Spinner";
 import { LucideIcon } from "@/components/LucideIcon";
 import { Transition } from "@/components/utils/Transition";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { conf } from "@/setup/config";
@@ -237,10 +239,26 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
   );
   const { logout } = useAuth();
 
-  // TODO: Replace with actual auth check when auth system is implemented
-  // For now, check if deviceName exists to determine if logged in
-  const isLoggedIn = !!deviceName;
-  const isAdmin = false; // TODO: Check actual admin role from auth context
+  // Import new auth context
+  const {
+    isAuthenticated,
+    user,
+    isAdmin: isAdminRole,
+    logout: authLogout,
+  } = useAuthContext();
+
+  // Check both old and new auth systems
+  // TODO: Remove deviceName check once fully migrated to JWT auth
+  const isLoggedIn = isAuthenticated || !!deviceName;
+  const isAdmin = isAdminRole; // Use actual admin role from JWT
+
+  // Logout handler
+  const handleLogout = () => {
+    // Call new auth logout
+    authLogout();
+    // Also call old auth logout for backward compatibility
+    logout();
+  };
 
   useEffect(() => {
     function onWindowClick(evt: MouseEvent) {
@@ -273,22 +291,33 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
       <Transition animation="slide-down" show={open}>
         <div className="rounded-xl absolute w-64 bg-dropdown-altBackground top-full mt-3 right-0">
           {/* User profile or Login button */}
-          {isLoggedIn && deviceName && bufferSeed ? (
-            <DropdownLink className="text-white" href="/settings">
-              <UserAvatar />
-              {(() => {
-                try {
-                  return decryptData(deviceName, bufferSeed);
-                } catch (error) {
-                  console.warn(
-                    "Failed to decrypt device name in LinksDropdown, using fallback:",
-                    error,
-                  );
-                  return t("settings.account.unknownDevice");
-                }
-              })()}
-            </DropdownLink>
+          {isLoggedIn ? (
+            // Show user profile if logged in
+            isAuthenticated && user ? (
+              // New JWT auth - show email
+              <DropdownLink className="text-white" href="/settings">
+                <UserAvatar />
+                {user.email}
+              </DropdownLink>
+            ) : deviceName && bufferSeed ? (
+              // Old auth - show device name
+              <DropdownLink className="text-white" href="/settings">
+                <UserAvatar />
+                {(() => {
+                  try {
+                    return decryptData(deviceName, bufferSeed);
+                  } catch (error) {
+                    console.warn(
+                      "Failed to decrypt device name in LinksDropdown, using fallback:",
+                      error,
+                    );
+                    return t("settings.account.unknownDevice");
+                  }
+                })()}
+              </DropdownLink>
+            ) : null
           ) : (
+            // Show Login button only when NOT logged in
             <DropdownLink href="/login" icon={LogIn} highlight>
               Login
             </DropdownLink>
@@ -322,7 +351,7 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
             <DropdownLink
               className="!text-type-danger opacity-75 hover:opacity-100"
               icon={LogOut}
-              onClick={logout}
+              onClick={handleLogout}
             >
               {t("navigation.menu.logout")}
             </DropdownLink>

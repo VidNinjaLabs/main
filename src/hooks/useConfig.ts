@@ -19,7 +19,11 @@ async function fetchConfig(): Promise<Config> {
     return configPromise;
   }
 
-  configPromise = fetch("/api/config")
+  const apiUrl = import.meta.env.DEV
+    ? "http://localhost:3001/api/config"
+    : "/api/config";
+
+  configPromise = fetch(apiUrl)
     .then((res) => res.json())
     .then((data) => {
       cachedConfig = data;
