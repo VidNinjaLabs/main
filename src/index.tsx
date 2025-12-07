@@ -19,8 +19,6 @@ import { LucideIcon } from "@/components/LucideIcon";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useAuthRestore } from "@/hooks/auth/useAuthRestore";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
-import { ErrorBoundary } from "@/pages/errors/ErrorBoundary";
-import { MigrationPart } from "@/pages/parts/migrations/MigrationPart";
 import { LargeTextPart } from "@/pages/parts/util/LargeTextPart";
 import App from "@/setup/App";
 import { conf } from "@/setup/config";
@@ -38,6 +36,7 @@ import {
   extensionInfo,
   isExtensionActiveCached,
 } from "./backend/extension/messaging";
+import { ErrorBoundary } from "./pages/errors/ErrorBoundary";
 import { initializeChromecast } from "./setup/chromecast";
 import { initializeImageFadeIn } from "./setup/imageFadeIn";
 import { initializeOldStores } from "./stores/__old/migrations";
@@ -150,7 +149,6 @@ function MigrationRunner() {
   }, []);
   const { t } = useTranslation();
 
-  if (status.loading) return <MigrationPart />;
   if (status.error)
     return <ErrorScreen>{t("screens.migration.failed")}</ErrorScreen>;
   return <AuthWrapper />;

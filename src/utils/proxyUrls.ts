@@ -1,7 +1,6 @@
 import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
 
-const originalUrls = ["http://localhost:8787"];
 const types = ["proxy", "api"] as const;
 
 type ParsedUrlType = (typeof types)[number];
@@ -35,7 +34,15 @@ function parseParams(input: string): Record<string, string> {
 }
 
 export function getParsedUrls() {
-  const urls = useAuthStore.getState().proxySet ?? originalUrls;
+  // Start with env vars as the primary source
+  const envProxies = conf().PROXY_URLS;
+
+  // Allow user override if set (for advanced users via settings)
+  const userProxies = useAuthStore.getState().proxySet;
+
+  // Use user proxies if they exist, otherwise fall back to env vars
+  const urls = userProxies && userProxies.length > 0 ? userProxies : envProxies;
+
   const output: ParsedUrl[] = [];
   urls.forEach((url) => {
     if (!url.startsWith("|")) {

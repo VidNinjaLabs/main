@@ -13,11 +13,6 @@ import { getGroupOrder } from "@/backend/accounts/groupOrder";
 import { importBookmarks, importProgress } from "@/backend/accounts/import";
 import { getLoginChallengeToken, loginAccount } from "@/backend/accounts/login";
 import { progressMediaItemToInputs } from "@/backend/accounts/progress";
-import {
-  getRegisterChallengeToken,
-  registerAccount,
-} from "@/backend/accounts/register";
-import { removeSession } from "@/backend/accounts/sessions";
 import { getSettings } from "@/backend/accounts/settings";
 import {
   UserResponse,
@@ -89,47 +84,8 @@ export function useAuth() {
   );
 
   const logout = useCallback(async () => {
-    if (!currentAccount || !backendUrl) return;
-    try {
-      await removeSession(
-        backendUrl,
-        currentAccount.token,
-        currentAccount.sessionId,
-      );
-    } catch {
-      // we dont care about failing to delete session
-    }
     await userDataLogout();
-  }, [userDataLogout, backendUrl, currentAccount]);
-
-  const register = useCallback(
-    async (registerData: RegistrationData) => {
-      if (!backendUrl) return;
-      const { challenge } = await getRegisterChallengeToken(
-        backendUrl,
-        registerData.recaptchaToken,
-      );
-      const keys = await keysFromMnemonic(registerData.mnemonic);
-      const signature = await signChallenge(keys, challenge);
-      const registerResult = await registerAccount(backendUrl, {
-        challenge: {
-          code: challenge,
-          signature,
-        },
-        publicKey: bytesToBase64Url(keys.publicKey),
-        device: await encryptData(registerData.userData.device, keys.seed),
-        profile: registerData.userData.profile,
-      });
-
-      return userDataLogin(
-        registerResult,
-        registerResult.user,
-        registerResult.session,
-        bytesToBase64(keys.seed),
-      );
-    },
-    [backendUrl, userDataLogin],
-  );
+  }, [userDataLogout]);
 
   const importData = useCallback(
     async (
@@ -214,10 +170,6 @@ export function useAuth() {
   return {
     loggedIn,
     profile,
-    login,
     logout,
-    register,
-    restore,
-    importData,
   };
 }

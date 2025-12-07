@@ -13,17 +13,11 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   
-  // Email/Password Authentication (optional)
-  email     String?  @unique
-  password  String?  // Hashed password
+  // Email/Password Authentication
+  email     String   @unique
+  password  String   // Hashed password
   
-  // Backend Sync Authentication (optional)
-  publicKey String?  @unique  // Cryptographic public key
-  device    String?  // Encrypted device name
-  namespace String?  // App namespace (e.g., "movie-web")
-  profile   Json?    // User profile (colorA, colorB, icon)
-  
-  // Shared fields
+  // User metadata
   role      Role     @default(USER)
   isPremium Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -33,7 +27,6 @@ model User {
   subscription Subscription?
   bookmarks    Bookmark[]
   watchHistory WatchHistory[]
-  sessions     Session[]  // Backend sync sessions
 
   @@map("users")
 }
@@ -93,18 +86,4 @@ model WatchHistory {
 
   @@unique([userId, tmdbId, seasonId, episodeId])
   @@map("watch_history")
-}
-
-model Session {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token      String   @unique
-  device     String
-  userAgent  String?
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  accessedAt DateTime @default(now())
-
-  @@map("sessions")
 }

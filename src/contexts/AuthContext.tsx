@@ -8,6 +8,7 @@ import React, {
 } from "react";
 
 interface User {
+  createdAt: string | number | Date;
   id: string;
   email: string;
   role: "ADMIN" | "USER";

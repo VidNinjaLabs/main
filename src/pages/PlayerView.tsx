@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import { useAsync } from "react-use";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { DetailedMeta } from "@/backend/metadata/getmeta";
 import { PremiumModal } from "@/components/overlays/PremiumModal";
@@ -33,7 +27,6 @@ import { useLastNonPlayerLink } from "@/stores/history";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePreferencesStore } from "@/stores/preferences";
 import { getProgressPercentage, useProgressStore } from "@/stores/progress";
-import { needsOnboarding } from "@/utils/onboarding";
 import { parseTimestamp } from "@/utils/timestamp";
 
 export interface PlayerViewProps {
@@ -381,23 +374,6 @@ export function RealPlayerView(props: PlayerViewProps) {
 }
 
 function PlayerView(props: PlayerViewProps) {
-  const loc = useLocation();
-  const { loading, error, value } = useAsync(() => {
-    return needsOnboarding();
-  });
-
-  if (error) throw new Error("Failed to detect onboarding");
-  if (loading) return null;
-  if (value)
-    return (
-      <Navigate
-        replace
-        to={{
-          pathname: "/onboarding",
-          search: `redirect=${encodeURIComponent(loc.pathname)}`,
-        }}
-      />
-    );
   return <RealPlayerView {...props} />;
 }
 

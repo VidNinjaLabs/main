@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
-import {
-  isExtensionActiveCached,
-  sendPage,
-} from "@/backend/extension/messaging";
+import { sendPage } from "@/backend/extension/messaging";
 import { Button } from "@/components/buttons/Button";
 import { Icons } from "@/components/Icon";
 import { IconPill } from "@/components/layout/IconPill";
@@ -14,8 +11,6 @@ import { Paragraph } from "@/components/text/Paragraph";
 import { Title } from "@/components/text/Title";
 import { ScrapingItems, ScrapingSegment } from "@/hooks/useProviderScrape";
 import { ErrorContainer, ErrorLayout } from "@/pages/layouts/ErrorLayout";
-import { conf } from "@/setup/config";
-import { useOnboardingStore } from "@/stores/onboarding";
 import { usePreferencesStore } from "@/stores/preferences";
 import { getExtensionState } from "@/utils/extension";
 import type { ExtensionStatus } from "@/utils/extension";
@@ -36,7 +31,7 @@ export function ScrapeErrorPart(props: ScrapeErrorPartProps) {
   const location = useLocation();
   const [extensionState, setExtensionState] =
     useState<ExtensionStatus>("unknown");
-  const setOnboardingCompleted = useOnboardingStore((s) => s.setCompleted);
+
   const febboxKey = usePreferencesStore((s) => s.febboxKey);
 
   const error = useMemo(() => {
@@ -107,11 +102,6 @@ export function ScrapeErrorPart(props: ScrapeErrorPartProps) {
     );
   }
 
-  function handleOnboarding() {
-    setOnboardingCompleted(false);
-    window.location.reload();
-  }
-
   return (
     <ErrorLayout>
       <ErrorContainer>
@@ -146,18 +136,6 @@ export function ScrapeErrorPart(props: ScrapeErrorPartProps) {
         >
           {t("player.scraping.notFound.discoverButton")}
         </Button> */}
-        {(!isExtensionActiveCached() || !febboxKey) && conf().HAS_ONBOARDING ? (
-          <div className="flex flex-col max-w-md gap-3 items-center py-3">
-            <Paragraph>{t("player.scraping.notFound.onboarding")}</Paragraph>
-            <Button
-              onClick={() => handleOnboarding()}
-              theme="purple"
-              className="w-fit"
-            >
-              {t("player.scraping.notFound.onboardingButton")}
-            </Button>
-          </div>
-        ) : null}
       </ErrorContainer>
       {error ? (
         <ErrorCardInModal

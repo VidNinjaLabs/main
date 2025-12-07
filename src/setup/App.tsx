@@ -33,14 +33,7 @@ import { HomePage } from "@/pages/HomePage";
 import { JipPage } from "@/pages/Jip";
 import { LegalPage, shouldHaveLegalPage } from "@/pages/Legal";
 import { LoginPage } from "@/pages/Login";
-import { MigrationPage } from "@/pages/migration/Migration";
-import { MigrationDirectPage } from "@/pages/migration/MigrationDirect";
-import { MigrationDownloadPage } from "@/pages/migration/MigrationDownload";
-import { MigrationUploadPage } from "@/pages/migration/MigrationUpload";
-import { OnboardingPage } from "@/pages/onboarding/Onboarding";
-import { OnboardingExtensionPage } from "@/pages/onboarding/OnboardingExtension";
-import { OnboardingProxyPage } from "@/pages/onboarding/OnboardingProxy";
-import { RegisterPage } from "@/pages/Register";
+
 import { SignupPage } from "@/pages/Signup";
 import {
   StandaloneMoviePlayer,
@@ -185,36 +178,9 @@ function App() {
                   </LegacyUrlView>
                 }
               />
-              <Route path="/browse/:query?" element={<HomePage />} />
-              <Route path="/" element={<Navigate to="/discover" replace />} />
-              <Route path="/register" element={<RegisterPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/about" element={<AboutPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
-              <Route
-                path="/onboarding/extension"
-                element={<OnboardingExtensionPage />}
-              />
-              <Route
-                path="/onboarding/proxy"
-                element={<OnboardingProxyPage />}
-              />
-
-              {/* Migration pages - awaiting import and export fixes */}
-              <Route path="/migration" element={<MigrationPage />} />
-              <Route
-                path="/migration/direct"
-                element={<MigrationDirectPage />}
-              />
-              <Route
-                path="/migration/download"
-                element={<MigrationDownloadPage />}
-              />
-              <Route
-                path="/migration/upload"
-                element={<MigrationUploadPage />}
-              />
 
               {shouldHaveLegalPage() ? (
                 <Route path="/legal" element={<LegalPage />} />

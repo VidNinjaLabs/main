@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-prop-types */
 import {
   Dispatch,
   SetStateAction,
@@ -644,10 +645,6 @@ export function ConnectionsPart(
           setProxyUrls={props.setProxyUrls}
           proxyTmdb={props.proxyTmdb}
           setProxyTmdb={props.setProxyTmdb}
-        />
-        <BackendEdit
-          backendUrl={props.backendUrl}
-          setBackendUrl={props.setBackendUrl}
         />
         <FebboxSetup
           febboxKey={props.febboxKey}

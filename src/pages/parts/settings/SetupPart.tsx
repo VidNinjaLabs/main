@@ -3,12 +3,10 @@ import classNames from "classnames";
 import { FetchError } from "ofetch";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { useAsync } from "react-use";
 
 import { isExtensionActive } from "@/backend/extension/messaging";
 import { proxiedFetch, singularProxiedFetch } from "@/backend/helpers/fetch";
-import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
 import { Loading } from "@/components/layout/Loading";
 import { SettingsCard } from "@/components/layout/SettingsCard";
@@ -41,7 +39,7 @@ export type Status =
 type SetupData = {
   extension: Status;
   proxy: Status;
-  defaultProxy: Status;
+  tmdbProxy: Status;
   febboxKeyTest?: Status;
   debridTokenTest?: Status;
 };
@@ -214,6 +212,25 @@ export async function testTorboxToken(
   return "success";
 }
 
+async function testTmdbProxy(): Promise<Status> {
+  try {
+    // Test TMDB API access through proxy
+    const response = await fetch("https://api.themoviedb.org/3/configuration", {
+      headers: {
+        Authorization: `Bearer ${conf().TMDB_READ_API_KEY}`,
+      },
+    });
+
+    if (response.ok) {
+      return "success";
+    }
+    return "error";
+  } catch (error) {
+    console.error("TMDB proxy test failed:", error);
+    return "error";
+  }
+}
+
 function useIsSetup() {
   const proxyUrls = useAuthStore((s) => s.proxySet);
   const febboxKey = usePreferencesStore((s) => s.febboxKey);
@@ -223,15 +240,24 @@ function useIsSetup() {
     const extensionStatus: Status = (await isExtensionActive())
       ? "success"
       : "unset";
+
+    // Test environment-configured proxies or custom user proxies
     let proxyStatus: Status = "unset";
-    if (proxyUrls && proxyUrls.length > 0) {
+    const envProxies = conf().PROXY_URLS;
+    const testProxies =
+      proxyUrls && proxyUrls.length > 0 ? proxyUrls : envProxies;
+
+    if (testProxies && testProxies.length > 0) {
       try {
-        await testProxy(proxyUrls[0]);
+        await testProxy(testProxies[0]);
         proxyStatus = "success";
       } catch {
         proxyStatus = "error";
       }
     }
+
+    // Test TMDB proxy
+    const tmdbProxyStatus = await testTmdbProxy();
 
     const febboxKeyStatus: Status = await testFebboxKey(febboxKey);
     const debridTokenStatus: Status =
@@ -242,7 +268,7 @@ function useIsSetup() {
     return {
       extension: extensionStatus,
       proxy: proxyStatus,
-      defaultProxy: "success",
+      tmdbProxy: tmdbProxyStatus,
       ...(conf().ALLOW_FEBBOX_KEY && {
         febboxKeyTest: febboxKeyStatus,
       }),
@@ -250,19 +276,16 @@ function useIsSetup() {
     };
   }, [proxyUrls, febboxKey, debridToken, debridService]);
 
-  let globalState: Status = "unset";
+  let globalState: Status = "success";
   if (
-    value?.extension === "success" ||
-    value?.proxy === "success" ||
-    value?.febboxKeyTest === "success" ||
-    value?.debridTokenTest === "success"
-  )
-    globalState = "success";
-  if (
-    value?.proxy === "error" ||
     value?.extension === "error" ||
+    value?.proxy === "error" ||
+    value?.tmdbProxy === "error" ||
     value?.febboxKeyTest === "error" ||
-    value?.debridTokenTest === "error"
+    value?.febboxKeyTest === "api_down" ||
+    value?.debridTokenTest === "error" ||
+    value?.debridTokenTest === "invalid_token" ||
+    value?.debridTokenTest === "api_down"
   )
     globalState = "error";
 
@@ -321,7 +344,6 @@ function SetupCheckList(props: {
 
 export function SetupPart() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { loading, setupStates, globalState } = useIsSetup();
   if (loading || !setupStates) {
     return (
@@ -333,37 +355,6 @@ export function SetupPart() {
     );
   }
 
-  const textLookupMap: Record<
-    Status,
-    { title: string; desc: string; button: string }
-  > = {
-    error: {
-      title: "settings.connections.setup.errorStatus.title",
-      desc: "settings.connections.setup.errorStatus.description",
-      button: "settings.connections.setup.redoSetup",
-    },
-    success: {
-      title: "settings.connections.setup.successStatus.title",
-      desc: "settings.connections.setup.successStatus.description",
-      button: "settings.connections.setup.redoSetup",
-    },
-    unset: {
-      title: "settings.connections.setup.unsetStatus.title",
-      desc: "settings.connections.setup.unsetStatus.description",
-      button: "settings.connections.setup.doSetup",
-    },
-    api_down: {
-      title: "settings.connections.setup.errorStatus.title",
-      desc: "settings.connections.setup.errorStatus.description",
-      button: "settings.connections.setup.redoSetup",
-    },
-    invalid_token: {
-      title: "settings.connections.setup.errorStatus.title",
-      desc: "settings.connections.setup.errorStatus.description",
-      button: "settings.connections.setup.redoSetup",
-    },
-  };
-
   return (
     <SettingsCard>
       <div className="flex flex-col md:flex-row items-start gap-4">
@@ -372,8 +363,7 @@ export function SetupPart() {
             className={classNames({
               "rounded-full h-12 w-12 flex bg-opacity-15 justify-center items-center": true,
               "text-type-success bg-type-success": globalState === "success",
-              "text-type-danger bg-type-danger":
-                globalState === "error" || globalState === "unset",
+              "text-type-danger bg-type-danger": globalState === "error",
             })}
           >
             <Icon
@@ -384,23 +374,25 @@ export function SetupPart() {
         </div>
         <div className="flex-1">
           <Heading3 className="!mb-3">
-            {t(textLookupMap[globalState].title)}
+            {globalState === "success"
+              ? "Connections Active"
+              : "Connection Issues Detected"}
           </Heading3>
           <p className="max-w-[20rem] font-medium mb-6">
-            {t(textLookupMap[globalState].desc)}
+            {globalState === "success"
+              ? "Your app is configured and all services are working correctly."
+              : "Some services are having issues. Check the details below."}
           </p>
-          <SetupCheckList status={setupStates.extension}>
-            {t("settings.connections.setup.items.extension")}
+          <SetupCheckList status={setupStates.tmdbProxy}>
+            TMDB API Proxy
           </SetupCheckList>
           <SetupCheckList status={setupStates.proxy}>
-            {t("settings.connections.setup.items.proxy")}
+            {setupStates.proxy === "unset"
+              ? "Content Proxy (from environment)"
+              : "Content Proxy"}
           </SetupCheckList>
-          <SetupCheckList
-            grey
-            highlight={globalState === "unset"}
-            status={setupStates.defaultProxy}
-          >
-            {t("settings.connections.setup.items.default")}
+          <SetupCheckList status={setupStates.extension}>
+            {t("settings.connections.setup.items.extension")}
           </SetupCheckList>
           {conf().ALLOW_DEBRID_KEY && (
             <SetupCheckList status={setupStates.debridTokenTest || "unset"}>
@@ -412,11 +404,6 @@ export function SetupPart() {
               Febbox UI token
             </SetupCheckList>
           )}
-        </div>
-        <div className="md:mt-5">
-          <Button theme="purple" onClick={() => navigate("/onboarding")}>
-            {t(textLookupMap[globalState].button)}
-          </Button>
         </div>
       </div>
     </SettingsCard>

@@ -22,7 +22,6 @@ import { PageTitle } from "@/pages/parts/util/PageTitle";
 import { conf } from "@/setup/config";
 
 import { SubPageLayout } from "./layouts/SubPageLayout";
-import { Link } from "./onboarding/utils";
 
 export function shouldHaveLegalPage() {
   return !!conf().DMCA_EMAIL;
@@ -77,24 +76,20 @@ export function LegalPage() {
             title="How We Operate"
             colorClass="text-blue-400"
             description={
-              <>
-                <Paragraph>
-                  vidninja functions as a search engine and content aggregator
-                  that indexes publicly available media from across the
-                  internet.
-                  <br />
-                  <br />
-                  We don&apos;t host, store, or control any media files -
-                  everything is sourced from external third-party websites that
-                  are already publicly accessible.
-                  <br />
-                  <br />
-                  Our automated systems simply provide links to content
-                  that&apos;s already available online, without bypassing any
-                  security measures.
-                </Paragraph>
-                <Link to="/about">Learn more about how vidninja works</Link>
-              </>
+              <Paragraph>
+                vidninja functions as a search engine and content aggregator
+                that indexes publicly available media from across the internet.
+                <br />
+                <br />
+                We don&apos;t host, store, or control any media files -
+                everything is sourced from external third-party websites that
+                are already publicly accessible.
+                <br />
+                <br />
+                Our automated systems simply provide links to content
+                that&apos;s already available online, without bypassing any
+                security measures.
+              </Paragraph>
             }
           />
 

@@ -12,10 +12,13 @@ import { getSettings, updateSettings } from "@/backend/accounts/settings";
 import { editUser } from "@/backend/accounts/user";
 import { getAllProviders } from "@/backend/providers/providers";
 import { Button } from "@/components/buttons/Button";
+import { SolidSettingsCard } from "@/components/layout/SettingsCard";
 import { WideContainer } from "@/components/layout/WideContainer";
 import { UserIcons } from "@/components/UserIcon";
+import { Divider } from "@/components/utils/Divider";
 import { Heading1 } from "@/components/utils/Text";
 import { Transition } from "@/components/utils/Transition";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -28,7 +31,6 @@ import { ConnectionsPart } from "@/pages/parts/settings/ConnectionsPart";
 import { DeviceListPart } from "@/pages/parts/settings/DeviceListPart";
 import { PreferencesPart } from "@/pages/parts/settings/PreferencesPart";
 import { ProvidersPart } from "@/pages/parts/settings/ProvidersPart";
-import { RegisterCalloutPart } from "@/pages/parts/settings/RegisterCalloutPart";
 import { SettingsNavigation } from "@/pages/parts/settings/SettingsNavigation";
 import { PageTitle } from "@/pages/parts/util/PageTitle";
 import { AccountWithToken, useAuthStore } from "@/stores/auth";
@@ -129,6 +131,7 @@ export function SettingsPage() {
     "settings-account",
   );
   const { logout } = useAuth();
+  const { user: authUser } = useAuthContext();
   const prevCategoryRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -670,33 +673,75 @@ export function SettingsPage() {
             <Heading1 border className="!mb-0">
               {t("settings.account.title")}
             </Heading1>
-            {user.account && state.profile.state ? (
-              <AccountSettings
-                account={user.account}
-                deviceName={state.deviceName.state}
-                setDeviceName={state.deviceName.set}
-                nickname={state.nickname.state}
-                setNickname={state.nickname.set}
-                colorA={state.profile.state.colorA}
-                setColorA={(v) => {
-                  state.profile.set((s) =>
-                    s ? { ...s, colorA: v } : undefined,
-                  );
-                }}
-                colorB={state.profile.state.colorB}
-                setColorB={(v) =>
-                  state.profile.set((s) =>
-                    s ? { ...s, colorB: v } : undefined,
-                  )
-                }
-                userIcon={state.profile.state.icon as any}
-                setUserIcon={(v) =>
-                  state.profile.set((s) => (s ? { ...s, icon: v } : undefined))
-                }
-              />
-            ) : (
-              <RegisterCalloutPart />
-            )}
+
+            {/* Account Information */}
+            <SolidSettingsCard paddingClass="px-6 py-6" className="mt-5">
+              <div className="space-y-4">
+                {/* Email */}
+                <div>
+                  <p className="text-sm text-type-secondary mb-1">Email</p>
+                  <p className="text-white font-medium">
+                    {authUser?.email || "Not logged in"}
+                  </p>
+                </div>
+
+                {/* Premium Status */}
+                <div>
+                  <p className="text-sm text-type-secondary mb-1">
+                    Account Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full ${
+                        authUser?.isPremium ? "bg-green-500" : "bg-gray-500"
+                      }`}
+                    />
+                    <p className="text-white font-medium">
+                      {authUser?.isPremium ? "Premium" : "Free"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Account Created */}
+                <div>
+                  <p className="text-sm text-type-secondary mb-1">
+                    Member Since
+                  </p>
+                  <p className="text-white font-medium">
+                    {authUser?.createdAt
+                      ? new Date(authUser.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )
+                      : "Unknown"}
+                  </p>
+                </div>
+
+                <Divider marginClass="my-4" />
+
+                {/* Logout Button */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-white font-medium">Sign Out</p>
+                    <p className="text-sm text-type-secondary">
+                      Log out of your account
+                    </p>
+                  </div>
+                  <Button
+                    theme="danger"
+                    onClick={() => {
+                      logout();
+                    }}
+                  >
+                    {t("settings.account.actions.logout")}
+                  </Button>
+                </div>
+              </div>
+            </SolidSettingsCard>
           </div>
         )}
         {(searchQuery.trim() ||

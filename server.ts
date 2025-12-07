@@ -12,7 +12,7 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// Import API routes (we'll use the same handlers as Vercel functions)
+// Import API route handlers
 async function importHandler(path: string) {
   try {
     const module = await import(`./api${path}.ts`);
@@ -52,31 +52,17 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
-app.post('/api/auth/register/start', async (req, res) => {
-  const handler = await importHandler('/auth/register/start');
-  if (handler) {
-    await handler(req as any, res as any);
-  } else {
-    res.status(500).json({ error: 'Handler not found' });
-  }
-});
-
-app.post('/api/auth/register/complete', async (req, res) => {
-  const handler = await importHandler('/auth/register/complete');
-  if (handler) {
-    await handler(req as any, res as any);
-  } else {
-    res.status(500).json({ error: 'Handler not found' });
-  }
-});
-
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ Local API server running on http://localhost:${PORT}`);
-  console.log(`📡 Endpoints available:`);
-  console.log(`   GET  /api/config`);
-  console.log(`   POST /api/auth/login`);
-  console.log(`   POST /api/auth/signup`);
-  console.log(`   POST /api/auth/register/start`);
-  console.log(`   POST /api/auth/register/complete`);
+  console.log('');
+  console.log('✅ Local API server running!');
+  console.log(`📡 URL: http://localhost:${PORT}`);
+  console.log('');
+  console.log('Available endpoints:');
+  console.log('  GET  /api/config');
+  console.log('  POST /api/auth/login');
+  console.log('  POST /api/auth/signup');
+  console.log('');
+  console.log('💡 Frontend will proxy /api/* to this server');
+  console.log('');
 });

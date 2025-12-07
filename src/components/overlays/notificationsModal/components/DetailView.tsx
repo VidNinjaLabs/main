@@ -1,7 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 
 import { Icon, Icons } from "@/components/Icon";
-import { Link } from "@/pages/migration/utils";
 
 import { DetailViewProps } from "../types";
 import { formatNotificationDescription } from "../utils";
@@ -103,10 +102,15 @@ export function DetailView({
 
         {selectedNotification.link && (
           <div className="pt-4 border-t border-utils-divider">
-            <Link href={selectedNotification.link} target="_blank">
+            <a
+              href={selectedNotification.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-type-link hover:text-type-linkHover flex items-center gap-2"
+            >
               <Icon icon={Icons.LINK} />
               <span>Go to page</span>
-            </Link>
+            </a>
           </div>
         )}
       </div>

@@ -299,14 +299,6 @@ export function PreferencesPart(props: {
             <div className="max-w-[25rem] font-medium">
               <Trans
                 i18nKey="settings.preferences.sourceOrderDescription"
-                components={{
-                  bold: (
-                    <span
-                      className="text-type-link font-bold cursor-pointer"
-                      onClick={() => navigate("/onboarding/extension")}
-                    />
-                  ),
-                }}
               />
               <div
                 onClick={() =>
