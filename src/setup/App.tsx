@@ -41,6 +41,7 @@ import { OnboardingPage } from "@/pages/onboarding/Onboarding";
 import { OnboardingExtensionPage } from "@/pages/onboarding/OnboardingExtension";
 import { OnboardingProxyPage } from "@/pages/onboarding/OnboardingProxy";
 import { RegisterPage } from "@/pages/Register";
+import { SignupPage } from "@/pages/Signup";
 import {
   StandaloneMoviePlayer,
   StandaloneTVPlayer,
@@ -187,6 +188,7 @@ function App() {
               <Route path="/browse/:query?" element={<HomePage />} />
               <Route path="/" element={<Navigate to="/discover" replace />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/signup" element={<SignupPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />

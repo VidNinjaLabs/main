@@ -104,7 +104,7 @@ export function LoginFormPart(props: LoginFormPartProps) {
       </LargeCardButtons>
       <p className="text-center mt-6">
         <Trans i18nKey="auth.createAccount">
-          <MwLink to="/register">.</MwLink>
+          <MwLink to="/signup">.</MwLink>
         </Trans>
       </p>
     </LargeCard>
