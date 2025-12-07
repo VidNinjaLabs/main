@@ -5,8 +5,6 @@ import { MigrationPart } from "@/pages/parts/migrations/MigrationPart";
 import { PageTitle } from "@/pages/parts/util/PageTitle";
 
 export function RegisterPage() {
-  const navigate = useNavigate();
-
   return (
     <SubPageLayout>
       <PageTitle subpage k="global.pages.register" />
