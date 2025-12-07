@@ -8,33 +8,38 @@ import {
 } from "./types";
 
 class VidNinjaClient {
-  private config: VidNinjaConfig | null = null;
+  private configured: boolean = false;
 
   configure(config: VidNinjaConfig) {
-    this.config = config;
+    // We no longer need to store config since we're using backend proxy
+    // Just mark as configured for backward compatibility
+    this.configured = true;
+    console.log("VidNinja client configured to use backend proxy");
   }
 
-  private getConfig(): VidNinjaConfig {
-    if (!this.config) {
+  private checkConfigured() {
+    if (!this.configured) {
       throw new VidNinjaError("VidNinja client not configured");
     }
-    return this.config;
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
-    const config = this.getConfig();
-    const url = `${config.apiUrl}${endpoint}`;
+    this.checkConfigured();
 
-    const headers = new Headers(options.headers);
-    headers.set("x-api-key", config.apiKey);
+    // Use backend proxy instead of direct API calls
+    const apiUrl = import.meta.env.DEV ? "http://localhost:3001" : "";
+    const url = `${apiUrl}/api/vidninja${endpoint}`;
 
     try {
       const response = await fetch(url, {
         ...options,
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
       });
 
       if (!response.ok) {
@@ -59,6 +64,9 @@ class VidNinjaClient {
   async getStream(
     params: VidNinjaStreamRequest,
   ): Promise<VidNinjaStreamResponse> {
+    // Call backend proxy for CDN endpoint
+    const apiUrl = import.meta.env.DEV ? "http://localhost:3001" : "";
+
     const queryParams = new URLSearchParams({
       sourceId: params.sourceId,
       tmdbId: params.tmdbId,
@@ -78,8 +86,17 @@ class VidNinjaClient {
     return this.request<VidNinjaStreamResponse>(`/cdn?${queryParams}`);
   }
 
-  async getSources(): Promise<VidNinjaSource[]> {
-    return this.request<VidNinjaSource[]>("/sources");
+  async getSources(
+    tmdbId: string,
+    type: "movie" | "tv",
+    season?: number,
+    episode?: number,
+  ): Promise<VidNinjaSource[]> {
+    // Call backend proxy for sources
+    return this.request<VidNinjaSource[]>("/sources", {
+      method: "POST",
+      body: JSON.stringify({ tmdbId, type, season, episode }),
+    });
   }
 
   async getStatus(): Promise<VidNinjaStatusResponse> {
