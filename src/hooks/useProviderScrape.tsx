@@ -48,11 +48,17 @@ export interface RunOutput {
   stream: VidNinjaStreamResponse["stream"][0];
 }
 
-async function getAvailableSources(): Promise<
-  (VidNinjaSource | FebboxSource)[]
-> {
+async function getAvailableSources(
+  media: ScrapeMedia,
+): Promise<(VidNinjaSource | FebboxSource)[]> {
   // Don't cache sources - we need to check Febbox token dynamically
-  const vidNinjaSources = await vidNinjaClient.getSources();
+  // Fetch VidNinja sources with media-specific parameters
+  const vidNinjaSources = await vidNinjaClient.getSources(
+    media.tmdbId,
+    media.type === "show" ? "tv" : "movie",
+    media.season?.number,
+    media.episode?.number,
+  );
   const febboxSources = febboxClient.getSources();
 
   return [...vidNinjaSources, ...febboxSources];
@@ -147,7 +153,7 @@ export function useScrape() {
   const startScraping = useCallback(
     async (media: ScrapeMedia): Promise<RunOutput | null> => {
       // Get all available sources
-      const availableSources = await getAvailableSources();
+      const availableSources = await getAvailableSources(media);
       let sourceIds = availableSources.map((s) => s.id);
 
       // Apply user preferences for source order

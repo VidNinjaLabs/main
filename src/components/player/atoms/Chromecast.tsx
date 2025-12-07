@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-prop-types */
 /// <reference types="chromecast-caf-sender" />
 
 import { useEffect, useRef, useState } from "react";
@@ -21,7 +22,7 @@ export interface ChromecastProps {
   iconSizeClass?: string;
 }
 
-export function Chromecast({ className, iconSizeClass }: ChromecastProps) {
+export function Chromecast({ className }: ChromecastProps) {
   const [castHidden, setCastHidden] = useState(false);
   const isCasting = usePlayerStore((s) => s.interface.isCasting);
   const launcherRef = useRef<HTMLDivElement>(null);

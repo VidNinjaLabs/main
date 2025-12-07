@@ -4,6 +4,6 @@ export async function getApiToken(): Promise<string | null> {
   return null;
 }
 
-export function setApiToken(token: string): void {
+export function setApiToken(): void {
   // No-op
 }

@@ -10,11 +10,10 @@ import {
 class VidNinjaClient {
   private configured: boolean = false;
 
-  configure(config: VidNinjaConfig) {
+  configure(_config: VidNinjaConfig) {
     // We no longer need to store config since we're using backend proxy
     // Just mark as configured for backward compatibility
     this.configured = true;
-    console.log("VidNinja client configured to use backend proxy");
   }
 
   private checkConfigured() {
@@ -64,9 +63,6 @@ class VidNinjaClient {
   async getStream(
     params: VidNinjaStreamRequest,
   ): Promise<VidNinjaStreamResponse> {
-    // Call backend proxy for CDN endpoint
-    const apiUrl = import.meta.env.DEV ? "http://localhost:3001" : "";
-
     const queryParams = new URLSearchParams({
       sourceId: params.sourceId,
       tmdbId: params.tmdbId,

@@ -23,7 +23,6 @@ import { Transition } from "@/components/utils/Transition";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
-import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
 

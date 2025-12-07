@@ -10,7 +10,7 @@ export function BrandPill(props: {
   className?: string;
   iconClass?: string;
 }) {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const isMobile = useIsMobile();
 
   return (

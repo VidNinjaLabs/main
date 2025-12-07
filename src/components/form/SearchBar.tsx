@@ -23,7 +23,7 @@ export const SearchBarInput = forwardRef<HTMLInputElement, SearchBarProps>(
       Boolean(props.isInFeatured) && window.scrollY < 600,
     );
     const containerRef = useRef<HTMLDivElement>(null);
-    const [showTooltip, setShowTooltip] = useState(false);
+    const [_showTooltip, setShowTooltip] = useState(false);
 
     function setSearch(value: string) {
       props.onChange(value, true);
@@ -80,7 +80,7 @@ export const SearchBarInput = forwardRef<HTMLInputElement, SearchBarProps>(
               placeholder={props.placeholder}
             />
 
-            {showTooltip && !props.hideTooltip && (
+            {_showTooltip && !props.hideTooltip && (
               <div className="py-4">
                 <p className="font-bold text-sm mb-1 text-search-text">
                   Search:

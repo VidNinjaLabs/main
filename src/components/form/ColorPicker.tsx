@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Brush, ChevronRight } from "lucide-react";
+import { Brush } from "lucide-react";
 
 import { Icon, Icons } from "../Icon";
 
