@@ -4,14 +4,21 @@ import { vidNinjaClient } from "@/backend/api/vidninja";
 import { conf } from "@/setup/config";
 
 export function initializeVidNinja() {
-  // No longer need to pass API key to frontend
-  // Backend proxy handles authentication
-  vidNinjaClient.configure({
-    apiUrl: "", // Not used anymore, kept for compatibility
-    apiKey: "", // Not used anymore, kept for compatibility
-  });
+  const vidninjaUrl = import.meta.env.VITE_VIDNINJA_API_URL;
+  const vidninjaApiKey = import.meta.env.VITE_VIDNINJA_API_KEY;
 
-  console.log("VidNinja client initialized (using backend proxy)");
+  if (!vidninjaUrl) {
+    return;
+  }
+
+  if (!vidninjaApiKey) {
+    return;
+  }
+
+  vidNinjaClient.configure({
+    url: vidninjaUrl,
+    apiKey: vidninjaApiKey,
+  });
 }
 
 export function initializeFebbox() {

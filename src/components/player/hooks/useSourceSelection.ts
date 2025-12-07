@@ -92,7 +92,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
         const result = await vidNinjaClient.getStream({
           sourceId,
           tmdbId: scrapeMedia.tmdbId,
-          type: scrapeMedia.type,
+          type: scrapeMedia.type === "show" ? "tv" : "movie",
           season: scrapeMedia.season?.number,
           episode: scrapeMedia.episode?.number,
         });

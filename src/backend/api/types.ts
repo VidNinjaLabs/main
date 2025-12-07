@@ -50,17 +50,27 @@ export interface VidNinjaStatusResponse {
   [providerId: string]: VidNinjaProviderStatus;
 }
 
+export interface VidNinjaSourcesRequest {
+  tmdbId: string;
+  type: "movie" | "tv";
+  season?: number;
+  episode?: number;
+}
+
+// /sources endpoint returns array directly, not {sources: [...]}
+export type VidNinjaSourcesResponse = VidNinjaSource[];
+
 export interface VidNinjaStreamRequest {
   sourceId: string;
   tmdbId: string;
-  type: "movie" | "show";
+  type: "movie" | "tv";  // API expects 'tv' not 'show'
   season?: number;
   episode?: number;
   force?: boolean;
 }
 
 export interface VidNinjaConfig {
-  apiUrl: string;
+  url: string;
   apiKey: string;
 }
 

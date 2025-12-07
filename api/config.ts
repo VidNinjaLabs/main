@@ -9,13 +9,10 @@ export default function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Return public configuration
-  // NEVER expose secret keys here!
+  // Return public environment variables
+  // These are safe to expose to the frontend
   res.status(200).json({
-    turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
-    enablePremium: process.env.ENABLE_PREMIUM === 'true',
-    backendUrl: process.env.BACKEND_URL || '',
-    appDomain: process.env.APP_DOMAIN || '',
-    // Add other PUBLIC config here
+    TMDB_READ_API_KEY: process.env.TMDB_READ_API_KEY || '',
+    TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY || '',
   });
 }

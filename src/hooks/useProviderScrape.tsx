@@ -53,12 +53,12 @@ async function getAvailableSources(
 ): Promise<(VidNinjaSource | FebboxSource)[]> {
   // Don't cache sources - we need to check Febbox token dynamically
   // Fetch VidNinja sources with media-specific parameters
-  const vidNinjaSources = await vidNinjaClient.getSources(
-    media.tmdbId,
-    media.type === "show" ? "tv" : "movie",
-    media.season?.number,
-    media.episode?.number,
-  );
+  const vidNinjaSources = await vidNinjaClient.getSources({
+    tmdbId: media.tmdbId,
+    type: media.type === "show" ? "tv" : "movie",
+    season: media.season?.number,
+    episode: media.episode?.number,
+  });
   const febboxSources = febboxClient.getSources();
 
   return [...vidNinjaSources, ...febboxSources];
@@ -69,31 +69,34 @@ function useBaseScrape() {
   const [sourceOrder, setSourceOrder] = useState<ScrapingItems[]>([]);
   const [currentSource, setCurrentSource] = useState<string>();
 
-  const initSources = useCallback(async (sourceIds: string[]) => {
-    const availableSources = await getAvailableSources();
+  const initSources = useCallback(
+    async (sourceIds: string[], media: ScrapeMedia) => {
+      const availableSources = await getAvailableSources(media);
 
-    const initialSources = sourceIds
-      .map((id) => {
-        const source = availableSources.find((s) => s.id === id);
-        if (!source) return null;
+      const initialSources = sourceIds
+        .map((id) => {
+          const source = availableSources.find((s) => s.id === id);
+          if (!source) return null;
 
-        const out: ScrapingSegment = {
-          name: source.name,
-          id: source.id,
-          status: "waiting",
-          percentage: 0,
-        };
-        return out;
-      })
-      .filter((s): s is ScrapingSegment => s !== null)
-      .reduce<Record<string, ScrapingSegment>>((a, v) => {
-        a[v.id] = v;
-        return a;
-      }, {});
+          const out: ScrapingSegment = {
+            name: source.name,
+            id: source.id,
+            status: "waiting",
+            percentage: 0,
+          };
+          return out;
+        })
+        .filter((s): s is ScrapingSegment => s !== null)
+        .reduce<Record<string, ScrapingSegment>>((a, v) => {
+          a[v.id] = v;
+          return a;
+        }, {});
 
-    setSources(initialSources);
-    setSourceOrder(sourceIds.map((v) => ({ id: v, children: [] })));
-  }, []);
+      setSources(initialSources);
+      setSourceOrder(sourceIds.map((v) => ({ id: v, children: [] })));
+    },
+    [],
+  );
 
   const updateSourceStatus = useCallback(
     (
@@ -183,7 +186,7 @@ export function useScrape() {
       }
 
       // Initialize UI
-      await initSources(sourceIds);
+      await initSources(sourceIds, media);
 
       // Try each source in order
       for (const sourceId of sourceIds) {
@@ -215,7 +218,7 @@ export function useScrape() {
             const response = await vidNinjaClient.getStream({
               sourceId,
               tmdbId: media.tmdbId,
-              type: media.type,
+              type: media.type === "show" ? "tv" : "movie",
               season: media.season?.number,
               episode: media.episode?.number,
             });
