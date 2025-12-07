@@ -14,7 +14,6 @@
     "lint": "eslint --ext .tsx,.ts src",
     "lint:fix": "eslint --fix --ext .tsx,.ts src",
     "lint:report": "eslint --ext .tsx,.ts --output-file eslint_report.json --format json src",
-    "preinstall": "npx -y only-allow pnpm",
     "postinstall": "prisma generate"
   },
   "browserslist": {
