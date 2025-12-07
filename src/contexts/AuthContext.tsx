@@ -80,10 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     turnstileToken?: string,
   ) => {
-    // Use localhost:3001 for local dev, /api for production
-    const apiUrl = import.meta.env.DEV
-      ? "http://localhost:3001/api/auth/login"
-      : "/api/auth/login";
+    const apiUrl = "/api/auth/login";
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -121,10 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     confirmPassword?: string,
     turnstileToken?: string,
   ) => {
-    // Use localhost:3001 for local dev, /api for production
-    const apiUrl = import.meta.env.DEV
-      ? "http://localhost:3001/api/auth/signup"
-      : "/api/auth/signup";
+    const apiUrl = "/api/auth/signup";
 
     const response = await fetch(apiUrl, {
       method: "POST",

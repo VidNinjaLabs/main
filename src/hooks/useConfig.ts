@@ -19,9 +19,7 @@ async function fetchConfig(): Promise<Config> {
     return configPromise;
   }
 
-  const apiUrl = import.meta.env.DEV
-    ? "http://localhost:3001/api/config"
-    : "/api/config";
+  const apiUrl = "/api/config";
 
   configPromise = fetch(apiUrl)
     .then((res) => res.json())
@@ -30,14 +28,14 @@ async function fetchConfig(): Promise<Config> {
       return data;
     })
     .catch((error) => {
-      console.error("Failed to fetch config:", error);
       // Return defaults on error
-      return {
+      const defaults: Config = {
         turnstileSiteKey: "",
         enablePremium: false,
         backendUrl: "",
         appDomain: "",
       };
+      return defaults;
     })
     .finally(() => {
       configPromise = null;
