@@ -9,6 +9,8 @@ export interface UserResponse {
   id: string;
   namespace: string;
   nickname: string;
+  email: string;
+  role: "ADMIN" | "USER";
   permissions: string[];
   profile: {
     colorA: string;

@@ -8,6 +8,7 @@ import { usePlayerMeta } from "@/components/player/hooks/usePlayerMeta";
 import { PremiumPreRoll } from "@/components/player/internals/PremiumPreRoll";
 import { convertProviderCaption } from "@/components/player/utils/captions";
 import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import {
@@ -28,6 +29,13 @@ import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePreferencesStore } from "@/stores/preferences";
 import { getProgressPercentage, useProgressStore } from "@/stores/progress";
 import { parseTimestamp } from "@/utils/timestamp";
+
+// ... (other imports)
+
+// Inside PlayerView component
+// ...
+
+// ... (other imports)
 
 export interface PlayerViewProps {
   media?: string;
@@ -257,6 +265,7 @@ export function RealPlayerView(props: PlayerViewProps) {
     null,
   );
   const isPremium = useIsPremium();
+  const isAdmin = useIsAdmin();
 
   const handleWatchWithAds = useCallback(() => {
     setShowPreRoll(false);
@@ -285,7 +294,11 @@ export function RealPlayerView(props: PlayerViewProps) {
     (out: RunOutput | null) => {
       if (!out) return;
 
-      if (isPremium || import.meta.env.VITE_ENABLE_PREMIUM !== "true") {
+      if (
+        isPremium ||
+        isAdmin ||
+        import.meta.env.VITE_ENABLE_PREMIUM !== "true"
+      ) {
         let startAt: number | undefined;
         if (startAtParam) startAt = parseTimestamp(startAtParam) ?? undefined;
 
@@ -307,6 +320,7 @@ export function RealPlayerView(props: PlayerViewProps) {
       shouldStartFromBeginning,
       setShouldStartFromBeginning,
       isPremium,
+      isAdmin,
     ],
   );
 

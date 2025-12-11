@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
 
 export function AdMaven() {
   const isPremium = useIsPremium();
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
-    if (isPremium) return;
+    if (isPremium || isAdmin) return;
 
     try {
       // External Script
@@ -33,7 +35,7 @@ export function AdMaven() {
     } catch (err) {
       console.error("AdMaven script injection error:", err);
     }
-  }, [isPremium]);
+  }, [isPremium, isAdmin]);
 
   return null;
 }

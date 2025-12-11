@@ -152,6 +152,7 @@ export function useAuth() {
           nickname: user.user.nickname,
           profile: user.user.profile,
           premium_until: user.user.premium_until,
+          role: user.user.role,
         });
       }
 

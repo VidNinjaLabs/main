@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
 import { WideContainer } from "@/components/layout/WideContainer";
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { FeaturedCarousel } from "@/pages/discover/components/FeaturedCarousel";
@@ -16,6 +18,8 @@ import { usePreferencesStore } from "@/stores/preferences";
 import { MediaItem } from "@/utils/mediaTypes";
 
 import { AdsPart } from "./parts/home/AdsPart";
+
+// What the sigma?
 
 function useSearch(search: string) {
   const [searching, setSearching] = useState<boolean>(false);
@@ -39,7 +43,7 @@ function useSearch(search: string) {
   };
 }
 
-// What the sigma?
+// ... (existing imports)
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -48,6 +52,8 @@ export function HomePage() {
   const s = useSearch(search);
   const { showModal } = useOverlayStack();
   const enableFeatured = usePreferencesStore((state) => state.enableFeatured);
+  const isPremium = useIsPremium();
+  const isAdmin = useIsAdmin();
 
   const handleShowDetails = async (media: MediaItem | FeaturedMedia) => {
     showModal("details", {
@@ -78,7 +84,7 @@ export function HomePage() {
           />
         ) : null}
 
-        {conf().SHOW_AD ? <AdsPart /> : null}
+        {conf().SHOW_AD && !isPremium && !isAdmin ? <AdsPart /> : null}
       </div>
 
       {/* Search */}

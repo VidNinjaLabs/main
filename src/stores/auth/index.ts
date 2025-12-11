@@ -18,6 +18,7 @@ export type AccountWithToken = Account & {
   seed: string;
   deviceName: string;
   premium_until?: string;
+  role?: "ADMIN" | "USER";
 };
 
 interface AuthStore {

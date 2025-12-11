@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
 
 /**
@@ -7,8 +8,9 @@ import { useIsPremium } from "@/hooks/auth/useIsPremium";
  */
 export function PopAds() {
   const isPremium = useIsPremium();
+  const isAdmin = useIsAdmin();
   useEffect(() => {
-    if (isPremium) return;
+    if (isPremium || isAdmin) return;
     // Inject the ad script
     try {
       /* eslint-disable */
@@ -71,7 +73,7 @@ export function PopAds() {
     } catch (err) {
       console.error("Ad script error:", err);
     }
-  }, [isPremium]);
+  }, [isPremium, isAdmin]);
 
   return null;
 }
@@ -82,6 +84,7 @@ export function PopAds() {
 export function AdsterraAds() {
   const [showOverlay, setShowOverlay] = useState(false);
   const isPremium = useIsPremium();
+  const isAdmin = useIsAdmin();
 
   // Adsterra Direct Links
   const links = [
@@ -90,7 +93,7 @@ export function AdsterraAds() {
   ];
 
   useEffect(() => {
-    if (isPremium) return;
+    if (isPremium || isAdmin) return;
     if (!showOverlay) {
       // Random interval between 5s and 10s (Faster for testing)
       const time = Math.random() * (10000 - 5000) + 5000;
@@ -101,7 +104,7 @@ export function AdsterraAds() {
 
       return () => clearTimeout(timer);
     }
-  }, [showOverlay, isPremium]);
+  }, [showOverlay, isPremium, isAdmin]);
 
   const handleInteraction = () => {
     // Pick a random link
