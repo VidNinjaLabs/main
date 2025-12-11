@@ -15,7 +15,7 @@ export function DiscoverNavigation({
     <div className="pb-2 w-full max-w-screen-xl mx-auto">
       <div className="relative flex justify-center">
         <div className="flex space-x-4">
-          {["movies", "tvshows", "editorpicks"].map((category) => (
+          {["movies", "tvshows"].map((category) => (
             <button
               key={category}
               type="button"

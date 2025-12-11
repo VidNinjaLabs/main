@@ -24,11 +24,16 @@ export function BrandPill(props: {
         props.className,
       )}
     >
-      <img
-        src="/logo.png"
-        className={classNames("h-12 w-auto", props.iconClass)}
-        alt="Logo"
-      />
+      <span
+        style={{ fontFamily: "'Plaster', system-ui" }}
+        className={classNames(
+          "text-6xl md:text-5xl text-type-logo leading-none pb-1",
+          props.iconClass,
+        )}
+      >
+        <span className="block md:hidden">V</span>
+        <span className="hidden md:block">VidNinja</span>
+      </span>
       <span
         className={[
           "font-semibold text-white",

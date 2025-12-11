@@ -34,7 +34,7 @@ class VidNinjaClient {
 
     const queryParams = new URLSearchParams({
       tmdbId: params.tmdbId.toString(),
-      type: params.type,
+      type: params.type === "tv" ? "show" : params.type,
     });
 
     if (params.season) queryParams.append("season", params.season.toString());
@@ -75,7 +75,7 @@ class VidNinjaClient {
     const queryParams = new URLSearchParams({
       sourceId: params.sourceId,
       tmdbId: params.tmdbId,
-      type: params.type,
+      type: params.type === "tv" ? "show" : params.type,
     });
 
     if (params.season) queryParams.append("season", params.season.toString());

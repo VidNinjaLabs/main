@@ -662,7 +662,7 @@ export function FeaturedCarousel({
         type="button"
         onClick={handlePrevSlide}
         className={classNames(
-          "absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors",
+          "hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors",
           searchClasses,
         )}
         aria-label="Previous slide"
@@ -673,7 +673,7 @@ export function FeaturedCarousel({
         type="button"
         onClick={handleNextSlide}
         className={classNames(
-          "absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors",
+          "hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors",
           searchClasses,
         )}
         aria-label="Next slide"
@@ -733,8 +733,8 @@ export function FeaturedCarousel({
         )}
         style={{ opacity: contentOpacity }}
       >
-        <div className="container mx-auto px-8 lg:px-4 flex justify-between items-end w-full">
-          <div className="max-w-3xl">
+        <div className="container mx-auto px-1.5 md:px-8 lg:px-4 flex justify-between items-end w-full">
+          <div className="max-w-3xl w-full">
             {logoUrl && enableImageLogos ? (
               <img
                 src={logoUrl}
@@ -806,7 +806,7 @@ export function FeaturedCarousel({
                   </>
                 )}
             </div>
-            <p className="text-lg text-white mb-6 line-clamp-3 md:line-clamp-4">
+            <p className="hidden md:block text-lg text-white mb-6 line-clamp-3 md:line-clamp-4">
               {currentMedia.overview}
             </p>
             <div

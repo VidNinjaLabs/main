@@ -143,12 +143,7 @@ export function Navigation(props: NavigationProps) {
                 to="/"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                <BrandPill
-                  clickable
-                  header
-                  className="h-14 p-2 !py-0"
-                  iconClass="text-3xl"
-                />
+                <BrandPill clickable header className="h-14 p-2 !py-0" />
               </Link>
             </div>
 

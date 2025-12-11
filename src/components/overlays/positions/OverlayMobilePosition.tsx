@@ -23,10 +23,10 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
   let positionClass = "left-0 right-0 mx-auto"; // Default center
 
   if (props.id === "episodes") {
-    positionClass = "left-4 right-auto";
+    positionClass = "left-6 right-auto";
   } else if (props.id === "settings") {
     // Settings and captions overlay on the right side
-    positionClass = "right-4 left-auto";
+    positionClass = "right-6 left-auto";
   }
 
   return (
@@ -48,7 +48,7 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
       {/* Main Overlay */}
       <div
         className={classNames([
-          "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[280px] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
+          "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[min(18rem,calc(100vw-3rem))] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
           positionClass,
           props.className,
           isPreviewMode ? "opacity-50" : "opacity-100",
