@@ -733,11 +733,12 @@ export function SettingsPage() {
                   </div>
                   <Button
                     theme="danger"
-                    onClick={() => {
-                      logout();
+                    onClick={async () => {
+                      await logout();
+                      window.location.href = "/login";
                     }}
                   >
-                    {t("settings.account.actions.logout")}
+                    Log out
                   </Button>
                 </div>
               </div>

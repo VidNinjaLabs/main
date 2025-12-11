@@ -297,9 +297,7 @@ export function PreferencesPart(props: {
               {t("settings.preferences.sourceOrder")}
             </p>
             <div className="max-w-[25rem] font-medium">
-              <Trans
-                i18nKey="settings.preferences.sourceOrderDescription"
-              />
+              <Trans i18nKey="settings.preferences.sourceOrderDescription" />
               <div
                 onClick={() =>
                   props.setenableSourceOrder(!props.enableSourceOrder)

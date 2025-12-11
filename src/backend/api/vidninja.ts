@@ -1,7 +1,9 @@
+/* eslint-disable no-useless-catch */
 import type {
   VidNinjaConfig,
   VidNinjaSourcesRequest,
   VidNinjaSourcesResponse,
+  VidNinjaStatusResponse,
   VidNinjaStreamRequest,
   VidNinjaStreamResponse,
 } from "./types";
@@ -29,7 +31,6 @@ class VidNinjaClient {
     params: VidNinjaSourcesRequest,
   ): Promise<VidNinjaSourcesResponse> {
     this.checkConfigured();
-
 
     const queryParams = new URLSearchParams({
       tmdbId: params.tmdbId.toString(),
@@ -62,7 +63,6 @@ class VidNinjaClient {
       const data = await response.json();
       return data;
     } catch (error) {
-
       throw error;
     }
   }
@@ -71,7 +71,6 @@ class VidNinjaClient {
     params: VidNinjaStreamRequest,
   ): Promise<VidNinjaStreamResponse> {
     this.checkConfigured();
-
 
     const queryParams = new URLSearchParams({
       sourceId: params.sourceId,
@@ -105,7 +104,62 @@ class VidNinjaClient {
       const data = await response.json();
       return data;
     } catch (error) {
+      throw error;
+    }
+  }
 
+  async getProviders(): Promise<VidNinjaSourcesResponse> {
+    this.checkConfigured();
+
+    const fullUrl = `${this.apiUrl}/sources`;
+
+    try {
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        headers: {
+          "x-api-key": this.apiKey,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `VidNinja API error: ${response.status} - ${errorText}`,
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStatus(): Promise<VidNinjaStatusResponse> {
+    this.checkConfigured();
+
+    const fullUrl = `${this.apiUrl}/status`;
+
+    try {
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        headers: {
+          "x-api-key": this.apiKey,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `VidNinja API error: ${response.status} - ${errorText}`,
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
       throw error;
     }
   }

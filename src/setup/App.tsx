@@ -23,17 +23,16 @@ import { useOnlineListener } from "@/hooks/usePing";
 import { AboutPage } from "@/pages/About";
 import { AdminPage } from "@/pages/admin/AdminPage";
 import { AllBookmarks } from "@/pages/bookmarks/AllBookmarks";
+import { BrowsePage } from "@/pages/Browse";
 import VideoTesterView from "@/pages/developer/VideoTesterView";
 import { DiscoverMore } from "@/pages/discover/AllMovieLists";
 import { Discover } from "@/pages/discover/Discover";
 import { MoreContent } from "@/pages/discover/MoreContent";
 import MaintenancePage from "@/pages/errors/MaintenancePage";
 import { NotFoundPage } from "@/pages/errors/NotFoundPage";
-import { HomePage } from "@/pages/HomePage";
 import { JipPage } from "@/pages/Jip";
 import { LegalPage, shouldHaveLegalPage } from "@/pages/Legal";
 import { LoginPage } from "@/pages/Login";
-
 import { SignupPage } from "@/pages/Signup";
 import {
   StandaloneMoviePlayer,
@@ -158,6 +157,7 @@ function App() {
               />
 
               {/* pages */}
+              <Route path="/" element={<Navigate to="/discover" replace />} />
               <Route
                 path="/media/:media"
                 element={
@@ -188,6 +188,9 @@ function App() {
               {/* Support page */}
               <Route path="/support" element={<SupportPage />} />
               <Route path="/jip" element={<JipPage />} />
+              {/* Browse/Search pages */}
+              <Route path="/browse" element={<BrowsePage />} />
+              <Route path="/browse/:query" element={<BrowsePage />} />
               {/* Discover pages */}
               <Route path="/discover" element={<Discover />} />
               <Route

@@ -124,16 +124,16 @@ export function PlayerPart(props: PlayerPartProps) {
             show={showTargets && status === playerStatus.PLAYING}
           >
             <Player.SkipBackward
-              iconSizeClass="text-5xl"
+              size="lg"
               onAction={() => setFeedbackAction("backward")}
             />
             <Player.Pause
-              iconSizeClass="text-6xl"
+              size="xl"
               className={isLoading ? "opacity-0" : "opacity-100"}
               onAction={(action) => setFeedbackAction(action)}
             />
             <Player.SkipForward
-              iconSizeClass="text-5xl"
+              size="lg"
               onAction={() => setFeedbackAction("forward")}
             />
           </Player.CenterMobileControls>
@@ -191,21 +191,21 @@ export function PlayerPart(props: PlayerPartProps) {
               {status === playerStatus.PLAYING ? (
                 <>
                   {/* Desktop Playback Controls - Hidden on mobile */}
-                  <div className="hidden lg:flex items-center">
+                  <div className="hidden lg:flex items-center space-x-1">
                     <Player.Pause
-                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      size="xl"
                       onAction={(action) => setFeedbackAction(action)}
                     />
                     <Player.SkipBackward
-                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      size="lg"
                       onAction={() => setFeedbackAction("backward")}
                     />
                     <Player.SkipForward
-                      iconSizeClass="text-4xl w-10 h-10 xl:text-5xl xl:w-12 xl:h-12"
+                      size="lg"
                       onAction={() => setFeedbackAction("forward")}
                     />
                   </div>
-                  <Player.Volume iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  <Player.Volume size="md" />
                   {/* Desktop Time Display - Hidden on mobile */}
                   <div className="hidden lg:block">
                     <Player.Time />
@@ -225,23 +225,21 @@ export function PlayerPart(props: PlayerPartProps) {
               />
               {status === playerStatus.PLAYING ? (
                 <>
-                  <Player.Pip iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  <Player.Pip size="md" />
                   <Player.Airplay iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                   <Player.Chromecast iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                 </>
               ) : null}
               {status === playerStatus.PLAYBACK_ERROR ||
               status === playerStatus.PLAYING ? (
-                <Player.Captions iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                <Player.Captions size="md" />
               ) : null}
-              {status === playerStatus.PLAYING && (
-                <Player.Settings iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
-              )}
+              {status === playerStatus.PLAYING && <Player.Settings size="md" />}
               {status === playerStatus.PLAYING &&
                 (isShifting || isHoldingFullscreen ? (
                   <Player.Widescreen iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
                 ) : (
-                  <Player.Fullscreen iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
+                  <Player.Fullscreen size="md" />
                 ))}
             </div>
           </div>

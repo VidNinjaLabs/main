@@ -1,17 +1,21 @@
-import { Pause as PauseIcon, Play } from "lucide-react";
+/* eslint-disable import/no-extraneous-dependencies */
+import { PauseIcon, PlayIcon } from "@hugeicons/react";
 
+import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 
-export function Pause(props: {
-  iconSizeClass?: string;
-  className?: string;
-  onAction?: (action: "play" | "pause") => void;
-}) {
-  const display = usePlayerStore((s) => s.display);
-  const { isPaused } = usePlayerStore((s) => s.mediaPlaying);
+export type PauseAction = "play" | "pause";
 
-  const toggle = () => {
+export function Pause(props: {
+  className?: string;
+  size?: "sm" | "md" | "lg" | "xl";
+  onAction?: (action: PauseAction) => void;
+}) {
+  const isPaused = usePlayerStore((s) => s.mediaPlaying.isPaused);
+  const display = usePlayerStore((s) => s.display);
+
+  const togglePause = () => {
     if (isPaused) {
       display?.play();
       props.onAction?.("play");
@@ -22,11 +26,12 @@ export function Pause(props: {
   };
 
   return (
-    <VideoPlayerButton
-      className={props.className}
-      iconSizeClass={props.iconSizeClass}
-      onClick={toggle}
-      icon={isPaused ? Play : PauseIcon}
-    />
+    <VideoPlayerButton onClick={togglePause} className={props.className}>
+      <HugeiconsIcon
+        icon={isPaused ? PlayIcon : PauseIcon}
+        size={props.size || "lg"}
+        strokeWidth={2}
+      />
+    </VideoPlayerButton>
   );
 }

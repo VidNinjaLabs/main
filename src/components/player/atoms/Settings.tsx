@@ -1,6 +1,7 @@
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings02Icon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 
+import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { OverlayAnchor } from "@/components/overlays/OverlayAnchor";
 import { Overlay } from "@/components/overlays/OverlayDisplay";
 import { OverlayPage } from "@/components/overlays/OverlayPage";
@@ -104,7 +105,7 @@ export function SettingsRouter() {
   return <SettingsOverlay id="settings" />;
 }
 
-export function Settings(props: { iconSizeClass?: string }) {
+export function Settings(props: { size?: "sm" | "md" | "lg" | "xl" }) {
   const router = useOverlayRouter("settings");
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
 
@@ -114,11 +115,13 @@ export function Settings(props: { iconSizeClass?: string }) {
 
   return (
     <OverlayAnchor id={router.id}>
-      <VideoPlayerButton
-        onClick={() => router.open()}
-        icon={SettingsIcon}
-        iconSizeClass={props.iconSizeClass}
-      />
+      <VideoPlayerButton onClick={() => router.open()}>
+        <HugeiconsIcon
+          icon={Settings02Icon}
+          size={props.size || "md"}
+          strokeWidth={2}
+        />
+      </VideoPlayerButton>
     </OverlayAnchor>
   );
 }

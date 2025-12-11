@@ -1,12 +1,14 @@
+/* eslint-disable import/no-extraneous-dependencies */
+import { GoBackward10SecIcon, GoForward10SecIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 
-import { Icons } from "@/components/Icon";
+import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 
 export function SkipForward(props: {
-  iconSizeClass?: string;
+  size?: "sm" | "md" | "lg" | "xl";
   onAction?: (action: "forward") => void;
 }) {
   const display = usePlayerStore((s) => s.display);
@@ -19,18 +21,22 @@ export function SkipForward(props: {
     display?.setTime(time + 10);
     props.onAction?.("forward");
   }, [display, time, props]);
+
   if (enableDoubleClickToSeek) return null;
+
   return (
-    <VideoPlayerButton
-      iconSizeClass={props.iconSizeClass}
-      onClick={commit}
-      icon={Icons.SKIP_FORWARD}
-    />
+    <VideoPlayerButton onClick={commit}>
+      <HugeiconsIcon
+        icon={GoForward10SecIcon}
+        size={props.size || "lg"}
+        strokeWidth={2}
+      />
+    </VideoPlayerButton>
   );
 }
 
 export function SkipBackward(props: {
-  iconSizeClass?: string;
+  size?: "sm" | "md" | "lg" | "xl";
   onAction?: (action: "backward") => void;
 }) {
   const display = usePlayerStore((s) => s.display);
@@ -38,16 +44,21 @@ export function SkipBackward(props: {
   const enableDoubleClickToSeek = usePreferencesStore(
     (s) => s.enableDoubleClickToSeek,
   );
+
   const commit = useCallback(() => {
     display?.setTime(time - 10);
     props.onAction?.("backward");
   }, [display, time, props]);
+
   if (enableDoubleClickToSeek) return null;
+
   return (
-    <VideoPlayerButton
-      iconSizeClass={props.iconSizeClass}
-      onClick={commit}
-      icon={Icons.SKIP_BACKWARD}
-    />
+    <VideoPlayerButton onClick={commit}>
+      <HugeiconsIcon
+        icon={GoBackward10SecIcon}
+        size={props.size || "lg"}
+        strokeWidth={2}
+      />
+    </VideoPlayerButton>
   );
 }

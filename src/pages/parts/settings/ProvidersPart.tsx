@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
 
-import { fetchMetadata } from "@/backend/api/metadata";
+import { clearMetadataCache, fetchMetadata } from "@/backend/api/metadata";
 import { vidNinjaClient } from "@/backend/api/vidninja";
 import { getAllProviders } from "@/backend/providers/providers";
 import { Button } from "@/components/buttons/Button";
@@ -22,6 +22,7 @@ export function ProvidersPart(props: {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [sources, setSources] = useState(getAllProviders().listSources());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const loadMetadata = async () => {
@@ -66,6 +67,19 @@ export function ProvidersPart(props: {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      clearMetadataCache();
+      await fetchMetadata();
+      setSources(getAllProviders().listSources());
+    } catch (error) {
+      console.error("Failed to refresh providers:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Heading1 border>{t("settings.providers.title")}</Heading1>
@@ -79,9 +93,21 @@ export function ProvidersPart(props: {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Left Column - Provider List */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-white">
-            {t("settings.providers.providerList", "Provider List")}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              {t("settings.providers.providerList", "Provider List")}
+            </h2>
+            <Button
+              theme="purple"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="!py-2 !px-4"
+            >
+              {isRefreshing
+                ? t("settings.providers.refreshing", "Refreshing...")
+                : t("settings.providers.refresh", "Refresh Providers")}
+            </Button>
+          </div>
           <div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {sources.map((source) => {
               const status = statusData ? statusData[source.id] : null;

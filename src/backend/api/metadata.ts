@@ -13,16 +13,27 @@ export function getCachedMetadata(): (VidNinjaSource | FebboxSource)[] {
 
 export async function fetchMetadata() {
   if (metaDataCache) return;
-  // Fetch VidNinja sources if configured
+
   try {
-    // Note: This is a general metadata fetch, we don't have specific tmdbId here
-    // So we'll skip VidNinja sources in this context
-    // VidNinja sources should be fetched per-media item
-    const vidNinjaSources: any[] = [];
+    // Try to fetch from VidNinja if available
+    let vidNinjaSources: VidNinjaSource[] = [];
+
+    try {
+      const { vidNinjaClient } = await import("@/backend/api/vidninja");
+      vidNinjaSources = await vidNinjaClient.getProviders();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log("VidNinja not configured or unavailable:", error);
+    }
+
     const febboxSources = febboxClient.getSources();
     metaDataCache = [...vidNinjaSources, ...febboxSources];
   } catch (error) {
     console.error("Failed to fetch sources:", error);
     metaDataCache = [];
   }
+}
+
+export function clearMetadataCache() {
+  metaDataCache = null;
 }
