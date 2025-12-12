@@ -197,7 +197,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
       if (!Hls.isSupported())
         throw new Error("HLS not supported. Update your browser. 🤦‍♂️");
-        if (!hls) {
+      if (!hls) {
         hls = new Hls({
           autoStartLoad: true,
           // Aggressive Buffering Settings
@@ -210,7 +210,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           // Load Policy - Be patient with slow connections
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 60 * 1000, 
+              maxLoadTimeMs: 60 * 1000,
               maxTimeToFirstByteMs: 60 * 1000,
               errorRetry: {
                 maxNumRetry: 5,
