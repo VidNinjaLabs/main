@@ -21,8 +21,9 @@ import {
   getParamountTVShows,
   getPrimeMovies,
   getPrimeTVShows,
+  getRelatedMovies,
+  getRelatedShows,
 } from "@/backend/metadata/traktApi";
-import { paginateResults } from "@/backend/metadata/traktFunctions";
 import type { TraktListResponse } from "@/backend/metadata/types/trakt";
 import {
   EDITOR_PICKS_MOVIES,
@@ -174,24 +175,32 @@ export function useDiscoverMedia({
   );
 
   const fetchTraktMedia = useCallback(
-    async (traktFunction: () => Promise<TraktListResponse>) => {
+    async (
+      traktFunction: (
+        page: number,
+        limit: number,
+      ) => Promise<TraktListResponse>,
+    ) => {
       try {
         // Create a timeout promise
         const timeoutPromise = new Promise<TraktListResponse>((_, reject) => {
           setTimeout(() => reject(new Error("Trakt request timed out")), 3000);
         });
 
-        // Race between the Trakt request and timeout
-        const response = await Promise.race([traktFunction(), timeoutPromise]);
+        // Set limit based on view type
+        const limit = isCarouselView ? 20 : 20; // Use 20 items per page
 
-        // Paginate the results
-        const pageSize = isCarouselView ? 20 : 100; // Limit to 20 items for carousels, get more for detailed views
-        const { tmdb_ids: tmdbIds, hasMore: hasMoreResults } = paginateResults(
-          response,
-          page,
-          pageSize,
-          mediaType === "movie" ? "movie" : mediaType === "tv" ? "tv" : "both",
-        );
+        // Race between the Trakt request and timeout
+        const response = await Promise.race([
+          traktFunction(page, limit),
+          timeoutPromise,
+        ]);
+
+        // Extract TMDB IDs from response
+        const tmdbIds =
+          mediaType === "movie"
+            ? response.movie_tmdb_ids
+            : response.tv_tmdb_ids;
 
         // For carousel views, we only need to fetch details for displayed items
         const idsToFetch = isCarouselView ? tmdbIds.slice(0, 20) : tmdbIds;
@@ -227,7 +236,7 @@ export function useDiscoverMedia({
 
         return {
           results,
-          hasMore: hasMoreResults,
+          hasMore: tmdbIds.length >= limit, // If we got a full page, there might be more
         };
       } catch (err) {
         console.error("Error fetching Trakt media:", err);
@@ -440,9 +449,48 @@ export function useDiscoverMedia({
 
         case "recommendations":
           if (!id) throw new Error("Media ID is required for recommendations");
-          data = await fetchTMDBMedia(`/${mediaType}/${id}/recommendations`);
+          data = await fetchTraktMedia(() =>
+            mediaType === "movie" ? getRelatedMovies(id) : getRelatedShows(id),
+          );
           setSectionTitle(
             t("discover.carousel.title.recommended", { title: mediaTitle }),
+          );
+          break;
+
+        case "indianContent":
+          data = await fetchTMDBMedia(`/discover/${mediaType}`, {
+            with_original_language: "hi",
+            sort_by: "popularity.desc",
+          });
+          setSectionTitle(
+            mediaType === "movie"
+              ? t("discover.carousel.title.indianMovies")
+              : t("discover.carousel.title.indianShows"),
+          );
+          break;
+
+        case "koreanContent":
+          data = await fetchTMDBMedia(`/discover/${mediaType}`, {
+            with_original_language: "ko",
+            sort_by: "popularity.desc",
+          });
+          setSectionTitle(
+            mediaType === "movie"
+              ? t("discover.carousel.title.koreanMovies")
+              : t("discover.carousel.title.koreanDramas"),
+          );
+          break;
+
+        case "animeContent":
+          data = await fetchTMDBMedia(`/discover/${mediaType}`, {
+            with_original_language: "ja",
+            with_genres: mediaType === "tv" ? "16" : undefined,
+            sort_by: "popularity.desc",
+          });
+          setSectionTitle(
+            mediaType === "movie"
+              ? t("discover.carousel.title.animeMovies")
+              : t("discover.carousel.title.animeSeries"),
           );
           break;
 

@@ -397,7 +397,7 @@ export function getMediaBackdrop(
 
 export function getMediaPoster(posterPath: string | null): string | undefined {
   const shouldProxyTmdb = usePreferencesStore.getState().proxyTmdb;
-  const imgUrl = `https://image.tmdb.org/t/p/w342/${posterPath}`;
+  const imgUrl = `https://image.tmdb.org/t/p/w342${posterPath}`;
 
   if (shouldProxyTmdb) {
     const proxyUrls = getProxyUrls();

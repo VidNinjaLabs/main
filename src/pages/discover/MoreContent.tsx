@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWindowSize } from "react-use";
+import { useIntersection, useWindowSize } from "react-use";
 
-import { Button } from "@/components/buttons/Button";
 import { Dropdown, OptionItem } from "@/components/form/Dropdown";
 import { Icon, Icons } from "@/components/Icon";
 import { WideContainer } from "@/components/layout/WideContainer";
@@ -42,6 +42,14 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
   const { lastView } = useDiscoverStore();
   const { width: windowWidth } = useWindowSize();
   const progressStore = useProgressStore();
+
+  // Infinite scroll setup
+  const loadMoreRef = useRef(null);
+  const intersection = useIntersection(loadMoreRef, {
+    root: null,
+    rootMargin: "400px",
+    threshold: 0,
+  });
 
   // Get available providers and genres
   const { providers, genres } = useDiscoverOptions(mediaType as MediaType);
@@ -125,6 +133,13 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
   const handleLoadMore = async () => {
     setCurrentPage((prev) => prev + 1);
   };
+
+  // Trigger load more when sentinel is visible
+  useEffect(() => {
+    if (intersection?.isIntersecting && hasMore && !isLoading) {
+      handleLoadMore();
+    }
+  }, [intersection?.isIntersecting, hasMore, isLoading]);
 
   // Set initial provider/genre/recommendation selection
   useEffect(() => {
@@ -211,9 +226,19 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
     <SubPageLayout>
       <WideContainer>
         <div className="flex items-center justify-between gap-8">
-          <Heading1 className="text-2xl font-bold text-white">
-            {sectionTitle}
-          </Heading1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex items-center justify-center text-white hover:text-type-link transition-colors p-1.5 hover:bg-mediaCard-hoverBackground rounded-full mb-9 self-center"
+              aria-label={t("discover.page.back")}
+            >
+              <ArrowLeft className="w-8 h-8" />
+            </button>
+            <Heading1 className="text-2xl font-bold text-white">
+              {sectionTitle}
+            </Heading1>
+          </div>
           {contentType === "recommendations" && (
             <div className="relative pr-4">
               <Dropdown
@@ -251,17 +276,6 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
               />
             </div>
           )}
-        </div>
-
-        <div className="flex items-center gap-4 pb-8">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex items-center text-white hover:text-gray-300 transition-colors"
-          >
-            <Icon className="text-xl" icon={Icons.ARROW_LEFT} />
-            <span className="ml-2">{t("discover.page.back")}</span>
-          </button>
         </div>
 
         {(contentType === "provider" || contentType === "genre") && (
@@ -374,16 +388,18 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
           </MediaGrid>
 
           {hasMore && (
-            <div className="flex justify-center mt-8">
-              <Button
-                theme="purple"
-                onClick={handleLoadMore}
-                disabled={isLoading}
-              >
-                {isLoading
-                  ? t("discover.page.loading")
-                  : t("discover.page.loadMore")}
-              </Button>
+            <div
+              ref={loadMoreRef}
+              className="flex justify-center mt-8 min-h-[60px] items-center"
+            >
+              {isLoading && (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin h-6 w-6 border-2 border-type-link border-t-transparent rounded-full" />
+                  <span className="text-type-secondary">
+                    {t("discover.page.loading")}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

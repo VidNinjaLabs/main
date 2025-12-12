@@ -1208,7 +1208,13 @@
         "genreMovies": "{{genre}} Movies",
         "genreShows": "{{genre}} Shows",
         "categoryMovies": "{{category}} Movies",
-        "categoryShows": "{{category}} Shows"
+        "categoryShows": "{{category}} Shows",
+        "indianMovies": "Indian Movies",
+        "indianShows": "Indian TV Shows",
+        "koreanMovies": "Korean Movies",
+        "koreanDramas": "Korean Dramas",
+        "animeMovies": "Anime Movies",
+        "animeSeries": "Anime Series"
       },
       "change": "Change",
       "more": "View more"

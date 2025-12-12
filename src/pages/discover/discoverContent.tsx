@@ -88,6 +88,33 @@ export function DiscoverContent() {
           moreContent
         />
 
+        {/* Indian Movies */}
+        <MediaCarousel
+          content={{ type: "indianContent" }}
+          isTVShow={false}
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
+        {/* Korean Movies */}
+        <MediaCarousel
+          content={{ type: "koreanContent" }}
+          isTVShow={false}
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
+        {/* Anime Movies */}
+        <MediaCarousel
+          content={{ type: "animeContent" }}
+          isTVShow={false}
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
         {/* Provider Movies */}
         <MediaCarousel
           content={{ type: "provider" }}
@@ -148,6 +175,33 @@ export function DiscoverContent() {
         {/* Popular */}
         <MediaCarousel
           content={{ type: "popular" }}
+          isTVShow
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
+        {/* Indian TV Shows */}
+        <MediaCarousel
+          content={{ type: "indianContent" }}
+          isTVShow
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
+        {/* Korean Dramas */}
+        <MediaCarousel
+          content={{ type: "koreanContent" }}
+          isTVShow
+          carouselRefs={carouselRefs}
+          onShowDetails={handleShowDetails}
+          moreContent
+        />
+
+        {/* Anime Series */}
+        <MediaCarousel
+          content={{ type: "animeContent" }}
           isTVShow
           carouselRefs={carouselRefs}
           onShowDetails={handleShowDetails}
