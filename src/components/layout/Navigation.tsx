@@ -149,7 +149,7 @@ export function Navigation(props: NavigationProps) {
 
             {/* Show search box on /browse page */}
             {window.location.pathname.startsWith("/browse") && (
-              <div className="flex-1 max-w-2xl mx-0 md:mx-4 pointer-events-auto flex items-center gap-2">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 pointer-events-auto flex items-center gap-2">
                 <div className="flex-1">
                   <SearchBarInput
                     onChange={setSearch}

@@ -16,6 +16,7 @@ import {
   useDiscoverMedia,
   useDiscoverOptions,
 } from "@/pages/discover/hooks/useDiscoverMedia";
+import { INDIAN_LANGUAGES } from "@/pages/discover/types/discover";
 import { SubPageLayout } from "@/pages/layouts/SubPageLayout";
 import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
@@ -35,6 +36,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
   const [selectedGenre, setSelectedGenre] = useState<OptionItem | null>(null);
   const [selectedRecommendationId, setSelectedRecommendationId] =
     useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("hi"); // Default to Hindi
   const [isContentVisible, setIsContentVisible] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -90,6 +92,8 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
     mediaTitle: recommendationSources.find(
       (s) => s.id === selectedRecommendationId,
     )?.title,
+    language:
+      actualContentType === "indianContent" ? selectedLanguage : undefined,
     isCarouselView: false,
   });
 
@@ -276,72 +280,192 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
               />
             </div>
           )}
+
+          {/* Language filter for Indian content - inline on desktop */}
+          {contentType === "indianContent" && windowWidth > 768 && (
+            <div className="flex items-center space-x-2">
+              {INDIAN_LANGUAGES.slice(0, 7).map((lang) => (
+                <button
+                  type="button"
+                  key={lang.id}
+                  onClick={() => {
+                    setSelectedLanguage(lang.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 py-1 text-sm rounded-full transition-colors whitespace-nowrap flex-shrink-0 ${
+                    selectedLanguage === lang.id
+                      ? "bg-mediaCard-background"
+                      : "bg-mediaCard-hoverBackground hover:bg-mediaCard-background"
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              ))}
+              {INDIAN_LANGUAGES.length > 7 && (
+                <div className="relative">
+                  <Dropdown
+                    selectedItem={{
+                      id: selectedLanguage,
+                      name:
+                        INDIAN_LANGUAGES.find((l) => l.id === selectedLanguage)
+                          ?.name || "Hindi",
+                    }}
+                    setSelectedItem={(item) => {
+                      setSelectedLanguage(item.id);
+                      setCurrentPage(1);
+                    }}
+                    options={INDIAN_LANGUAGES.slice(7).map((lang) => ({
+                      id: lang.id,
+                      name: lang.name,
+                    }))}
+                    customButton={
+                      <button
+                        type="button"
+                        className="px-3 py-1 text-sm bg-mediaCard-hoverBackground hover:bg-mediaCard-background rounded-full transition-colors flex items-center gap-1"
+                      >
+                        <span>...</span>
+                        <Icon
+                          icon={Icons.UP_DOWN_ARROW}
+                          className="text-xs text-dropdown-secondary"
+                        />
+                      </button>
+                    }
+                    side="right"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {(contentType === "provider" || contentType === "genre") && (
-          <div className="flex items-center space-x-2 mb-4">
-            {visibleButtons.map((item: any) => (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => {
-                  if (contentType === "provider") {
-                    setSelectedProvider({ id: item.id, name: item.name });
-                  } else {
-                    setSelectedGenre({
-                      id: item.id.toString(),
-                      name: item.name,
-                    });
-                  }
-                }}
-                className={`px-3 py-1 text-sm rounded-full transition-colors whitespace-nowrap flex-shrink-0 ${
-                  item.id.toString() ===
-                  (selectedProvider?.id || selectedGenre?.id)
-                    ? "bg-mediaCard-background"
-                    : "bg-mediaCard-hoverBackground hover:bg-mediaCard-background"
-                }`}
-              >
-                {item.name}
-              </button>
-            ))}
-            {dropdownButtons.length > 0 && (
-              <div className="relative">
-                <Dropdown
-                  selectedItem={
-                    contentType === "provider"
-                      ? selectedProvider || { id: "", name: "..." }
-                      : selectedGenre || { id: "", name: "..." }
-                  }
-                  setSelectedItem={(item) => {
-                    if (contentType === "provider") {
-                      setSelectedProvider(item);
-                    } else {
-                      setSelectedGenre(item);
-                    }
+        {/* Language filter for Indian content - horizontal scroll on mobile */}
+        {contentType === "indianContent" && windowWidth <= 768 && (
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2 mb-4">
+            <div className="flex items-center space-x-2 w-max">
+              {INDIAN_LANGUAGES.map((lang) => (
+                <button
+                  type="button"
+                  key={lang.id}
+                  onClick={() => {
+                    setSelectedLanguage(lang.id);
+                    setCurrentPage(1);
                   }}
-                  options={dropdownButtons.map((item: any) => ({
-                    id:
-                      contentType === "provider" ? item.id : item.id.toString(),
-                    name: item.name,
-                  }))}
-                  customButton={
-                    <button
-                      type="button"
-                      className="px-3 py-1 text-sm bg-mediaCard-hoverBackground hover:bg-mediaCard-background rounded-full transition-colors flex items-center gap-1"
-                    >
-                      <span>...</span>
-                      <Icon
-                        icon={Icons.UP_DOWN_ARROW}
-                        className="text-xs text-dropdown-secondary"
-                      />
-                    </button>
-                  }
-                  side="right"
-                />
-              </div>
-            )}
+                  className={`px-3 py-1 text-sm rounded-full transition-colors whitespace-nowrap flex-shrink-0 ${
+                    selectedLanguage === lang.id
+                      ? "bg-mediaCard-background"
+                      : "bg-mediaCard-hoverBackground hover:bg-mediaCard-background"
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* Provider/Genre filter - desktop: inline with dropdown */}
+        {(contentType === "provider" || contentType === "genre") &&
+          windowWidth > 768 && (
+            <div className="flex items-center space-x-2 mb-4">
+              {visibleButtons.map((item: any) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => {
+                    if (contentType === "provider") {
+                      setSelectedProvider({ id: item.id, name: item.name });
+                    } else {
+                      setSelectedGenre({
+                        id: item.id.toString(),
+                        name: item.name,
+                      });
+                    }
+                  }}
+                  className={`px-3 py-1 text-sm rounded-full transition-colors whitespace-nowrap flex-shrink-0 ${
+                    item.id.toString() ===
+                    (selectedProvider?.id || selectedGenre?.id)
+                      ? "bg-mediaCard-background"
+                      : "bg-mediaCard-hoverBackground hover:bg-mediaCard-background"
+                  }`}
+                >
+                  {item.name}
+                </button>
+              ))}
+              {dropdownButtons.length > 0 && (
+                <div className="relative">
+                  <Dropdown
+                    selectedItem={
+                      contentType === "provider"
+                        ? selectedProvider || { id: "", name: "..." }
+                        : selectedGenre || { id: "", name: "..." }
+                    }
+                    setSelectedItem={(item) => {
+                      if (contentType === "provider") {
+                        setSelectedProvider(item);
+                      } else {
+                        setSelectedGenre(item);
+                      }
+                    }}
+                    options={dropdownButtons.map((item: any) => ({
+                      id:
+                        contentType === "provider"
+                          ? item.id
+                          : item.id.toString(),
+                      name: item.name,
+                    }))}
+                    customButton={
+                      <button
+                        type="button"
+                        className="px-3 py-1 text-sm bg-mediaCard-hoverBackground hover:bg-mediaCard-background rounded-full transition-colors flex items-center gap-1"
+                      >
+                        <span>...</span>
+                        <Icon
+                          icon={Icons.UP_DOWN_ARROW}
+                          className="text-xs text-dropdown-secondary"
+                        />
+                      </button>
+                    }
+                    side="right"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+        {/* Provider/Genre filter - mobile: horizontal scroll */}
+        {(contentType === "provider" || contentType === "genre") &&
+          windowWidth <= 768 && (
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2 mb-4">
+              <div className="flex items-center space-x-2 w-max">
+                {(contentType === "provider" ? providers : genres).map(
+                  (item: any) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => {
+                        if (contentType === "provider") {
+                          setSelectedProvider({ id: item.id, name: item.name });
+                        } else {
+                          setSelectedGenre({
+                            id: item.id.toString(),
+                            name: item.name,
+                          });
+                        }
+                      }}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors whitespace-nowrap flex-shrink-0 ${
+                        item.id.toString() ===
+                        (selectedProvider?.id || selectedGenre?.id)
+                          ? "bg-mediaCard-background"
+                          : "bg-mediaCard-hoverBackground hover:bg-mediaCard-background"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
 
         <div
           className={`transition-opacity duration-300 ease-in-out ${

@@ -1,5 +1,7 @@
+/* eslint-disable react/no-unused-prop-types */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { useAsyncFn } from "react-use";
 
 import {
@@ -13,7 +15,6 @@ import { editUser } from "@/backend/accounts/user";
 import { getAllProviders } from "@/backend/providers/providers";
 import { Button } from "@/components/buttons/Button";
 import { SolidSettingsCard } from "@/components/layout/SettingsCard";
-import { WideContainer } from "@/components/layout/WideContainer";
 import { UserIcons } from "@/components/UserIcon";
 import { Divider } from "@/components/utils/Divider";
 import { Heading1 } from "@/components/utils/Text";
@@ -21,7 +22,6 @@ import { Transition } from "@/components/utils/Transition";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { useSettingsState } from "@/hooks/useSettingsState";
 import { AccountActionsPart } from "@/pages/parts/settings/AccountActionsPart";
 import { AccountEditPart } from "@/pages/parts/settings/AccountEditPart";
@@ -31,17 +31,15 @@ import { ConnectionsPart } from "@/pages/parts/settings/ConnectionsPart";
 import { DeviceListPart } from "@/pages/parts/settings/DeviceListPart";
 import { PreferencesPart } from "@/pages/parts/settings/PreferencesPart";
 import { ProvidersPart } from "@/pages/parts/settings/ProvidersPart";
-import { SettingsNavigation } from "@/pages/parts/settings/SettingsNavigation";
 import { PageTitle } from "@/pages/parts/util/PageTitle";
+import { SettingsHeader } from "@/pages/settings/layout/SettingsHeader";
+import { SettingsSidebar } from "@/pages/settings/layout/SettingsSidebar";
 import { AccountWithToken, useAuthStore } from "@/stores/auth";
-import { useBannerSize } from "@/stores/banner";
 import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useSubtitleStore } from "@/stores/subtitles";
 import { usePreviewThemeStore, useThemeStore } from "@/stores/theme";
 import { scrollToHash } from "@/utils/scroll";
-
-import { SubPageLayout } from "./layouts/SubPageLayout";
 
 function SettingsLayout(props: {
   className?: string;
@@ -50,30 +48,48 @@ function SettingsLayout(props: {
   setSelectedCategory: (category: string | null) => void;
 }) {
   const { className } = props;
-  const { isMobile } = useIsMobile();
-  const bannerSize = useBannerSize();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
-  // Navbar height is 80px (h-20)
-  const navbarHeight = 80;
-  // Calculate top offset for sticky navigation
-  const topOffset = isMobile ? navbarHeight + bannerSize : bannerSize + 14;
+  // Close sidebar when route/hash changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location]);
 
   return (
-    <WideContainer ultraWide classNames="overflow-visible">
-      {/* Navigation positioned at top */}
-      <div
-        className="sticky z-40"
-        style={{
-          top: `${topOffset}px`,
-        }}
-      >
-        <SettingsNavigation
-          selectedCategory={props.selectedCategory}
-          setSelectedCategory={props.setSelectedCategory}
+    <div className="flex h-screen bg-background relative">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
+      )}
+
+      {/* Sidebar - Fixed on mobile, static on desktop */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="h-full overflow-y-auto">
+          <SettingsSidebar />
+        </div>
       </div>
-      <div className={className}>{props.children}</div>
-    </WideContainer>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden w-full">
+        {/* Header - Sticky */}
+        <SettingsHeader onMobileMenuClick={() => setSidebarOpen(true)} />
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+            <div className={className}>{props.children}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -133,6 +149,27 @@ export function SettingsPage() {
   const { logout } = useAuth();
   const { user: authUser } = useAuthContext();
   const prevCategoryRef = useRef<string | null>(null);
+  const location = useLocation();
+
+  // Watch for hash changes from React Router
+  useEffect(() => {
+    const hash = location.hash;
+    if (hash) {
+      const hashId = hash.substring(1);
+      const validCategories = [
+        "settings-account",
+        "settings-preferences",
+        "settings-appearance",
+        "settings-captions",
+        "settings-connection",
+        "settings-providers",
+      ];
+
+      if (validCategories.includes(hashId)) {
+        setSelectedCategory(hashId);
+      }
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -659,7 +696,7 @@ export function SettingsPage() {
     setEnableDoubleClickToSeek,
   ]);
   return (
-    <SubPageLayout>
+    <>
       <PageTitle subpage k="global.pages.settings" />
       <SettingsLayout
         selectedCategory={selectedCategory}
@@ -692,9 +729,7 @@ export function SettingsPage() {
                   </p>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`inline-block w-2 h-2 rounded-full ${
-                        authUser?.isPremium ? "bg-green-500" : "bg-gray-500"
-                      }`}
+                      className={`inline-block w-2 h-2 rounded-full ${authUser?.isPremium ? "bg-green-500" : "bg-gray-500"}`}
                     />
                     <p className="text-white font-medium">
                       {authUser?.isPremium ? "Premium" : "Free"}
@@ -871,7 +906,7 @@ export function SettingsPage() {
           </Button>
         </div>
       </Transition>
-    </SubPageLayout>
+    </>
   );
 }
 

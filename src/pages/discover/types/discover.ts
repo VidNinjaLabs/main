@@ -14,6 +14,19 @@ export type DiscoverContentType =
   | "koreanContent"
   | "animeContent";
 
+// Major Indian languages for filtering
+export const INDIAN_LANGUAGES = [
+  { id: "hi", name: "Hindi" },
+  { id: "ta", name: "Tamil" },
+  { id: "te", name: "Telugu" },
+  { id: "ml", name: "Malayalam" },
+  { id: "kn", name: "Kannada" },
+  { id: "bn", name: "Bengali" },
+  { id: "mr", name: "Marathi" },
+  { id: "gu", name: "Gujarati" },
+  { id: "pa", name: "Punjabi" },
+];
+
 export type MediaType = "movie" | "tv";
 
 export interface UseDiscoverMediaProps {
@@ -25,6 +38,7 @@ export interface UseDiscoverMediaProps {
   genreName?: string;
   providerName?: string;
   mediaTitle?: string;
+  language?: string; // Indian language code for filtering
   isCarouselView?: boolean;
   enabled?: boolean;
 }

@@ -1,9 +1,7 @@
 import classNames from "classnames";
 import { t } from "i18next";
 import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/buttons/Button";
 import { WideContainer } from "@/components/layout/WideContainer";
 import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
@@ -12,12 +10,12 @@ import { MediaItem } from "@/utils/mediaTypes";
 
 import { DiscoverNavigation } from "./components/DiscoverNavigation";
 import type { FeaturedMedia } from "./components/FeaturedCarousel";
+import { LazyLoadCuratedLists } from "./components/LazyLoadCuratedLists";
 import { MediaCarousel } from "./components/MediaCarousel";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 
 export function DiscoverContent() {
   const { selectedCategory, setSelectedCategory } = useDiscoverStore();
-  const navigate = useNavigate();
   const { showModal } = useOverlayStack();
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const progressItems = useProgressStore((state) => state.items);
@@ -277,17 +275,15 @@ export function DiscoverContent() {
         </div>
       </WideContainer>
 
-      {/* View All Button */}
-      <div
-        className={classNames(
-          "flex justify-center mt-8 mb-12",
-          isMoviesTab ? "block" : "hidden",
-        )}
-      >
-        <Button theme="purple" onClick={() => navigate("/discover/all")}>
-          {t("discover.viewLists")}
-        </Button>
-      </div>
+      {/* Lazy-loaded Curated Movie Lists */}
+      {isMoviesTab && (
+        <WideContainer ultraWide>
+          <LazyLoadCuratedLists
+            onShowDetails={handleShowDetails}
+            carouselRefs={carouselRefs}
+          />
+        </WideContainer>
+      )}
 
       <ScrollToTopButton />
 

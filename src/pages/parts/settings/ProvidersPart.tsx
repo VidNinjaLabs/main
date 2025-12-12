@@ -90,13 +90,18 @@ export function ProvidersPart(props: {
         )}
       </Paragraph>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Left Column - Provider List */}
+      <div className="space-y-8">
+        {/* Provider List Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
-              {t("settings.providers.providerList", "Provider List")}
-            </h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-white">
+                {t("settings.providers.providerList", "Provider List")}
+              </h2>
+              <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-medium text-white/60">
+                {sources.length}
+              </span>
+            </div>
             <Button
               theme="purple"
               onClick={handleRefresh}
@@ -108,7 +113,8 @@ export function ProvidersPart(props: {
                 : t("settings.providers.refresh", "Refresh Providers")}
             </Button>
           </div>
-          <div className="grid gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {sources.map((source) => {
               const status = statusData ? statusData[source.id] : null;
               const displayName = providerNames[source.id] || source.name;
@@ -117,125 +123,124 @@ export function ProvidersPart(props: {
               return (
                 <div
                   key={source.id}
-                  className="bg-video-context-background rounded-lg p-4 border border-video-context-border flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className={`relative group bg-video-context-background hover:bg-video-context-hoverBackground rounded-xl p-3 border transition-all duration-200 ${
+                    isEnabled
+                      ? "border-video-context-border"
+                      : "border-video-context-border/50 opacity-75"
+                  }`}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div
-                        onClick={() => handleToggle(source.id)}
-                        className="cursor-pointer"
-                        title={
-                          isEnabled
-                            ? t("global.disable", "Disable")
-                            : t("global.enable", "Enable")
-                        }
-                      >
-                        <Toggle enabled={isEnabled} />
+                  {/* Header: Name and Toggle */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {editingId === source.id ? (
+                          // Edit Mode
+                          <div className="flex items-center gap-2 w-full">
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="py-0.5 px-2 h-6 text-sm w-full"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSave(source.id);
+                                if (e.key === "Escape") handleCancel();
+                              }}
+                            />
+                            <Button
+                              theme="purple"
+                              className="!p-1 h-6 w-6 flex items-center justify-center shrink-0"
+                              onClick={() => handleSave(source.id)}
+                            >
+                              <SquarePen className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          // Display Mode
+                          <>
+                            <h3
+                              className={`text-base font-bold truncate ${
+                                isEnabled ? "text-white" : "text-type-dimmed"
+                              }`}
+                              title={displayName}
+                            >
+                              {displayName}
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(source.id, source.name)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-type-dimmed hover:text-white transition-all"
+                            >
+                              <SquarePen className="w-3 h-3" />
+                            </button>
+                          </>
+                        )}
                       </div>
-                      {editingId === source.id ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            className="py-1 px-2 h-8 w-48"
-                            autoFocus
-                          />
-                          <Button
-                            theme="purple"
-                            className="!py-1 !px-3 h-8 text-xs"
-                            onClick={() => handleSave(source.id)}
-                          >
-                            {t("global.save", "Save")}
-                          </Button>
-                          <Button
-                            theme="secondary"
-                            className="!py-1 !px-3 h-8 text-xs"
-                            onClick={handleCancel}
-                          >
-                            {t("global.cancel", "Cancel")}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <h3
-                            className={`text-lg font-bold ${
-                              isEnabled ? "text-white" : "text-type-dimmed"
-                            }`}
-                          >
-                            {displayName}
-                          </h3>
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(source.id, source.name)}
-                            title={t("global.rename", "Rename")}
-                            className="p-1 text-type-dimmed hover:text-white transition-colors"
-                          >
-                            <SquarePen className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      <span className="text-xs px-2 py-0.5 rounded bg-video-context-border text-type-dimmed">
-                        {source.type.toUpperCase()}
-                      </span>
                     </div>
-                    <div className="text-sm text-type-dimmed pl-14">
-                      ID: <span className="font-mono">{source.id}</span>
+
+                    <div
+                      onClick={() => handleToggle(source.id)}
+                      className="cursor-pointer shrink-0"
+                      title={isEnabled ? "Disable" : "Enable"}
+                    >
+                      <Toggle enabled={isEnabled} />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 pl-14 md:pl-0">
-                    <div className="text-center">
-                      <div className="text-xs text-type-dimmed uppercase tracking-wider mb-1">
-                        {t("settings.providers.uptime", "Uptime")}
-                      </div>
-                      <div className="font-mono font-medium">
-                        {status?.uptime != null
-                          ? `${status.uptime.toFixed(1)}%`
-                          : "-"}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-type-dimmed uppercase tracking-wider mb-1">
-                        {t("settings.providers.latency", "Latency")}
-                      </div>
-                      <div className="font-mono font-medium">
-                        {status?.latency != null ? `${status.latency}ms` : "-"}
-                      </div>
-                    </div>
-                    <div className="text-center min-w-[100px]">
-                      <div className="text-xs text-type-dimmed uppercase tracking-wider mb-1">
-                        {t("settings.providers.status", "Status")}
-                      </div>
-                      <div className="flex items-center justify-center gap-2">
+                  {/* Stats Grid - Single Row Compact */}
+                  <div className="grid grid-cols-3 gap-2 text-[11px] pt-3 border-t border-white/5">
+                    {/* Status */}
+                    <div className="flex flex-col items-center justify-center p-1.5 rounded bg-black/20">
+                      <span className="text-type-dimmed mb-1 text-[10px] uppercase tracking-wider font-semibold">
+                        Status
+                      </span>
+                      <div className="flex items-center gap-1.5 h-5">
                         {status ? (
-                          <>
-                            <div
-                              className={`w-2 h-2 rounded-full ${
+                          <div className="relative flex h-2.5 w-2.5">
+                            {status.status === "operational" && (
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                            )}
+                            <span
+                              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
                                 status.status === "operational"
-                                  ? "bg-green-500"
+                                  ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
                                   : status.status === "degraded"
                                     ? "bg-yellow-500"
-                                    : "bg-red-500"
+                                    : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
                               }`}
                             />
-                            <span
-                              className={`font-medium ${
-                                status.status === "operational"
-                                  ? "text-green-400"
-                                  : status.status === "degraded"
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
-                              }`}
-                            >
-                              {status.status}
-                            </span>
-                          </>
+                          </div>
                         ) : (
                           <span className="text-type-dimmed">
-                            {statusLoading ? "Loading..." : "Unknown"}
+                            {statusLoading ? "..." : "?"}
                           </span>
                         )}
                       </div>
+                    </div>
+
+                    {/* Uptime */}
+                    <div className="flex flex-col items-center justify-center p-1.5 rounded bg-black/20">
+                      <span className="text-type-dimmed mb-0.5 text-[10px] uppercase tracking-wider font-semibold">
+                        Uptime
+                      </span>
+                      <span
+                        className={`font-mono font-bold text-sm ${parseFloat(status?.uptime?.toFixed(1) || "0") >= 98 ? "text-green-400" : "text-white/90"}`}
+                      >
+                        {status?.uptime != null
+                          ? `${status.uptime.toFixed(0)}%`
+                          : "-"}
+                      </span>
+                    </div>
+
+                    {/* Latency */}
+                    <div className="flex flex-col items-center justify-center p-1.5 rounded bg-black/20">
+                      <span className="text-type-dimmed mb-0.5 text-[10px] uppercase tracking-wider font-semibold">
+                        Ping
+                      </span>
+                      <span
+                        className={`font-mono font-bold text-sm ${status?.latency && status.latency < 500 ? "text-green-400" : "text-white/90"}`}
+                      >
+                        {status?.latency != null ? `${status.latency}ms` : "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -243,23 +248,26 @@ export function ProvidersPart(props: {
             })}
 
             {sources.length === 0 && (
-              <div className="text-center py-12 text-type-dimmed">
+              <div className="col-span-full text-center py-12 text-type-dimmed bg-video-context-background rounded-xl border border-video-context-border border-dashed">
                 {t("settings.providers.noSources", "No providers available.")}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Column - Reserved for Future Panels */}
-        <div className="space-y-4">
+        {/* Additional Settings Section - Full width at bottom */}
+        <div className="space-y-4 pt-4 border-t border-white/5">
           <h2 className="text-lg font-semibold text-white">
             {t("settings.providers.additionalSettings", "Additional Settings")}
           </h2>
-          <div className="bg-video-context-background/30 rounded-lg p-6 border border-video-context-border border-dashed">
-            <p className="text-center text-type-dimmed">
+          <div className="bg-video-context-background/30 rounded-lg p-8 border border-video-context-border border-dashed flex flex-col items-center justifying-center text-center">
+            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+              <SquarePen className="w-5 h-5 text-white/20" />
+            </div>
+            <p className="text-type-dimmed max-w-md">
               {t(
                 "settings.providers.placeholder",
-                "Additional provider settings and controls will appear here.",
+                "Advanced provider configurations, proxy settings, and custom source URLs will appear here in future updates.",
               )}
             </p>
           </div>

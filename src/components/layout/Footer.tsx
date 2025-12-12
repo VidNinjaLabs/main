@@ -1,98 +1,28 @@
-import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import type { RequireExactlyOne } from "type-fest";
-
-import { Icon, Icons } from "@/components/Icon";
-import { BrandPill } from "@/components/layout/BrandPill";
 import { WideContainer } from "@/components/layout/WideContainer";
-import { shouldHaveLegalPage } from "@/pages/Legal";
-import { conf } from "@/setup/config";
-
-// to and href are mutually exclusive
-type FooterLinkProps = RequireExactlyOne<
-  {
-    children: React.ReactNode;
-    icon: Icons;
-    to: string;
-    href: string;
-  },
-  "to" | "href"
->;
-
-function FooterLink(props: FooterLinkProps) {
-  const navigate = useNavigate();
-
-  const navigateTo = useCallback(() => {
-    if (!props.to) return;
-
-    navigate(props.to);
-  }, [navigate, props.to]);
-
-  return (
-    <a
-      href={props.href}
-      target={props.href ? "_blank" : undefined}
-      rel="noreferrer"
-      className="tabbable rounded py-2 px-3 inline-flex cursor-pointer items-center space-x-3 transition-colors duration-200 hover:text-type-emphasis"
-      onClick={props.to ? navigateTo : undefined}
-    >
-      <Icon icon={props.icon} className="text-2xl" />
-      <span className="font-medium">{props.children}</span>
-    </a>
-  );
-}
-
-function Legal() {
-  const { t } = useTranslation();
-
-  if (!shouldHaveLegalPage()) return null;
-  if (window.location.hash === "#/legal") return null;
-
-  return (
-    <FooterLink to="/legal" icon={Icons.DRAGON}>
-      {t("footer.links.legal")}
-    </FooterLink>
-  );
-}
 
 export function Footer() {
-  const { t } = useTranslation();
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-8 border-t border-type-divider py-16 md:py-8">
-      <WideContainer ultraWide classNames="grid md:grid-cols-2 gap-16 md:gap-8">
-        <div>
-          <div className="inline-block">
-            <BrandPill />
-          </div>
-          <p className="mt-4 lg:max-w-[400px]">{t("footer.tagline")}</p>
-        </div>
-        <div className="md:text-right">
-          <h3 className="font-semibold text-type-emphasis">
-            {t("footer.legal.disclaimer")}
-          </h3>
-          <p className="mt-3">{t("footer.legal.disclaimerText")}</p>
-        </div>
-        <div className="flex flex-wrap gap-[0.5rem] -ml-3">
-          {conf().GITHUB_LINK && (
-            <FooterLink icon={Icons.GITHUB} href={conf().GITHUB_LINK}>
-              {t("footer.links.github")}
-            </FooterLink>
-          )}
-          <FooterLink icon={Icons.DISCORD} href={conf().DISCORD_LINK}>
-            {t("footer.links.discord")}
-          </FooterLink>
-          <FooterLink href="https://rentry.co/h5mypdfs" icon={Icons.TIP_JAR}>
-            {t("footer.links.funding")}
-          </FooterLink>
-          <div className="inline md:hidden">
-            <Legal />
-          </div>
-        </div>
-        <div className="hidden items-center justify-end md:flex -mr-3">
-          <Legal />
-        </div>
+    <footer className="border-t border-type-divider py-6 md:py-4">
+      <WideContainer ultraWide classNames="flex flex-col gap-3">
+        {/* Copyright */}
+        <p className="text-sm text-type-emphasis">
+          © {currentYear} VidNinja. All rights reserved.
+        </p>
+
+        {/* DMCA Disclaimer */}
+        <p className="text-sm text-type-secondary max-w-4xl">
+          <span className="font-semibold text-type-emphasis">
+            DMCA Disclaimer:
+          </span>{" "}
+          VidNinja is a content aggregator that scrapes publicly available
+          sources. We don&apos;t host or store copyrighted content. All content
+          is gathered automatically from third-party websites. Copyright
+          infringement claims should be directed to the respective third-party
+          sites. For DMCA requests, please contact the original content
+          provider.
+        </p>
       </WideContainer>
     </footer>
   );

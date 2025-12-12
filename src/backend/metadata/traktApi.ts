@@ -119,7 +119,11 @@ export const getLatestReleases = (page: number = 1, limit: number = 20) =>
     count: res.length,
   }));
 export const getLatest4KReleases = (page: number = 1, limit: number = 20) =>
-  getLatestReleases(page, limit); // No direct 4k filter in free API easily
+  fetchFromTrakt<any>("/movies/popular", { page, limit }).then((res) => ({
+    movie_tmdb_ids: res.map((m: any) => m.ids?.tmdb || m.movie?.ids?.tmdb),
+    tv_tmdb_ids: [],
+    count: res.length,
+  }));
 export const getLatestTVReleases = (page: number = 1, limit: number = 20) =>
   fetchFromTrakt<any>("/shows/trending", { page, limit }).then((res) => ({
     movie_tmdb_ids: [],

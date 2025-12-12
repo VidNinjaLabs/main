@@ -112,6 +112,7 @@ export function useDiscoverMedia({
   genreName,
   providerName,
   mediaTitle,
+  language,
   isCarouselView = false,
   enabled = true,
 }: UseDiscoverMediaProps): UseDiscoverMediaReturn {
@@ -459,7 +460,7 @@ export function useDiscoverMedia({
 
         case "indianContent":
           data = await fetchTMDBMedia(`/discover/${mediaType}`, {
-            with_original_language: "hi",
+            with_original_language: language || "hi", // Default to Hindi if not specified
             sort_by: "popularity.desc",
           });
           setSectionTitle(
@@ -557,6 +558,7 @@ export function useDiscoverMedia({
     t,
     page,
     getTraktProviderFunction,
+    language,
   ]);
 
   useEffect(() => {

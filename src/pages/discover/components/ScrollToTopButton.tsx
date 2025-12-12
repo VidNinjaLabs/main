@@ -1,12 +1,12 @@
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Heart, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { Icon, Icons } from "@/components/Icon";
+import { conf } from "@/setup/config";
 
 export function ScrollToTopButton() {
-  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleVisibility = () => {
     const scrolled = window.scrollY > 300;
@@ -27,31 +27,92 @@ export function ScrollToTopButton() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".floating-menu-container")) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isMenuOpen]);
+
+  const menuItems = [
+    {
+      href: "https://rentry.co/h5mypdfs",
+      icon: <Heart className="w-5 h-5 text-pink-400" />,
+      label: "Support Us",
+    },
+    {
+      href: conf().DISCORD_LINK,
+      icon: <Icon icon={Icons.DISCORD} className="w-5 h-5 text-indigo-400" />,
+      label: "Discord",
+    },
+    {
+      href: conf().GITHUB_LINK,
+      icon: <Icon icon={Icons.GITHUB} className="w-5 h-5 text-white" />,
+      label: "GitHub",
+      hidden: !conf().GITHUB_LINK,
+    },
+  ];
+
   return (
-    <div className="fixed bottom-9 md:bottom-4 transform -translate-x-1/2 z-50 left-12 md:left-1/2">
+    <div
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 transition-opacity duration-300 floating-menu-container ${
+        isVisible ? "opacity-100 visible" : "opacity-0 invisible"
+      }`}
+    >
+      {/* Expandable menu items */}
       <div
-        className={`absolute inset-0 mx-auto h-[50px] w-[200px] rounded-full blur-[50px] opacity-50 pointer-events-none z-0 ${
-          isVisible ? "opacity-100 visible" : "opacity-0 invisible"
+        className={`flex items-center gap-2 transition-all duration-300 ${
+          isMenuOpen
+            ? "opacity-100 translate-x-0"
+            : "opacity-0 translate-x-4 pointer-events-none"
         }`}
-        style={{
-          backgroundImage: `linear-gradient(to right, rgba(var(--colors-buttons-purpleHover)), rgba(var(--colors-progress-filled)))`,
-          transition: "opacity 0.4s ease-in-out, transform 0.2s ease-in-out",
-        }}
-      />
+      >
+        {menuItems
+          .filter((item) => !item.hidden)
+          .map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noreferrer"
+              className="backdrop-blur-sm flex items-center justify-center rounded-full p-3 bg-pill-background bg-opacity-80 hover:bg-pill-backgroundHover transition-all hover:scale-110 duration-300"
+              aria-label={item.label}
+              title={item.label}
+            >
+              {item.icon}
+            </a>
+          ))}
+      </div>
+
+      {/* More button - toggle menu */}
+      <button
+        type="button"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        className={`backdrop-blur-sm flex items-center justify-center rounded-full p-3 text-white bg-pill-background bg-opacity-80 hover:bg-pill-backgroundHover transition-all hover:scale-110 duration-300 ${
+          isMenuOpen ? "rotate-90" : ""
+        }`}
+        aria-label="More options"
+      >
+        <Menu className="w-5 h-5 text-white" />
+      </button>
+
+      {/* Scroll to top button */}
       <button
         type="button"
         onClick={scrollToTop}
-        className={`relative backdrop-blur-sm flex items-center justify-center space-x-2 rounded-full px-3 py-3 md:py-2 text-lg font-semibold text-white bg-pill-background bg-opacity-80 hover:bg-pill-backgroundHover transition-opacity hover:scale-105 duration-500 ease-in-out ${
-          isVisible ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        style={{
-          transition: "opacity 0.4s ease-in-out, transform 0.2s ease-in-out",
-        }}
+        className="backdrop-blur-sm flex items-center justify-center rounded-full p-4 text-white bg-pill-background bg-opacity-80 hover:bg-pill-backgroundHover transition-all hover:scale-110 duration-300"
+        aria-label="Scroll to top"
       >
-        <ChevronUp className="text-white" />
-        <span className="z-10 hidden md:block">
-          {t("discover.scrollToTop")}
-        </span>
+        <ChevronUp className="w-7 h-7 text-white" />
       </button>
     </div>
   );
