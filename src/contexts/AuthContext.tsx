@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token,
     loading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === "ADMIN",
+    isAdmin: user?.role?.toUpperCase() === "ADMIN",
     isPremium: user?.isPremium || false,
     login,
     signup,
