@@ -8,7 +8,7 @@ export function useIsAdmin() {
   const isAdmin = useMemo(() => {
     if (!account || !account.role) return false;
 
-    return account.role === "ADMIN";
+    return account.role.toUpperCase() === "ADMIN";
   }, [account]);
 
   return isAdmin;

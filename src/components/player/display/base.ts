@@ -197,22 +197,28 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
       if (!Hls.isSupported())
         throw new Error("HLS not supported. Update your browser. 🤦‍♂️");
-      if (!hls) {
+        if (!hls) {
         hls = new Hls({
           autoStartLoad: true,
-          maxBufferLength: 120, // 120 seconds
-          maxMaxBufferLength: 240,
+          // Aggressive Buffering Settings
+          maxBufferLength: 90, // Target buffer length in seconds (1.5 minutes ahead)
+          maxMaxBufferLength: 600, // Maximum buffer allowed (10 minutes)
+          backBufferLength: 90, // Keep 1.5 minutes of back buffer for rewinding
+          maxBufferHole: 2.0, // Tolerance for small gaps in stream
+          highBufferWatchdogPeriod: 3, // Check buffer frequently
+          enableWorker: true, // Use web worker for HLS processing (smoother UI)
+          // Load Policy - Be patient with slow connections
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 30 * 1000, // allow it load extra long, fragments are slow if requested for the first time on an origin
-              maxTimeToFirstByteMs: 30 * 1000,
+              maxLoadTimeMs: 60 * 1000, 
+              maxTimeToFirstByteMs: 60 * 1000,
               errorRetry: {
-                maxNumRetry: 10,
+                maxNumRetry: 5,
                 retryDelayMs: 1000,
-                maxRetryDelayMs: 10000,
+                maxRetryDelayMs: 8000,
               },
               timeoutRetry: {
-                maxNumRetry: 10,
+                maxNumRetry: 5,
                 maxRetryDelayMs: 0,
                 retryDelayMs: 0,
               },

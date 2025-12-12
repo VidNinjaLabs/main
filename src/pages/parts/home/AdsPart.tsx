@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 
 import { Icon, Icons } from "@/components/Icon";
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { conf } from "@/setup/config";
 
 function getCookie(name: string): string | null {
@@ -22,6 +24,8 @@ function setCookie(name: string, value: string, expiryDays: number): void {
 }
 
 export function AdsPart(): JSX.Element | null {
+  const isAdmin = useIsAdmin();
+  const isPremium = useIsPremium();
   const [isAdDismissed, setIsAdDismissed] = useState(() => {
     return getCookie("adDismissed") === "true";
   });
@@ -31,7 +35,7 @@ export function AdsPart(): JSX.Element | null {
     setCookie("adDismissed", "true", 2); // Expires after 2 days
   }, []);
 
-  if (isAdDismissed) return null;
+  if (isAdDismissed || isAdmin || isPremium) return null;
 
   return (
     <div className="w-fit max-w-[32rem] mx-auto relative group pb-4">
