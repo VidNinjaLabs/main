@@ -48,7 +48,7 @@ import { LanguageProvider } from "@/stores/language";
 const DeveloperPage = lazy(() => import("@/pages/DeveloperPage"));
 const TestView = lazy(() => import("@/pages/developer/TestView"));
 const PlayerView = lazyWithPreload(() => import("@/pages/PlayerView"));
-const SettingsPage = lazyWithPreload(() => import("@/pages/settings"));
+const SettingsPage = lazyWithPreload(() => import("@/pages/Settings"));
 
 PlayerView.preload();
 SettingsPage.preload();
