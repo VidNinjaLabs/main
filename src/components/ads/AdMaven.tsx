@@ -24,12 +24,18 @@ export function AdMaven() {
       document.body.appendChild(inlineScript);
       /* eslint-enable */
 
+      // Cleanup function to remove scripts on unmount
       return () => {
         try {
-          document.body.removeChild(externalScript);
-          document.body.removeChild(inlineScript);
+          if (externalScript && document.body.contains(externalScript)) {
+            document.body.removeChild(externalScript);
+          }
+          if (inlineScript && document.body.contains(inlineScript)) {
+            document.body.removeChild(inlineScript);
+          }
         } catch (e) {
           // Ignore cleanup errors
+          console.warn("AdMaven cleanup error", e);
         }
       };
     } catch (err) {

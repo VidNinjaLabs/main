@@ -106,7 +106,6 @@ export function AdsterraAds() {
       // Random interval between 5s and 10s (Faster for testing)
       const time = Math.random() * (10000 - 5000) + 5000;
       const timer = setTimeout(() => {
-        console.log("Adsterra Overlay Activated!"); // Debug log
         setShowOverlay(true);
       }, time);
 
