@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { Icon, Icons } from "@/components/Icon";
 
@@ -11,6 +11,13 @@ interface MobilePositionProps {
 
 export function OverlayMobilePosition(props: MobilePositionProps) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // Delay showing until dimensions settle - 100ms delay
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const togglePreview = () => {
     setIsPreviewMode(!isPreviewMode);
@@ -45,13 +52,16 @@ export function OverlayMobilePosition(props: MobilePositionProps) {
         </button>
       ) : null}
 
-      {/* Main Overlay */}
+      {/* Main Overlay - ONLY opacity transition, no dimension transitions */}
       <div
+        style={{
+          opacity: isReady ? (isPreviewMode ? 0.5 : 1) : 0,
+          transition: "opacity 200ms ease-out",
+        }}
         className={classNames([
-          "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[min(18rem,calc(100vw-3rem))] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
+          "pointer-events-auto px-2 pb-3 z-10 ml-[env(safe-area-inset-left)] mr-[env(safe-area-inset-right)] bottom-16 origin-top-left w-[290px] max-w-[calc(100vw-3rem)] absolute overflow-hidden max-h-[calc(100vh-1.5rem)] grid grid-rows-[minmax(0,1fr),auto]",
           positionClass,
           props.className,
-          isPreviewMode ? "opacity-50" : "opacity-100",
         ])}
       >
         {props.children}

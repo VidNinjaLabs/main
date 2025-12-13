@@ -48,16 +48,27 @@ export function OverlayPage(props: Props) {
 
       // Otherwise measure from content
       const rawHeight = contentRef.current.scrollHeight;
-      const finalHeight = props.maxHeight
-        ? Math.min(rawHeight, props.maxHeight)
-        : rawHeight;
+
+      // Apply constraints: use maxHeight if provided, also constrain to viewport
+      const viewportMax = window.innerHeight - 160; // Leave margin for controls
+      const maxAllowed = props.maxHeight
+        ? Math.min(props.maxHeight, viewportMax)
+        : viewportMax;
+      const finalHeight = Math.min(rawHeight, maxAllowed);
 
       setMeasuredHeight(finalHeight);
 
       // Register immediately with measured height
+      // On mobile, use 290 to match OverlayMobilePosition container
+      const registeredWidth = isMobile
+        ? 290
+        : props.fullWidth
+          ? window.innerWidth - 60
+          : props.width;
+
       registerRoute({
         id: path,
-        width: props.fullWidth ? window.innerWidth - 60 : props.width,
+        width: registeredWidth,
         height: finalHeight,
       });
     };
@@ -81,6 +92,7 @@ export function OverlayPage(props: Props) {
     props.fullWidth,
     path,
     registerRoute,
+    isMobile,
   ]);
 
   /**
@@ -104,7 +116,7 @@ export function OverlayPage(props: Props) {
   return (
     <div
       className={classNames([
-        "absolute inset-0 transition-opacity duration-150 ease-out",
+        "absolute inset-0 transition-opacity duration-300 ease-out",
         !show && "pointer-events-none opacity-0", // Hide but keep in DOM
       ])}
     >

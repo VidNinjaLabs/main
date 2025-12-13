@@ -22,7 +22,13 @@ function useCalculatePositions() {
       const buttonCenter = anchor.x + anchor.w / 2;
       const bottomReal = window.innerHeight - (anchor.y + anchor.h);
 
-      setTop(window.innerHeight - bottomReal - anchor.h - card.height - 30);
+      // Calculate top position - ensure popup stays within viewport
+      const calculatedTop =
+        window.innerHeight - bottomReal - anchor.h - card.height - 30;
+      // Ensure minimum 20px from top of screen
+      const constrainedTop = Math.max(20, calculatedTop);
+
+      setTop(constrainedTop);
       setLeft(
         Math.min(
           buttonCenter - card.width / 2,
@@ -58,16 +64,32 @@ function useCalculatePositions() {
 
 export function OverlayAnchorPosition(props: AnchorPositionProps) {
   const [ref, left, top, isPositioned] = useCalculatePositions();
+  const [animateIn, setAnimateIn] = useState(false);
+
+  // Trigger animation AFTER positioning is complete
+  // Add small delay to let dimensions settle
+  useEffect(() => {
+    if (isPositioned) {
+      // Delay to ensure child dimensions are measured
+      const timer = setTimeout(() => {
+        setAnimateIn(true);
+      }, 50); // 50ms delay for dimensions to settle
+      return () => clearTimeout(timer);
+    }
+    setAnimateIn(false);
+  }, [isPositioned]);
 
   return (
     <div
       ref={ref}
       style={{
         transform: `translateX(${left}px) translateY(${top}px)`,
-        opacity: isPositioned ? 1 : 0,
       }}
       className={classNames([
         "[&>*]:pointer-events-auto z-10 flex dir-neutral:items-start rtl:justify-start ltr:justify-end dir-neutral:origin-top-left touch-none",
+        // Pure fade animation - no scale to avoid position movement
+        "transition-opacity duration-200 ease-out",
+        animateIn ? "opacity-100" : "opacity-0",
         props.className,
       ])}
     >

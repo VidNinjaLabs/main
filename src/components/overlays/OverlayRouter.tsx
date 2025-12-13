@@ -1,5 +1,5 @@
-import { a, useSpring } from "@react-spring/web";
-import { ReactNode, useEffect, useMemo, useRef } from "react";
+import classNames from "classnames";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { OverlayAnchorPosition } from "@/components/overlays/positions/OverlayAnchorPosition";
 import { OverlayMobilePosition } from "@/components/overlays/positions/OverlayMobilePosition";
@@ -24,42 +24,40 @@ function RouterBase(props: { id: string; children: ReactNode }) {
     [routes, router],
   );
 
-  const [dimensions, api] = useSpring(
-    () => ({
-      from: {
-        height: `${routeMeta?.height ?? 0}px`,
-        width: isMobile ? "100%" : `${routeMeta?.width ?? 0}px`,
-      },
-      config: {
-        duration: 0, // Instant, no animation
-      },
-    }),
-    [],
-  );
+  // Track if this is the first dimension set
+  const hasInitialized = useRef(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  const currentState = useRef<null | string>(null);
   useEffect(() => {
-    const data = {
-      height: routeMeta?.height,
-      width: routeMeta?.width,
-      isMobile,
-    };
-    const dataStr = JSON.stringify(data);
-    if (dataStr !== currentState.current) {
-      currentState.current = dataStr;
-      // Use api.set for instant changes, no animation
-      api.set({
-        height: `${routeMeta?.height ?? 0}px`,
-        width: data.isMobile ? "100%" : `${routeMeta?.width ?? 0}px`,
-      });
+    if (routeMeta?.height && routeMeta.height > 0) {
+      if (!hasInitialized.current) {
+        // First time: don't animate
+        hasInitialized.current = true;
+      } else {
+        // Subsequent changes: enable animation briefly
+        setShouldAnimate(true);
+        const timer = setTimeout(() => setShouldAnimate(false), 300);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [routeMeta?.height, routeMeta?.width, isMobile, api]);
+  }, [routeMeta?.height]);
+
+  const height = routeMeta?.height ?? 200;
+  // On mobile, don't set width - parent container controls it
+  // On desktop, use registered width or default
+  const width = isMobile ? undefined : `${routeMeta?.width ?? 290}px`;
 
   return (
-    <a.div
+    <div
       ref={ref}
-      style={dimensions}
-      className="overflow-hidden relative z-10 max-h-full"
+      style={{
+        height: `${height}px`,
+        ...(width && { width }),
+      }}
+      className={classNames(
+        "overflow-hidden relative z-10 max-h-full w-full",
+        shouldAnimate && "transition-all duration-300 ease-out",
+      )}
     >
       <Flare.Base className="group w-full bg-video-context-border bg-opacity-30 backdrop-blur-md h-full rounded-xl text-video-context-type-main">
         <Flare.Light
@@ -74,7 +72,7 @@ function RouterBase(props: { id: string; children: ReactNode }) {
           {props.children}
         </Flare.Child>
       </Flare.Base>
-    </a.div>
+    </div>
   );
 }
 
