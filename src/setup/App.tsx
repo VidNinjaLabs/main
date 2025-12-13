@@ -115,6 +115,16 @@ function App() {
 
   const isAdmin = useIsAdmin();
   const isPremium = useIsPremium();
+  const showAds = import.meta.env.PROD && !isAdmin && !isPremium;
+
+  useEffect(() => {
+    console.log("[AdDebug] Check:", {
+      isAdmin,
+      isPremium,
+      PROD: import.meta.env.PROD,
+      showAds,
+    });
+  }, [isAdmin, isPremium, showAds]);
 
   const handleButtonClick = () => {
     setShowDowntime(false);

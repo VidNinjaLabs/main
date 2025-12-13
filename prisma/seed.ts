@@ -9,12 +9,33 @@ async function main() {
   
   const admin = await prisma.user.upsert({
     where: { email: 'admin@cloudclash.local' },
-    update: {},
+    update: {
+      role: 'ADMIN',
+      isPremium: true,
+      subscription: {
+        upsert: {
+          create: {
+            status: 'ACTIVE',
+            expiresAt: new Date('9999-12-31T23:59:59Z'),
+          },
+          update: {
+            status: 'ACTIVE',
+            expiresAt: new Date('9999-12-31T23:59:59Z'),
+          },
+        },
+      },
+    },
     create: {
       email: 'admin@cloudclash.local',
       password: hashedPassword,
       role: 'ADMIN',
       isPremium: true,
+      subscription: {
+        create: {
+          status: 'ACTIVE',
+          expiresAt: new Date('9999-12-31T23:59:59Z'),
+        },
+      },
     },
   });
 
