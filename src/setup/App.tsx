@@ -19,6 +19,8 @@ import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsMod
 import { NotificationModal } from "@/components/overlays/notificationsModal";
 import { TurnstileGate } from "@/components/TurnstileGate";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
+import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useGlobalKeyboardEvents } from "@/hooks/useGlobalKeyboardEvents";
 import { useOnlineListener } from "@/hooks/usePing";
 import { AboutPage } from "@/pages/About";
@@ -111,6 +113,9 @@ function App() {
   const maintenance = false; // Shows maintance page
   const [showDowntime, setShowDowntime] = useState(maintenance);
 
+  const isAdmin = useIsAdmin();
+  const isPremium = useIsPremium();
+
   const handleButtonClick = () => {
     setShowDowntime(false);
   };
@@ -126,7 +131,7 @@ function App() {
   return (
     <AuthProvider>
       <TurnstileGate>
-        {import.meta.env.PROD && (
+        {import.meta.env.PROD && !isAdmin && !isPremium && (
           <>
             <PopAds />
             <AdsterraAds />

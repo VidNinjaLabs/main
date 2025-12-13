@@ -21,7 +21,7 @@ async function main() {
   console.log('✅ Default admin user created:', admin.email);
   console.log('📧 Email: admin@cloudclash.local');
   console.log('🔑 Password: admin123');
-  console.log('⚠️  Please change the password after first login!');
+  console.log('⚠️ Please change the password after first login!');
 }
 
 main()

@@ -68,6 +68,14 @@ export function PopAds() {
           }
           q();
         }
+
+        // Cleanup function to remove the script when component unmounts
+        return () => {
+          clearTimeout(r);
+          if (c && c.parentNode) {
+            c.parentNode.removeChild(c);
+          }
+        };
       })();
       /* eslint-enable */
     } catch (err) {
