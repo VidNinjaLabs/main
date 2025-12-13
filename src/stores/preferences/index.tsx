@@ -30,6 +30,10 @@ export interface PreferencesStore {
   homeSectionOrder: string[];
   manualSourceSelection: boolean;
   enableDoubleClickToSeek: boolean;
+  workerUrl: string | null;
+  streamingProxyUrl: string | null;
+  cdnUrl: string | null;
+  febboxUrl: string | null;
 
   setEnableThumbnails(v: boolean): void;
   setEnableAutoplay(v: boolean): void;
@@ -58,6 +62,10 @@ export interface PreferencesStore {
   setHomeSectionOrder(v: string[]): void;
   setManualSourceSelection(v: boolean): void;
   setEnableDoubleClickToSeek(v: boolean): void;
+  setWorkerUrl(v: string | null): void;
+  setStreamingProxyUrl(v: string | null): void;
+  setCdnUrl(v: string | null): void;
+  setFebboxUrl(v: string | null): void;
 
   providerNames: Record<string, string>;
   setProviderName(id: string, name: string): void;
@@ -93,6 +101,10 @@ export const usePreferencesStore = create(
       homeSectionOrder: ["watching", "bookmarks"],
       manualSourceSelection: false,
       enableDoubleClickToSeek: false,
+      workerUrl: null,
+      streamingProxyUrl: null,
+      cdnUrl: null,
+      febboxUrl: null,
       setEnableThumbnails(v) {
         set((s) => {
           s.enableThumbnails = v;
@@ -231,6 +243,26 @@ export const usePreferencesStore = create(
       setEnableDoubleClickToSeek(v) {
         set((s) => {
           s.enableDoubleClickToSeek = v;
+        });
+      },
+      setWorkerUrl(v) {
+        set((s) => {
+          s.workerUrl = v;
+        });
+      },
+      setStreamingProxyUrl(v) {
+        set((s) => {
+          s.streamingProxyUrl = v;
+        });
+      },
+      setCdnUrl(v) {
+        set((s) => {
+          s.cdnUrl = v;
+        });
+      },
+      setFebboxUrl(v) {
+        set((s) => {
+          s.febboxUrl = v;
         });
       },
       providerNames: {},

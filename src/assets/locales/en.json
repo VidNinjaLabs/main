@@ -1090,6 +1090,26 @@
           "title": "Proxy TMDB",
           "description": "Only needed if you can't access TheMovieDB directly, such as if your ISP blocks it. It is recomended to disable the Discover section to improve performance with this."
         }
+      },
+      "workerUrl": {
+        "title": "Worker URL",
+        "description": "URL of the worker used for handling requests."
+      },
+      "streamingProxyUrl": {
+        "title": "Streaming Proxy URL",
+        "description": "URL of the proxy used for streaming content."
+      },
+      "cdnUrl": {
+        "title": "CDN URL",
+        "description": "URL of the Content Delivery Network."
+      },
+      "febboxUrl": {
+        "title": "Febbox URL",
+        "description": "URL for the Febbox service."
+      },
+      "debrid": {
+        "title": "Debrid",
+        "description": "Enter your Debrid API key to access Debrid services. Requires a paid <0>Real-Debrid</0> or <1>TorBox</1> account!"
       }
     },
     "preferences": {

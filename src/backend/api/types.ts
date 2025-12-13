@@ -63,7 +63,7 @@ export type VidNinjaSourcesResponse = VidNinjaSource[];
 export interface VidNinjaStreamRequest {
   sourceId: string;
   tmdbId: string;
-  type: "movie" | "tv";  // API expects 'tv' not 'show'
+  type: "movie" | "tv"; // API expects 'tv' not 'show'
   season?: number;
   episode?: number;
   force?: boolean;

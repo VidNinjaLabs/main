@@ -56,10 +56,8 @@ export function ScrapingPart(props: ScrapingProps) {
     (async () => {
       const output = await startScraping(props.media);
       if (!isMounted()) return;
-      props.onResult?.(
-        resultRef.current.sources,
-        resultRef.current.sourceOrder,
-      );
+
+      // Always report provider metrics for analytics
       report(
         scrapePartsToProviderMetric(
           props.media,
@@ -67,6 +65,16 @@ export function ScrapingPart(props: ScrapingProps) {
           resultRef.current.sources,
         ),
       );
+
+      // If no stream was found, call onResult to show error
+      if (!output) {
+        props.onResult?.(
+          resultRef.current.sources,
+          resultRef.current.sourceOrder,
+        );
+      }
+
+      // Always call onGetStream with the result (null or stream)
       props.onGetStream?.(output);
     })().catch(() => setFailedStartScrape(true));
   }, [startScraping, props, report, isMounted]);

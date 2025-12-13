@@ -79,9 +79,25 @@ export function useSettingsState(
   homeSectionOrder: string[],
   manualSourceSelection: boolean,
   enableDoubleClickToSeek: boolean,
+  workerUrl: string | null,
+  streamingProxyUrl: string | null,
+  cdnUrl: string | null,
+  febboxUrl: string | null,
 ) {
   const [proxyUrlsState, setProxyUrls, resetProxyUrls, proxyUrlsChanged] =
     useDerived(proxyUrls);
+  const [workerUrlState, setWorkerUrl, resetWorkerUrl, workerUrlChanged] =
+    useDerived(workerUrl);
+  const [
+    streamingProxyUrlState,
+    setStreamingProxyUrl,
+    resetStreamingProxyUrl,
+    streamingProxyUrlChanged,
+  ] = useDerived(streamingProxyUrl);
+  const [cdnUrlState, setCdnUrl, resetCdnUrl, cdnUrlChanged] =
+    useDerived(cdnUrl);
+  const [febboxUrlState, setFebboxUrl, resetFebboxUrl, febboxUrlChanged] =
+    useDerived(febboxUrl);
   const [backendUrlState, setBackendUrl, resetBackendUrl, backendUrlChanged] =
     useDerived(backendUrl);
   const [febboxKeyState, setFebboxKey, resetFebboxKey, febboxKeyChanged] =
@@ -299,6 +315,10 @@ export function useSettingsState(
     resetHomeSectionOrder();
     resetManualSourceSelection();
     resetEnableDoubleClickToSeek();
+    resetWorkerUrl();
+    resetStreamingProxyUrl();
+    resetCdnUrl();
+    resetFebboxUrl();
   }
 
   const changed =
@@ -336,7 +356,12 @@ export function useSettingsState(
     enableHoldToBoostChanged ||
     homeSectionOrderChanged ||
     manualSourceSelectionChanged ||
-    enableDoubleClickToSeekChanged;
+    manualSourceSelectionChanged ||
+    enableDoubleClickToSeekChanged ||
+    workerUrlChanged ||
+    streamingProxyUrlChanged ||
+    cdnUrlChanged ||
+    febboxUrlChanged;
 
   return {
     reset,
@@ -515,6 +540,26 @@ export function useSettingsState(
       state: enableDoubleClickToSeekState,
       set: setEnableDoubleClickToSeekState,
       changed: enableDoubleClickToSeekChanged,
+    },
+    workerUrl: {
+      state: workerUrlState,
+      set: setWorkerUrl,
+      changed: workerUrlChanged,
+    },
+    streamingProxyUrl: {
+      state: streamingProxyUrlState,
+      set: setStreamingProxyUrl,
+      changed: streamingProxyUrlChanged,
+    },
+    cdnUrl: {
+      state: cdnUrlState,
+      set: setCdnUrl,
+      changed: cdnUrlChanged,
+    },
+    febboxUrl: {
+      state: febboxUrlState,
+      set: setFebboxUrl,
+      changed: febboxUrlChanged,
     },
   };
 }

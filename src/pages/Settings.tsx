@@ -287,6 +287,17 @@ export function SettingsPage() {
   }, [selectedCategory, searchQuery]);
 
   const { t } = useTranslation();
+  const workerUrl = usePreferencesStore((s) => s.workerUrl);
+  const setWorkerUrl = usePreferencesStore((s) => s.setWorkerUrl);
+  const streamingProxyUrl = usePreferencesStore((s) => s.streamingProxyUrl);
+  const setStreamingProxyUrl = usePreferencesStore(
+    (s) => s.setStreamingProxyUrl,
+  );
+  const cdnUrl = usePreferencesStore((s) => s.cdnUrl);
+  const setCdnUrl = usePreferencesStore((s) => s.setCdnUrl);
+  const febboxUrl = usePreferencesStore((s) => s.febboxUrl);
+  const setFebboxUrl = usePreferencesStore((s) => s.setFebboxUrl);
+
   const activeTheme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
   const previewTheme = usePreviewThemeStore((s) => s.previewTheme);
@@ -494,6 +505,10 @@ export function SettingsPage() {
     homeSectionOrder,
     manualSourceSelection,
     enableDoubleClickToSeek,
+    workerUrl,
+    streamingProxyUrl,
+    cdnUrl,
+    febboxUrl,
   );
 
   const availableSources = useMemo(() => {
@@ -559,7 +574,11 @@ export function SettingsPage() {
         state.enableHoldToBoost.changed ||
         state.homeSectionOrder.changed ||
         state.manualSourceSelection.changed ||
-        state.enableDoubleClickToSeek
+        state.enableDoubleClickToSeek ||
+        state.workerUrl.changed ||
+        state.streamingProxyUrl.changed ||
+        state.cdnUrl.changed ||
+        state.febboxUrl.changed
       ) {
         await updateSettings(backendUrl, account, {
           applicationLanguage: state.appLanguage.state,
@@ -642,6 +661,10 @@ export function SettingsPage() {
     setHomeSectionOrder(state.homeSectionOrder.state);
     setManualSourceSelection(state.manualSourceSelection.state);
     setEnableDoubleClickToSeek(state.enableDoubleClickToSeek.state);
+    setWorkerUrl(state.workerUrl.state);
+    setStreamingProxyUrl(state.streamingProxyUrl.state);
+    setCdnUrl(state.cdnUrl.state);
+    setFebboxUrl(state.febboxUrl.state);
 
     if (state.profile.state) {
       updateProfile(state.profile.state);
@@ -694,6 +717,10 @@ export function SettingsPage() {
     setHomeSectionOrder,
     setManualSourceSelection,
     setEnableDoubleClickToSeek,
+    setWorkerUrl,
+    setStreamingProxyUrl,
+    setCdnUrl,
+    setFebboxUrl,
   ]);
   return (
     <>
@@ -857,18 +884,20 @@ export function SettingsPage() {
           selectedCategory === "settings-connection") && (
           <div id="settings-connection">
             <ConnectionsPart
-              backendUrl={state.backendUrl.state}
-              setBackendUrl={state.backendUrl.set}
-              proxyUrls={state.proxyUrls.state}
-              setProxyUrls={state.proxyUrls.set}
+              workerUrl={state.workerUrl.state}
+              setWorkerUrl={state.workerUrl.set}
+              streamingProxyUrl={state.streamingProxyUrl.state}
+              setStreamingProxyUrl={state.streamingProxyUrl.set}
+              cdnUrl={state.cdnUrl.state}
+              setCdnUrl={state.cdnUrl.set}
+              febboxUrl={state.febboxUrl.state}
+              setFebboxUrl={state.febboxUrl.set}
               febboxKey={state.febboxKey.state}
               setFebboxKey={state.febboxKey.set}
               debridToken={state.debridToken.state}
               setdebridToken={state.debridToken.set}
               debridService={state.debridService.state}
               setdebridService={state.debridService.set}
-              proxyTmdb={state.proxyTmdb.state}
-              setProxyTmdb={state.proxyTmdb.set}
             />
           </div>
         )}
