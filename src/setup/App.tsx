@@ -18,7 +18,6 @@ import { DetailsModal } from "@/components/overlays/detailsModal";
 import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsModal";
 import { NotificationModal } from "@/components/overlays/notificationsModal";
 import { TurnstileGate } from "@/components/TurnstileGate";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useGlobalKeyboardEvents } from "@/hooks/useGlobalKeyboardEvents";
@@ -139,118 +138,110 @@ function App() {
   }, [setShowDowntime, maintenance]);
 
   return (
-    <AuthProvider>
-      <TurnstileGate>
-        {import.meta.env.PROD && !isAdmin && !isPremium && (
-          <>
-            <PopAds />
-            <AdsterraAds />
-            <AdMaven />
-          </>
-        )}
-        <Layout>
-          <LanguageProvider />
-          <NotificationModal id="notifications" />
-          <KeyboardCommandsModal id="keyboard-commands" />
-          <DetailsModal id="details" />
-          <DetailsModal id="discover-details" />
-          <DetailsModal id="player-details" />
-          {!showDowntime && (
-            <Routes>
-              {/* functional routes */}
-              <Route path="/s/:query" element={<QuickSearch />} />
-              <Route path="/search/:type" element={<Navigate to="/browse" />} />
-              <Route path="/search/:type/:query?" element={<QueryView />} />
+    <TurnstileGate>
+      {showAds && (
+        <>
+          <PopAds />
+          <AdsterraAds />
+          <AdMaven />
+        </>
+      )}
+      <Layout>
+        <LanguageProvider />
+        <NotificationModal id="notifications" />
+        <KeyboardCommandsModal id="keyboard-commands" />
+        <DetailsModal id="details" />
+        <DetailsModal id="discover-details" />
+        <DetailsModal id="player-details" />
+        {!showDowntime && (
+          <Routes>
+            {/* functional routes */}
+            <Route path="/s/:query" element={<QuickSearch />} />
+            <Route path="/search/:type" element={<Navigate to="/browse" />} />
+            <Route path="/search/:type/:query?" element={<QueryView />} />
 
-              {/* Standalone player routes for embedding */}
-              <Route
-                path="/movie/:tmdbId"
-                element={<StandaloneMoviePlayer />}
-              />
-              <Route
-                path="/tv/:tmdbId/:season/:episode"
-                element={<StandaloneTVPlayer />}
-              />
+            {/* Standalone player routes for embedding */}
+            <Route path="/movie/:tmdbId" element={<StandaloneMoviePlayer />} />
+            <Route
+              path="/tv/:tmdbId/:season/:episode"
+              element={<StandaloneTVPlayer />}
+            />
 
-              {/* pages */}
-              <Route path="/" element={<Navigate to="/discover" replace />} />
-              <Route
-                path="/media/:media"
-                element={
-                  <LegacyUrlView>
-                    <Suspense fallback={null}>
-                      <PlayerView />
-                    </Suspense>
-                  </LegacyUrlView>
-                }
-              />
-              <Route
-                path="/media/:media/:season/:episode"
-                element={
-                  <LegacyUrlView>
-                    <Suspense fallback={null}>
-                      <PlayerView />
-                    </Suspense>
-                  </LegacyUrlView>
-                }
-              />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/about" element={<AboutPage />} />
-
-              {shouldHaveLegalPage() ? (
-                <Route path="/legal" element={<LegalPage />} />
-              ) : null}
-              {/* Support page */}
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/jip" element={<JipPage />} />
-              {/* Browse/Search pages */}
-              <Route path="/browse" element={<BrowsePage />} />
-              <Route path="/browse/:query" element={<BrowsePage />} />
-              {/* Discover pages */}
-              <Route path="/discover" element={<Discover />} />
-              <Route
-                path="/discover/more/:contentType/:mediaType"
-                element={<MoreContent />}
-              />
-              <Route
-                path="/discover/more/:contentType/:id/:mediaType"
-                element={<MoreContent />}
-              />
-              <Route
-                path="/discover/more/:category"
-                element={<MoreContent />}
-              />
-              <Route path="/discover/all" element={<DiscoverMore />} />
-              {/* Bookmarks page */}
-              <Route path="/bookmarks" element={<AllBookmarks />} />
-              {/* Settings page */}
-              <Route
-                path="/settings"
-                element={
+            {/* pages */}
+            <Route path="/" element={<Navigate to="/discover" replace />} />
+            <Route
+              path="/media/:media"
+              element={
+                <LegacyUrlView>
                   <Suspense fallback={null}>
-                    <SettingsPage />
+                    <PlayerView />
                   </Suspense>
-                }
-              />
-              {/* admin routes */}
-              <Route path="/admin" element={<AdminPage />} />
-              {/* other */}
-              <Route path="/dev" element={<DeveloperPage />} />
-              <Route path="/dev/video" element={<VideoTesterView />} />
-              {/* developer routes that can abuse workers are disabled in production */}
-              {process.env.NODE_ENV === "development" ? (
-                <Route path="/dev/test" element={<TestView />} />
-              ) : null}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          )}
-          {showDowntime && (
-            <MaintenancePage onHomeButtonClick={handleButtonClick} />
-          )}
-        </Layout>
-      </TurnstileGate>
-    </AuthProvider>
+                </LegacyUrlView>
+              }
+            />
+            <Route
+              path="/media/:media/:season/:episode"
+              element={
+                <LegacyUrlView>
+                  <Suspense fallback={null}>
+                    <PlayerView />
+                  </Suspense>
+                </LegacyUrlView>
+              }
+            />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/about" element={<AboutPage />} />
+
+            {shouldHaveLegalPage() ? (
+              <Route path="/legal" element={<LegalPage />} />
+            ) : null}
+            {/* Support page */}
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/jip" element={<JipPage />} />
+            {/* Browse/Search pages */}
+            <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/browse/:query" element={<BrowsePage />} />
+            {/* Discover pages */}
+            <Route path="/discover" element={<Discover />} />
+            <Route
+              path="/discover/more/:contentType/:mediaType"
+              element={<MoreContent />}
+            />
+            <Route
+              path="/discover/more/:contentType/:id/:mediaType"
+              element={<MoreContent />}
+            />
+            <Route path="/discover/more/:category" element={<MoreContent />} />
+            <Route path="/discover/all" element={<DiscoverMore />} />
+            {/* Bookmarks page */}
+            <Route path="/bookmarks" element={<AllBookmarks />} />
+            {/* Settings page */}
+            <Route
+              path="/settings"
+              element={
+                <Suspense fallback={null}>
+                  <SettingsPage />
+                </Suspense>
+              }
+            />
+            {/* admin routes */}
+            <Route path="/admin" element={<AdminPage />} />
+            {/* other */}
+            <Route path="/dev" element={<DeveloperPage />} />
+            <Route path="/dev/video" element={<VideoTesterView />} />
+            {/* developer routes that can abuse workers are disabled in production */}
+            {process.env.NODE_ENV === "development" ? (
+              <Route path="/dev/test" element={<TestView />} />
+            ) : null}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        )}
+        {showDowntime && (
+          <MaintenancePage onHomeButtonClick={handleButtonClick} />
+        )}
+      </Layout>
+    </TurnstileGate>
   );
 }
 

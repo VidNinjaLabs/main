@@ -1,15 +1,7 @@
-import { useMemo } from "react";
-
-import { useAuthStore } from "@/stores/auth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 export function useIsAdmin() {
-  const account = useAuthStore((s) => s.account);
-
-  const isAdmin = useMemo(() => {
-    if (!account || !account.role) return false;
-
-    return account.role.toUpperCase() === "ADMIN";
-  }, [account]);
+  const { isAdmin } = useAuthContext();
 
   return isAdmin;
 }

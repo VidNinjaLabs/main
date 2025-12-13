@@ -16,6 +16,7 @@ import { useAsync, useAsyncFn } from "react-use";
 import { Button } from "@/components/buttons/Button";
 import { Loading } from "@/components/layout/Loading";
 import { LucideIcon } from "@/components/LucideIcon";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useAuthRestore } from "@/hooks/auth/useAuthRestore";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
@@ -136,7 +137,11 @@ function AuthWrapper() {
         )}
       </ErrorScreen>
     );
-  return <App />;
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
 }
 
 function MigrationRunner() {
