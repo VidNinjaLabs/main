@@ -204,12 +204,12 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           autoStartLoad: true,
           // VidPly.js Prefetch Settings - Parallel fragment download
           enableFragmentPrefetch: true, // Enable n+1 parallel prefetch
-          prefetchBufferThreshold: 5, // Min buffer (seconds) before prefetching (reduced from 10)
+          prefetchBufferThreshold: 10, // Min buffer (seconds) before prefetching
           maxParallelFragmentLoads: 2, // Max concurrent fragment downloads
-          // Buffering Settings (reduced to avoid expired URLs)
-          maxBufferLength: 30, // Target buffer length in seconds (reduced from 90)
-          maxMaxBufferLength: 120, // Maximum buffer allowed (reduced from 600)
-          backBufferLength: 30, // Keep 30s of back buffer for rewinding (reduced from 90)
+          // Aggressive Buffering Settings
+          maxBufferLength: 90, // Target buffer length in seconds (1.5 minutes ahead)
+          maxMaxBufferLength: 600, // Maximum buffer allowed (10 minutes)
+          backBufferLength: 90, // Keep 1.5 minutes of back buffer for rewinding
           maxBufferHole: 2.0, // Tolerance for small gaps in stream
           highBufferWatchdogPeriod: 3, // Check buffer frequently
           enableWorker: true, // Use web worker for HLS processing (smoother UI)
