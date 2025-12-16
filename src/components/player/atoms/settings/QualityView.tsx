@@ -1,9 +1,9 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import Hls from "@rev9dev-netizen/vidply.js";
 import { t } from "i18next";
 import { useCallback, useMemo } from "react";
 import { Trans } from "react-i18next";
 
-import { Toggle } from "@/components/buttons/Toggle";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { SelectableLink } from "@/components/player/internals/ContextMenu/Links";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
@@ -51,11 +51,11 @@ export function QualityView({ id }: { id: string }) {
     [router, switchQuality, setLastChosenQuality, setAutomaticQuality],
   );
 
-  const changeAutomatic = useCallback(() => {
-    const newValue = !autoQuality;
-    setAutomaticQuality(newValue);
-    if (newValue) enableAutomaticQuality();
-  }, [setAutomaticQuality, autoQuality, enableAutomaticQuality]);
+  const selectAutomatic = useCallback(() => {
+    setAutomaticQuality(true);
+    enableAutomaticQuality();
+    router.close();
+  }, [setAutomaticQuality, enableAutomaticQuality, router]);
 
   const visibleQualities = allQualities.filter((quality) => {
     if (availableQualities.includes(quality)) return true;
@@ -68,10 +68,13 @@ export function QualityView({ id }: { id: string }) {
         {t("player.menus.quality.title")}
       </Menu.BackLink>
       <Menu.Section className="flex flex-col pb-2 pt-2">
+        <SelectableLink selected={autoQuality} onClick={selectAutomatic}>
+          Auto
+        </SelectableLink>
         {visibleQualities.map((v) => (
           <SelectableLink
             key={v}
-            selected={v === currentQuality}
+            selected={!autoQuality && v === currentQuality}
             onClick={
               availableQualities.includes(v) ? () => change(v) : undefined
             }
@@ -80,12 +83,6 @@ export function QualityView({ id }: { id: string }) {
             {qualityToString(v)}
           </SelectableLink>
         ))}
-        <Menu.Divider />
-        <Menu.Link
-          rightSide={<Toggle onClick={changeAutomatic} enabled={autoQuality} />}
-        >
-          {t("player.menus.quality.automaticLabel")}
-        </Menu.Link>
         <Trans
           i18nKey={
             isIosHls
