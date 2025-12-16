@@ -1,5 +1,5 @@
 import fscreen from "fscreen";
-import Hls, { Level } from "hls.js";
+import Hls, { Level } from "@rev9dev-netizen/vidply.js";
 
 import {
   RULE_IDS,

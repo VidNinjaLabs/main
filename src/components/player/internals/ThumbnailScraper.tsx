@@ -1,4 +1,4 @@
-import Hls from "hls.js";
+import Hls from "@rev9dev-netizen/vidply.js";
 import { useCallback, useEffect, useRef } from "react";
 
 import { ThumbnailImage } from "@/stores/player/slices/thumbnails";

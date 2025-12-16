@@ -1,4 +1,4 @@
-import Hls from "hls.js";
+import Hls from "@rev9dev-netizen/vidply.js";
 import { t } from "i18next";
 import { useCallback, useMemo } from "react";
 import { Trans } from "react-i18next";

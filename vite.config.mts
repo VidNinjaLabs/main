@@ -134,7 +134,7 @@ export default defineConfig(({ mode }) => {
             ) {
               return "language-db";
             }
-            if (id.includes("hls.js")) {
+            if (id.includes("hls.js") || id.includes("@rev9dev-netizen/vidply.js") || id.includes("vidply.js")) {
               return "hls";
             }
             if (id.includes("node-forge") || id.includes("crypto-js")) {

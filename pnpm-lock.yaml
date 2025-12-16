@@ -54,6 +54,9 @@ importers:
       '@react-spring/web':
         specifier: ^9.7.5
         version: 9.7.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@rev9dev-netizen/vidply.js':
+        specifier: 1.0.0
+        version: 1.0.0
       '@scure/bip39':
         specifier: ^1.6.0
         version: 1.6.0
@@ -90,9 +93,6 @@ importers:
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
-      hls.js:
-        specifier: ^1.6.13
-        version: 1.6.15
       i18next:
         specifier: ^23.16.8
         version: 23.16.8
@@ -1503,6 +1503,9 @@ packages:
   '@remix-run/router@1.23.1':
     resolution: {integrity: sha512-vDbaOzF7yT2Qs4vO6XV1MHcJv+3dgR1sT+l3B8xxOVhUC336prMvqrvsLL/9Dnw2xr6Qhz4J0dmS0llNAbnUmQ==}
     engines: {node: '>=14.0.0'}
+
+  '@rev9dev-netizen/vidply.js@1.0.0':
+    resolution: {integrity: sha512-VTvsdr/UyaBAZxxr9mCGJmFd0I72LeJtBI7T7kgO7+RPvDTLq3oQr+Afb7JEmbfwY05Exu7irQlQG/koE3Zt6A==, tarball: https://npm.pkg.github.com/download/@rev9dev-netizen/vidply.js/1.0.0/b3c97a7b24b890032928b219140c646ef8fe9c10}
 
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
@@ -3214,9 +3217,6 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
-
-  hls.js@1.6.15:
-    resolution: {integrity: sha512-E3a5VwgXimGHwpRGV+WxRTKeSp2DW5DI5MWv34ulL3t5UNmyJWCQ1KmLEHbYzcfThfXG8amBL+fCYPneGHC4VA==}
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
@@ -6496,6 +6496,8 @@ snapshots:
 
   '@remix-run/router@1.23.1': {}
 
+  '@rev9dev-netizen/vidply.js@1.0.0': {}
+
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
   '@rollup/plugin-babel@5.3.1(@babel/core@7.28.5)(@types/babel__core@7.20.5)(rollup@4.43.0)':
@@ -8437,8 +8439,6 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
-
-  hls.js@1.6.15: {}
 
   hoist-non-react-statics@3.3.2:
     dependencies:

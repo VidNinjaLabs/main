@@ -1,4 +1,4 @@
-import { MediaPlaylist } from "hls.js";
+import { MediaPlaylist } from "@rev9dev-netizen/vidply.js";
 
 import { MWMediaType } from "@/backend/metadata/types/mw";
 import { AudioTrack, CaptionListItem } from "@/stores/player/slices/source";
