@@ -8,7 +8,7 @@
     "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "dev:frontend": "vite",
     "dev:api": "tsx watch server.ts",
-    "build": "vite build",
+    "build": "prisma generate && vite build",
     "build:pwa": "cross-env VITE_PWA_ENABLED=true vite build",
     "test": "vitest run",
     "preview": "vite preview",
