@@ -1,90 +1,136 @@
 /* eslint-disable max-classes-per-file */
-// VidNinja API Type Definitions
-export interface VidNinjaQuality {
-  type: "mp4";
-  url: string;
+// CloudClash Backend API Type Definitions
+// Based on actual backend responses
+
+// =============================================================================
+// Authentication Types
+// =============================================================================
+
+export interface SessionResponse {
+  token: string;
+  sessionId: string;
+  visitId: string;
+  expiresAt: number;
 }
 
-export interface VidNinjaCaption {
-  id: string;
-  language: string;
-  url: string;
-  type?: string;
+export interface ValidateResponse {
+  valid: boolean;
+  sessionId: string;
 }
 
-export interface VidNinjaStream {
-  id: string;
-  type: "hls" | "file";
-  playlist: string;
-  headers: Record<string, string>;
-  proxyDepth?: number;
-  flags: string[];
-  captions: VidNinjaCaption[];
-  qualities?: Record<string, VidNinjaQuality>;
-  // Stream metadata for multi-language/multi-server support
-  language?: string; // ISO 639-1 language code (e.g., "en", "hi", "ta")
-  label?: string; // Human-readable display name (e.g., "AllMovies (Hindi)")
-  quality?: string; // Quality/server identifier (e.g., "HD", "LS-25", "GS-25")
-}
+// =============================================================================
+// Provider Types (matches actual /providers response)
+// =============================================================================
 
-export interface VidNinjaStreamResponse {
-  stream: VidNinjaStream[];
-  embeds: any[];
-}
-
-export interface VidNinjaSource {
-  id: string;
-  name: string;
+export interface Provider {
+  codename: string;
   rank: number;
   type: "source" | "embed";
-  mediaTypes?: string[];
 }
 
-export interface VidNinjaProviderStatus {
-  status: "operational" | "degraded" | "offline" | "untested";
-  latency: number;
-  uptime: number;
+export interface ProvidersResponse {
+  sources: Provider[];
+  embeds: Provider[];
 }
 
-export interface VidNinjaStatusResponse {
-  [providerId: string]: VidNinjaProviderStatus;
-}
+// =============================================================================
+// Streaming Types (matches actual /scrape response)
+// =============================================================================
 
-export interface VidNinjaSourcesRequest {
-  tmdbId: string;
-  type: "movie" | "tv";
-  season?: number;
-  episode?: number;
-}
-
-// /sources endpoint returns array directly, not {sources: [...]}
-export type VidNinjaSourcesResponse = VidNinjaSource[];
-
-export interface VidNinjaStreamRequest {
-  sourceId: string;
-  tmdbId: string;
-  type: "movie" | "tv"; // API expects 'tv' not 'show'
-  season?: number;
-  episode?: number;
-  force?: boolean;
-}
-
-export interface VidNinjaConfig {
+export interface SubtitleTrack {
+  id: string;
+  language: string;
+  languageName: string;
   url: string;
-  apiKey: string;
+  format: string;
+  source: string;
+  hearingImpaired: boolean;
 }
 
-export class VidNinjaError extends Error {
+export interface StreamResponse {
+  type: "hls" | "file";
+  servers: Record<string, string>;
+  subtitles: SubtitleTrack[];
+  headers?: Record<string, string>;
+}
+
+// =============================================================================
+// Health Types
+// =============================================================================
+
+export interface HealthResponse {
+  status: "ok" | "error";
+  timestamp: number;
+}
+
+export interface HealthDetailedResponse {
+  status: "ok" | "error";
+  timestamp: number;
+  uptime: number;
+  jwt: {
+    status: "ok" | "error";
+    secret_loaded: boolean;
+  };
+  encryption: {
+    status: "ok" | "error";
+    secret_loaded: boolean;
+  };
+  worker: {
+    status: "ok" | "error";
+    url_configured: boolean;
+  };
+  tmdb: {
+    status: "ok" | "error";
+    proxy_configured: boolean;
+  };
+}
+
+export interface ServerTimeResponse {
+  serverTime: number;
+  timezone: string;
+  iso: string;
+}
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+export interface BackendConfig {
+  baseUrl: string;
+}
+
+// =============================================================================
+// Error Classes
+// =============================================================================
+
+export class BackendError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
   ) {
     super(message);
-    this.name = "VidNinjaError";
+    this.name = "BackendError";
   }
 }
 
-// Febbox Types
+export class AuthError extends BackendError {
+  constructor(message: string) {
+    super(message, 401);
+    this.name = "AuthError";
+  }
+}
+
+export class StreamNotFoundError extends BackendError {
+  constructor(message: string = "Stream not found") {
+    super(message, 404);
+    this.name = "StreamNotFoundError";
+  }
+}
+
+// =============================================================================
+// Legacy Types (for Febbox compatibility)
+// =============================================================================
+
 export interface FebboxConfig {
   apiUrl: string;
   uiToken: string;

@@ -275,7 +275,7 @@ export function RealPlayerView(props: PlayerViewProps) {
 
       playMedia(
         convertRunoutputToSource(pendingRunOutput),
-        convertProviderCaption(pendingRunOutput.stream.captions),
+        convertProviderCaption(pendingRunOutput.subtitles),
         pendingRunOutput.sourceId,
         shouldStartFromBeginning ? 0 : startAt,
       );
@@ -304,7 +304,7 @@ export function RealPlayerView(props: PlayerViewProps) {
 
         playMedia(
           convertRunoutputToSource(out),
-          convertProviderCaption(out.stream.captions),
+          convertProviderCaption(out.subtitles),
           out.sourceId,
           shouldStartFromBeginning ? 0 : startAt,
         );

@@ -1,7 +1,7 @@
 import { useAsyncFn } from "react-use";
 
 import { febboxClient } from "@/backend/api/febbox";
-import { vidNinjaClient } from "@/backend/api/vidninja";
+import { backendClient } from "@/backend/api/vidninja";
 import { isExtensionActiveCached } from "@/backend/extension/messaging";
 import { prepareStream } from "@/backend/extension/streams";
 import {
@@ -11,10 +11,14 @@ import {
 import { convertProviderCaption } from "@/components/player/utils/captions";
 import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
+import { RunOutput } from "@/hooks/useProviderScrape";
 import { metaToScrapeMedia } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
+import analytics from "@/utils/analytics";
+import { selectBestServer } from "@/utils/serverValidator";
+import { TIMEOUTS, withTimeout } from "@/utils/timeout";
 
 function getSavedProgress(items: Record<string, any>, meta: any): number {
   const item = items[meta?.tmdbId ?? ""];
@@ -30,7 +34,6 @@ function getSavedProgress(items: Record<string, any>, meta: any): number {
 }
 
 // Note: VidNinja API doesn't support embed scraping separately
-// This is a stub for compatibility
 export function useEmbedScraping(
   routerId: string,
   _sourceId: string,
@@ -40,7 +43,6 @@ export function useEmbedScraping(
   const router = useOverlayRouter(routerId);
 
   const [request, run] = useAsyncFn(async () => {
-    // VidNinja API handles embeds automatically, just close the router
     router.close();
   }, [router]);
 
@@ -71,38 +73,85 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
     if (!sourceId || !meta) return null;
     setEmbedId(null);
     const scrapeMedia = metaToScrapeMedia(meta);
+    const startTime = performance.now();
 
     try {
-      let stream;
-      let allStreams: any[] = [];
+      let runOutput: RunOutput | null = null;
 
       // Route to correct client based on source ID
       if (sourceId === "febbox") {
         // Use Febbox client
-        stream = await febboxClient.getStream({
+        const febboxStream = await febboxClient.getStream({
           tmdbId: scrapeMedia.tmdbId,
           type: scrapeMedia.type,
           title: scrapeMedia.title,
           season: scrapeMedia.season?.number,
           episode: scrapeMedia.episode?.number,
         });
-        allStreams = stream ? [stream] : [];
-      } else {
-        // Use VidNinja client
-        const result = await vidNinjaClient.getStream({
-          sourceId,
-          tmdbId: scrapeMedia.tmdbId,
-          type: scrapeMedia.type === "show" ? "tv" : "movie",
-          season: scrapeMedia.season?.number,
-          episode: scrapeMedia.episode?.number,
-        });
 
-        stream =
-          result.stream && result.stream.length > 0 ? result.stream[0] : null;
-        allStreams = result.stream || [];
+        if (febboxStream) {
+          runOutput = {
+            sourceId,
+            provider: "Febbox",
+            streamType: "hls",
+            selectedServer: "Primary",
+            url: febboxStream.playlist,
+            servers: { Primary: febboxStream.playlist },
+            subtitles: [],
+          };
+        }
+      } else {
+        // Use backend client with new API - with timeout
+        const response = await withTimeout(
+          scrapeMedia.type === "movie"
+            ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
+            : backendClient.scrapeShow(
+                scrapeMedia.tmdbId,
+                scrapeMedia.season?.number ?? 1,
+                scrapeMedia.episode?.number ?? 1,
+                sourceId,
+              ),
+          TIMEOUTS.PROVIDER_SCRAPE,
+          `Provider ${sourceId} timed out`,
+        );
+
+        // Check if we got valid servers
+        if (response.servers && Object.keys(response.servers).length > 0) {
+          // Auto-select best server
+          const bestServer = await selectBestServer(response.servers);
+
+          if (bestServer) {
+            runOutput = {
+              sourceId,
+              provider: sourceId,
+              streamType: response.type,
+              selectedServer: bestServer.server,
+              url: bestServer.url,
+              servers: response.servers,
+              subtitles: response.subtitles,
+              headers: response.headers,
+            };
+          } else {
+            analytics.track("stream_failure", {
+              provider: sourceId,
+              server: "all",
+              error: "All servers failed validation",
+            });
+          }
+        }
       }
 
-      if (stream) {
+      const duration = Math.round(performance.now() - startTime);
+
+      if (runOutput) {
+        // Track successful scrape
+        analytics.track("scrape_complete", {
+          provider: runOutput.provider,
+          success: true,
+          duration_ms: duration,
+          servers_found: Object.keys(runOutput.servers).length,
+        });
+
         report([
           scrapeSourceOutputToProviderMetric(
             meta,
@@ -113,21 +162,29 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
           ),
         ]);
 
-        if (isExtensionActiveCached()) await prepareStream(stream as any);
+        if (isExtensionActiveCached()) await prepareStream(runOutput as any);
 
         setEmbedId(null);
         setCaption(null);
         setSource(
-          convertRunoutputToSource({ stream: stream as any }),
-          convertProviderCaption((stream as any).captions),
+          convertRunoutputToSource(runOutput),
+          convertProviderCaption(runOutput.subtitles),
           getSavedProgress(progressItems, meta),
-          allStreams,
+          [],
         );
         setSourceId(sourceId);
 
         if (enableLastSuccessfulSource) {
           setLastSuccessfulSource(sourceId);
         }
+
+        // Track stream play
+        analytics.track("stream_play", {
+          provider: runOutput.provider,
+          server: runOutput.selectedServer,
+          tmdbId: scrapeMedia.tmdbId,
+          type: scrapeMedia.type,
+        });
 
         router.close();
         return null;
@@ -145,7 +202,15 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
       ]);
       throw new Error("No stream found");
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error(`Failed to scrape ${sourceId}`, err);
+
+      analytics.track("stream_failure", {
+        provider: sourceId,
+        server: "unknown",
+        error: err instanceof Error ? err.message : String(err),
+      });
+
       const status =
         err instanceof Error && err.message.includes("Couldn't find")
           ? "notfound"

@@ -1,4 +1,4 @@
-import type { VidNinjaStream } from "@/backend/api/types";
+import type { RunOutput } from "@/hooks/useProviderScrape";
 import {
   SourceFileStream,
   SourceQuality,
@@ -14,12 +14,9 @@ const allowedQualitiesMap: Record<SourceQuality, SourceQuality> = {
   unknown: "unknown",
 };
 const allowedQualities = Object.keys(allowedQualitiesMap);
-const allowedFileTypes = ["mp4"];
 
 function normalizeQuality(quality: string): string {
-  // Remove 'p' suffix if present (e.g., "1080p" -> "1080")
   const normalized = quality.replace(/p$/i, "");
-  // Map common variations to standard values
   const qualityMap: Record<string, string> = {
     "2160": "4k",
     "2160p": "4k",
@@ -40,44 +37,46 @@ function isAllowedQuality(inp: string): inp is SourceQuality {
   return allowedQualities.includes(normalized);
 }
 
-export function convertRunoutputToSource(out: {
-  stream: VidNinjaStream;
-}): SourceSliceSource {
-  if (out.stream.type === "hls") {
+/**
+ * Converts RunOutput to SourceSliceSource for the player.
+ * Uses the pre-validated `url` field (best server already selected).
+ */
+export function convertRunoutputToSource(out: RunOutput): SourceSliceSource {
+  // Use the pre-validated URL from server selection
+  const streamUrl = out.url;
+
+  // Use streamType from backend
+  if (out.streamType === "hls") {
     return {
       type: "hls",
-      url: out.stream.playlist,
-      headers: out.stream.headers,
+      url: streamUrl,
+      headers: out.headers,
       preferredHeaders: {},
     };
   }
-  if (out.stream.type === "file") {
-    const qualities: Partial<Record<SourceQuality, SourceFileStream>> = {};
-    if (out.stream.qualities) {
-      Object.entries(out.stream.qualities).forEach((entry) => {
-        const normalizedQuality = normalizeQuality(entry[0]);
 
-        if (!isAllowedQuality(entry[0])) {
-          console.warn(`unrecognized quality: ${entry[0]}`);
-          return;
-        }
-        if (!allowedFileTypes.includes(entry[1].type)) {
-          console.warn(`unrecognized file type: ${entry[1].type}`);
-          return;
-        }
-        // Use normalized quality as the key
-        qualities[normalizedQuality as SourceQuality] = {
-          type: entry[1].type,
-          url: entry[1].url,
-        };
-      });
-    }
-    return {
-      type: "file",
-      qualities,
-      headers: out.stream.headers,
-      preferredHeaders: {},
+  // For file-based streams, try to extract quality info from server name
+  const qualities: Partial<Record<SourceQuality, SourceFileStream>> = {};
+
+  // Try to extract quality from selected server name
+  const qualityMatch = out.selectedServer.match(/(\d{3,4})p?/i);
+  if (qualityMatch && isAllowedQuality(qualityMatch[1])) {
+    const quality = normalizeQuality(qualityMatch[1]) as SourceQuality;
+    qualities[quality] = {
+      type: "mp4",
+      url: streamUrl,
+    };
+  } else {
+    qualities.unknown = {
+      type: "mp4",
+      url: streamUrl,
     };
   }
-  throw new Error("unrecognized type");
+
+  return {
+    type: "file",
+    qualities,
+    headers: out.headers,
+    preferredHeaders: {},
+  };
 }

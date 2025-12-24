@@ -1,12 +1,9 @@
-import { ReactNode, useEffect, useMemo, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getCachedMetadata } from "@/backend/api/metadata";
 import { Loading } from "@/components/layout/Loading";
-import {
-  useEmbedScraping,
-  useSourceScraping,
-} from "@/components/player/hooks/useSourceSelection";
+import { useSourceScraping } from "@/components/player/hooks/useSourceSelection";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { SelectableLink } from "@/components/player/internals/ContextMenu/Links";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
@@ -23,43 +20,7 @@ export interface EmbedSelectionViewProps {
   sourceId: string | null;
 }
 
-export function EmbedOption(props: {
-  embedId: string;
-  url: string;
-  sourceId: string;
-  routerId: string;
-}) {
-  const { t } = useTranslation();
-  const currentEmbedId = usePlayerStore((s) => s.embedId);
-  const unknownEmbedName = t("player.menus.sources.unknownOption");
-
-  const embedName = useMemo(() => {
-    if (!props.embedId) return unknownEmbedName;
-    const sourceMeta = getCachedMetadata().find((s) => s.id === props.embedId);
-    return sourceMeta?.name ?? unknownEmbedName;
-  }, [props.embedId, unknownEmbedName]);
-
-  const { run, errored, loading } = useEmbedScraping(
-    props.routerId,
-    props.sourceId,
-    props.url,
-    props.embedId,
-  );
-
-  return (
-    <SelectableLink
-      loading={loading}
-      error={errored}
-      onClick={run}
-      selected={props.embedId === currentEmbedId}
-    >
-      <span className="flex flex-col">
-        <span>{embedName}</span>
-      </span>
-    </SelectableLink>
-  );
-}
-
+// Legacy EmbedSelectionView - kept for compatibility but rarely used
 export function EmbedSelectionView({ sourceId, id }: EmbedSelectionViewProps) {
   const { t } = useTranslation();
   const router = useOverlayRouter(id);
@@ -103,10 +64,8 @@ export function EmbedSelectionView({ sourceId, id }: EmbedSelectionViewProps) {
         {t("player.menus.sources.failed.text")}
       </Menu.TextDisplay>
     );
-  else if (watching)
-    content = null; // when it starts watching, empty the display
+  else if (watching) content = null;
   else if (items) {
-    // VidNinja API shouldn't return items (embeds), but if it does (legacy compat), ignore or show error
     content = (
       <Menu.TextDisplay>
         {t("player.menus.sources.noEmbeds.text")}
@@ -143,15 +102,47 @@ export function SourceSelectionView({
   const disabledSources = usePreferencesStore((s) => s.disabledSources);
   const providerNames = usePreferencesStore((s) => s.providerNames);
 
+  // Track which source is currently loading
+  const [loadingSourceId, setLoadingSourceId] = useState<string | null>(null);
+  const [errorSourceId, setErrorSourceId] = useState<string | null>(null);
+
+  // Use scraping hook for the selected source
+  const { run, loading, errored } = useSourceScraping(loadingSourceId, id);
+
+  // Start scraping when a source is selected
+  useEffect(() => {
+    if (loadingSourceId) {
+      setErrorSourceId(null);
+      run().catch(() => {
+        setErrorSourceId(loadingSourceId);
+        setLoadingSourceId(null);
+      });
+    }
+  }, [loadingSourceId, run]);
+
+  // Reset loading state when scraping completes successfully
+  useEffect(() => {
+    if (!loading && loadingSourceId && !errored) {
+      setLoadingSourceId(null);
+    }
+  }, [loading, loadingSourceId, errored]);
+
+  // Handle errors
+  useEffect(() => {
+    if (errored && loadingSourceId) {
+      setErrorSourceId(loadingSourceId);
+      setLoadingSourceId(null);
+    }
+  }, [errored, loadingSourceId]);
+
   const sources = useMemo(() => {
     if (!metaType) return [];
     const allSources = getCachedMetadata()
       .filter((v) => v.type === "source")
-      .filter((v) => v.mediaTypes?.includes(metaType))
+      .filter((v) => !v.mediaTypes || v.mediaTypes.includes(metaType))
       .filter((v) => !disabledSources.includes(v.id));
 
     if (!enableSourceOrder || preferredSourceOrder.length === 0) {
-      // Even without custom source order, prioritize last successful source if enabled
       if (enableLastSuccessfulSource && lastSuccessfulSource) {
         const lastSourceIndex = allSources.findIndex(
           (s) => s.id === lastSuccessfulSource,
@@ -164,11 +155,9 @@ export function SourceSelectionView({
       return allSources;
     }
 
-    // Sort sources according to preferred order, but prioritize last successful source
     const orderedSources = [];
     const remainingSources = [...allSources];
 
-    // First, add the last successful source if it exists, is available, and the feature is enabled
     if (enableLastSuccessfulSource && lastSuccessfulSource) {
       const lastSourceIndex = remainingSources.findIndex(
         (s) => s.id === lastSuccessfulSource,
@@ -179,7 +168,6 @@ export function SourceSelectionView({
       }
     }
 
-    // Add sources in preferred order
     for (const sourceId of preferredSourceOrder) {
       const sourceIndex = remainingSources.findIndex((s) => s.id === sourceId);
       if (sourceIndex !== -1) {
@@ -188,9 +176,7 @@ export function SourceSelectionView({
       }
     }
 
-    // Add remaining sources that weren't in the preferred order
     orderedSources.push(...remainingSources);
-
     return orderedSources;
   }, [
     metaType,
@@ -200,6 +186,12 @@ export function SourceSelectionView({
     lastSuccessfulSource,
     enableLastSuccessfulSource,
   ]);
+
+  const handleSourceClick = (sourceId: string) => {
+    onChoose?.(sourceId);
+    setLoadingSourceId(sourceId);
+    setErrorSourceId(null);
+  };
 
   return (
     <>
@@ -213,25 +205,48 @@ export function SourceSelectionView({
             }}
             className="-mr-2 -my-1 px-2 p-[0.4em] rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
           >
-            {t("player.menus.sources.editOrder")}
+            {/* {t("player.menus.sources.editOrder")} */}
           </button>
         }
       >
         {t("player.menus.sources.title")}
       </Menu.BackLink>
       <Menu.Section className="pt-1.5">
-        {sources.map((v) => (
-          <SelectableLink
-            key={v.id}
-            onClick={() => {
-              onChoose?.(v.id);
-              router.navigate("/source/embeds");
-            }}
-            selected={v.id === currentSourceId}
-          >
-            {providerNames[v.id] ?? v.name}
-          </SelectableLink>
-        ))}
+        {sources.length === 0 ? (
+          <Menu.TextDisplay title="No providers available">
+            <div className="flex flex-col gap-2">
+              <p>No streaming providers are currently available.</p>
+              <p className="text-sm opacity-75">This may be due to:</p>
+              <ul className="text-sm opacity-75 list-disc list-inside">
+                <li>All providers are disabled in settings</li>
+                <li>API configuration is missing or incorrect</li>
+                <li>Cached provider data is outdated</li>
+              </ul>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("__MW::preferences");
+                  window.location.reload();
+                }}
+                className="mt-2 px-3 py-1.5 rounded bg-video-context-light bg-opacity-10 hover:bg-opacity-20 text-sm"
+              >
+                Clear cache and reload
+              </button>
+            </div>
+          </Menu.TextDisplay>
+        ) : (
+          sources.map((v) => (
+            <SelectableLink
+              key={v.id}
+              onClick={() => handleSourceClick(v.id)}
+              selected={v.id === currentSourceId}
+              loading={loadingSourceId === v.id}
+              error={errorSourceId === v.id}
+            >
+              {providerNames[v.id] ?? v.name}
+            </SelectableLink>
+          ))
+        )}
       </Menu.Section>
     </>
   );

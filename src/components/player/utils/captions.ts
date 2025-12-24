@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { convert, detect, parse } from "subsrt-ts";
 import { ContentCaption } from "subsrt-ts/dist/types/handler";
 
-import type { VidNinjaStream } from "@/backend/api/types";
+import type { SubtitleTrack } from "@/backend/api/types";
 import { CaptionListItem } from "@/stores/player/slices/source";
 
 export type CaptionCueType = ContentCaption;
@@ -94,20 +94,26 @@ export function convertSubtitlesToObjectUrl(text: string): string {
   );
 }
 
+/**
+ * Converts the new SubtitleTrack format to CaptionListItem
+ * New format has: id, language, languageName, url, format, source, hearingImpaired
+ */
 export function convertProviderCaption(
-  captions: VidNinjaStream["captions"],
+  subtitles: SubtitleTrack[] | undefined,
 ): CaptionListItem[] {
-  return captions.map((v) => ({
+  if (!subtitles) return [];
+
+  return subtitles.map((v) => ({
     id: v.id,
     language: v.language,
     url: v.url,
-    type: v.type,
-    needsProxy: false, // VidNinja API handles proxying
+    type: v.format === "srt" ? "srt" : "vtt",
+    needsProxy: false,
     opensubtitles: undefined,
-    display: undefined,
+    display: v.languageName,
     media: undefined,
-    isHearingImpaired: undefined,
-    source: undefined,
+    isHearingImpaired: v.hearingImpaired,
+    source: v.source,
     encoding: undefined,
   }));
 }

@@ -1,10 +1,12 @@
-import { getCachedMetadata } from "@/backend/api/metadata";
-import type { FebboxSource, VidNinjaSource } from "@/backend/api/types";
+import {
+  NormalizedCacheProvider,
+  getCachedMetadata,
+} from "@/backend/api/metadata";
 
 export function getAllProviders() {
   return {
-    listSources: (): (VidNinjaSource | FebboxSource)[] => getCachedMetadata(),
-    listEmbeds: (): VidNinjaSource[] => [],
+    listSources: (): NormalizedCacheProvider[] => getCachedMetadata(),
+    listEmbeds: (): NormalizedCacheProvider[] => [],
   };
 }
 

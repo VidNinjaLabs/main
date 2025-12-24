@@ -85,7 +85,6 @@ export interface SourceSlice {
   currentQuality: SourceQuality | null;
   currentAudioTrack: AudioTrack | null;
   captionList: CaptionListItem[];
-  isLoadingExternalSubtitles: boolean;
   caption: {
     selected: Caption | null;
     asTrack: boolean;
@@ -110,7 +109,6 @@ export interface SourceSlice {
   enableAutomaticQuality(): void;
   redisplaySource(startAt: number): void;
   setCaptionAsTrack(asTrack: boolean): void;
-  addExternalSubtitles(): Promise<void>;
 }
 
 export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
@@ -145,7 +143,6 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
   qualities: [],
   audioTracks: [],
   captionList: [],
-  isLoadingExternalSubtitles: false,
   currentQuality: null,
   currentAudioTrack: null,
   status: playerStatus.IDLE,
@@ -225,12 +222,6 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
     });
     const store = get();
     store.redisplaySource(startAt);
-
-    // Trigger external subtitle scraping after stream is loaded
-    // This runs asynchronously so it doesn't block the stream loading
-    setTimeout(() => {
-      store.addExternalSubtitles();
-    }, 100);
   },
   redisplaySource(startAt: number) {
     const store = get();
@@ -307,37 +298,5 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
     set((s) => {
       s.caption.asTrack = asTrack;
     });
-  },
-  async addExternalSubtitles() {
-    const store = get();
-    if (!store.meta) return;
-
-    set((s) => {
-      s.isLoadingExternalSubtitles = true;
-    });
-
-    try {
-      const { scrapeExternalSubtitles } =
-        await import("@/utils/externalSubtitles");
-      const externalCaptions = await scrapeExternalSubtitles(store.meta);
-
-      if (externalCaptions.length > 0) {
-        set((s) => {
-          // Add external captions to the existing list, avoiding duplicates
-          const existingIds = new Set(s.captionList.map((c) => c.id));
-          const newCaptions = externalCaptions.filter(
-            (c) => !existingIds.has(c.id),
-          );
-          s.captionList = [...s.captionList, ...newCaptions];
-        });
-        console.log(`Added ${externalCaptions.length} external captions`);
-      }
-    } catch (error) {
-      console.error("Failed to scrape external subtitles:", error);
-    } finally {
-      set((s) => {
-        s.isLoadingExternalSubtitles = false;
-      });
-    }
   },
 });

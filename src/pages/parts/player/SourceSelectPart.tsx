@@ -131,7 +131,8 @@ export function SourceSelectPart(props: { media: ScrapeMedia }) {
     if (!metaType) return [];
     const allSources = getCachedMetadata()
       .filter((v) => v.type === "source")
-      .filter((v) => v.mediaTypes?.includes(metaType));
+      // If mediaTypes is not defined, assume the source supports all types
+      .filter((v) => !v.mediaTypes || v.mediaTypes.includes(metaType));
 
     if (!enableSourceOrder || preferredSourceOrder.length === 0) {
       // Even without custom source order, prioritize last successful source if enabled

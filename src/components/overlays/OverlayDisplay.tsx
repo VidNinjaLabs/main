@@ -131,7 +131,11 @@ export function OverlayPortal(props: {
     <div ref={ref}>
       {portalElement
         ? createPortal(
-            <Transition show={props.show} animation="none">
+            <Transition
+              show={props.show}
+              animation="fade"
+              durationClass="duration-150"
+            >
               <FocusTrap
                 active={isReady && !!props.show}
                 focusTrapOptions={{
@@ -159,10 +163,10 @@ export function OverlayPortal(props: {
                     />
                   </Transition>
                   <Transition
-                    animation="none"
+                    animation="fade"
                     className="absolute inset-0 pointer-events-none"
                     isChild
-                    durationClass="duration-0"
+                    durationClass="duration-150"
                   >
                     {/* a tabable index that does nothing - used so focus trap doesn't error when nothing is rendered yet */}
                     <div

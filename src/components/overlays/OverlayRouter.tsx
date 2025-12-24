@@ -56,7 +56,7 @@ function RouterBase(props: { id: string; children: ReactNode }) {
       }}
       className={classNames(
         "overflow-hidden relative z-10 max-h-full w-full",
-        shouldAnimate && "transition-all duration-300 ease-out",
+        "transition-all duration-200 ease-out", // Always animate
       )}
     >
       <Flare.Base className="group w-full bg-video-context-border bg-opacity-30 backdrop-blur-md h-full rounded-xl text-video-context-type-main">

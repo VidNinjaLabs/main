@@ -94,8 +94,8 @@ export function Link(props: {
   disabled?: boolean;
 }) {
   const classes = classNames(
-    "flex items-center px-2 rounded-lg", // items-center for vertical alignment
-    props.box ? "bg-video-context-light/10 h-20" : "h-10", // 40px per item
+    "flex items-center px-3 rounded-lg transition-colors duration-150", // Smooth hover transition
+    props.box ? "bg-video-context-light/10 h-20" : "h-11", // Slightly taller (44px)
     {
       "cursor-default": !props.clickable,
       "hover:bg-video-context-light hover:bg-opacity-20 cursor-pointer tabbable":

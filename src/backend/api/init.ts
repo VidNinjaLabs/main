@@ -1,26 +1,30 @@
 /* eslint-disable no-console */
 import { febboxClient } from "@/backend/api/febbox";
-import { vidNinjaClient } from "@/backend/api/vidninja";
+import { backendClient } from "@/backend/api/vidninja";
 import { conf } from "@/setup/config";
 
+/**
+ * Initialize the backend client with the configured URL.
+ * Uses VITE_VIDNINJA_API_URL as the backend base URL.
+ */
 export function initializeVidNinja() {
-  const vidninjaUrl = import.meta.env.VITE_VIDNINJA_API_URL;
-  const vidninjaApiKey = import.meta.env.VITE_VIDNINJA_API_KEY;
+  const backendUrl = import.meta.env.VITE_VIDNINJA_API_URL;
 
-  if (!vidninjaUrl) {
+  if (!backendUrl) {
+    console.warn("Backend URL not configured (VITE_VIDNINJA_API_URL)");
     return;
   }
 
-  if (!vidninjaApiKey) {
-    return;
-  }
-
-  vidNinjaClient.configure({
-    url: vidninjaUrl,
-    apiKey: vidninjaApiKey,
+  backendClient.configure({
+    baseUrl: backendUrl,
   });
+
+  console.log("Backend client initialized with URL:", backendUrl);
 }
 
+/**
+ * Initialize Febbox client (secondary provider)
+ */
 export function initializeFebbox() {
   const config = conf();
 

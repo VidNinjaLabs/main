@@ -3,11 +3,14 @@ import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { febboxClient } from "@/backend/api/febbox";
 import type {
   FebboxSource,
-  VidNinjaSource,
-  VidNinjaStreamResponse,
+  Provider,
+  StreamResponse,
 } from "@/backend/api/types";
-import { vidNinjaClient } from "@/backend/api/vidninja";
+import { backendClient } from "@/backend/api/vidninja";
 import { usePreferencesStore } from "@/stores/preferences";
+import analytics from "@/utils/analytics";
+import { selectBestServer } from "@/utils/serverValidator";
+import { TIMEOUTS, withTimeout } from "@/utils/timeout";
 
 export interface ScrapingItems {
   id: string;
@@ -43,25 +46,114 @@ export interface ScrapeMedia {
   };
 }
 
+// Output format for successful scrape
 export interface RunOutput {
   sourceId: string;
-  stream: VidNinjaStreamResponse["stream"][0];
+  provider: string;
+  streamType: "hls" | "file"; // Stream type from backend
+  selectedServer: string; // Selected server name
+  url: string; // Selected server URL
+  servers: Record<string, string>; // All available servers for failover
+  subtitles: StreamResponse["subtitles"];
+  headers?: Record<string, string>;
 }
 
-async function getAvailableSources(
-  media: ScrapeMedia,
-): Promise<(VidNinjaSource | FebboxSource)[]> {
-  // Don't cache sources - we need to check Febbox token dynamically
-  // Fetch VidNinja sources with media-specific parameters
-  const vidNinjaSources = await vidNinjaClient.getSources({
-    tmdbId: media.tmdbId,
-    type: media.type === "show" ? "tv" : "movie",
-    season: media.season?.number,
-    episode: media.episode?.number,
-  });
-  const febboxSources = febboxClient.getSources();
+// Normalized provider interface for internal use
+interface NormalizedProvider {
+  id: string;
+  name: string;
+  rank: number;
+  type: "source" | "embed";
+  isFebbox: boolean;
+}
 
-  return [...vidNinjaSources, ...febboxSources];
+/**
+ * Normalizes providers from different sources to a common format
+ */
+function normalizeProvider(
+  provider: Provider | FebboxSource,
+): NormalizedProvider {
+  // Check if it's a FebboxSource (has 'id' property)
+  if ("id" in provider && provider.id === "febbox") {
+    return {
+      id: provider.id,
+      name: provider.name,
+      rank: provider.rank,
+      type: provider.type,
+      isFebbox: true,
+    };
+  }
+
+  // It's a backend Provider (uses 'codename')
+  const p = provider as Provider;
+  return {
+    id: p.codename,
+    name: p.codename, // Use codename as display name
+    rank: p.rank,
+    type: p.type,
+    isFebbox: false,
+  };
+}
+
+/**
+ * Fetches available providers from the backend API
+ * Cached to prevent duplicate requests
+ */
+let cachedProviders: NormalizedProvider[] | null = null;
+let providerFetchPromise: Promise<NormalizedProvider[]> | null = null;
+
+async function getAvailableProviders(): Promise<NormalizedProvider[]> {
+  // Return cached providers if available
+  if (cachedProviders) {
+    return cachedProviders;
+  }
+
+  // Return existing promise if already fetching (deduplication)
+  if (providerFetchPromise) {
+    return providerFetchPromise;
+  }
+
+  providerFetchPromise = (async () => {
+    try {
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] Fetching providers from backend...");
+      const response = await backendClient.getProviders();
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] Backend response:", response);
+
+      // Backend returns {sources: [...], embeds: [...]}
+      const backendProviders = response.sources || [];
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] Backend providers:", backendProviders);
+
+      const febboxSources = febboxClient.getSources();
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] Febbox sources:", febboxSources);
+
+      // Normalize all providers
+      const allProviders = [
+        ...backendProviders.map(normalizeProvider),
+        ...febboxSources.map(normalizeProvider),
+      ];
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] All normalized providers:", allProviders);
+
+      // Cache the result
+      cachedProviders = allProviders;
+      return allProviders;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[DEBUG] Failed to fetch providers:", error);
+      // Return febbox as fallback if backend fails
+      const fallback = febboxClient.getSources().map(normalizeProvider);
+      cachedProviders = fallback;
+      return fallback;
+    } finally {
+      providerFetchPromise = null;
+    }
+  })();
+
+  return providerFetchPromise;
 }
 
 function useBaseScrape() {
@@ -70,30 +162,24 @@ function useBaseScrape() {
   const [currentSource, setCurrentSource] = useState<string>();
 
   const initSources = useCallback(
-    async (sourceIds: string[], media: ScrapeMedia) => {
-      const availableSources = await getAvailableSources(media);
-
-      const initialSources = sourceIds
-        .map((id) => {
-          const source = availableSources.find((s) => s.id === id);
-          if (!source) return null;
-
+    async (providerList: NormalizedProvider[]) => {
+      const initialSources = providerList
+        .map((provider) => {
           const out: ScrapingSegment = {
-            name: source.name,
-            id: source.id,
+            name: provider.name,
+            id: provider.id,
             status: "waiting",
             percentage: 0,
           };
           return out;
         })
-        .filter((s): s is ScrapingSegment => s !== null)
         .reduce<Record<string, ScrapingSegment>>((a, v) => {
           a[v.id] = v;
           return a;
         }, {});
 
       setSources(initialSources);
-      setSourceOrder(sourceIds.map((v) => ({ id: v, children: [] })));
+      setSourceOrder(providerList.map((v) => ({ id: v.id, children: [] })));
     },
     [],
   );
@@ -155,47 +241,55 @@ export function useScrape() {
 
   const startScraping = useCallback(
     async (media: ScrapeMedia): Promise<RunOutput | null> => {
-      // Get all available sources
-      const availableSources = await getAvailableSources(media);
-      let sourceIds = availableSources.map((s) => s.id);
+      // Get all available providers (already normalized) - with timeout
+      const availableProviders = await withTimeout(
+        getAvailableProviders(),
+        TIMEOUTS.PROVIDER_LIST,
+        "Failed to fetch provider list",
+      );
+      let providerIds = availableProviders.map((p) => p.id);
 
       // Apply user preferences for source order
       if (enableSourceOrder && preferredSourceOrder.length > 0) {
         const customOrder = preferredSourceOrder.filter(
-          (id) => !disabledSources.includes(id) && sourceIds.includes(id),
+          (id) => !disabledSources.includes(id) && providerIds.includes(id),
         );
-        const remainingSources = sourceIds.filter(
+        const remainingProviders = providerIds.filter(
           (id) => !customOrder.includes(id) && !disabledSources.includes(id),
         );
-        sourceIds = [...customOrder, ...remainingSources];
+        providerIds = [...customOrder, ...remainingProviders];
       } else {
-        sourceIds = sourceIds.filter((id) => !disabledSources.includes(id));
+        providerIds = providerIds.filter((id) => !disabledSources.includes(id));
       }
 
       // Prioritize last successful source if enabled
       if (enableLastSuccessfulSource && lastSuccessfulSource) {
         if (
           !disabledSources.includes(lastSuccessfulSource) &&
-          sourceIds.includes(lastSuccessfulSource)
+          providerIds.includes(lastSuccessfulSource)
         ) {
-          sourceIds = [
+          providerIds = [
             lastSuccessfulSource,
-            ...sourceIds.filter((id) => id !== lastSuccessfulSource),
+            ...providerIds.filter((id) => id !== lastSuccessfulSource),
           ];
         }
       }
 
-      // Initialize UI
-      await initSources(sourceIds, media);
+      // Filter available providers based on ordered IDs
+      const orderedProviders = providerIds
+        .map((id) => availableProviders.find((p) => p.id === id))
+        .filter((p): p is NormalizedProvider => p !== undefined);
 
-      // Try each source in order
-      for (const sourceId of sourceIds) {
-        setCurrentSourceId(sourceId);
-        updateSourceStatus(sourceId, "pending", 50);
+      // Initialize UI
+      await initSources(orderedProviders);
+
+      // Try each provider in order
+      for (const provider of orderedProviders) {
+        setCurrentSourceId(provider.id);
+        updateSourceStatus(provider.id, "pending", 50);
 
         try {
-          // Route to correct client based on source ID
-          if (sourceId === "febbox") {
+          if (provider.isFebbox) {
             // Use Febbox client
             const febboxStream = await febboxClient.getStream({
               tmdbId: media.tmdbId,
@@ -206,39 +300,141 @@ export function useScrape() {
             });
 
             if (febboxStream) {
-              updateSourceStatus(sourceId, "success", 100);
-              return {
-                sourceId,
-                stream: febboxStream as any, // Cast to VidNinja stream type for compatibility
-              };
-            }
-            updateSourceStatus(sourceId, "notfound", 100, "No streams found");
-          } else {
-            // Use VidNinja client
-            const response = await vidNinjaClient.getStream({
-              sourceId,
-              tmdbId: media.tmdbId,
-              type: media.type === "show" ? "tv" : "movie",
-              season: media.season?.number,
-              episode: media.episode?.number,
-            });
+              updateSourceStatus(provider.id, "success", 100);
+              const servers = { Primary: febboxStream.playlist };
 
-            if (response.stream && response.stream.length > 0) {
-              updateSourceStatus(sourceId, "success", 100);
+              // Track successful scrape
+              analytics.track("scrape_complete", {
+                provider: "Febbox",
+                success: true,
+                duration_ms: 0,
+                servers_found: 1,
+              });
+
               return {
-                sourceId,
-                stream: response.stream[0],
+                sourceId: provider.id,
+                provider: "Febbox",
+                streamType: "hls" as const,
+                selectedServer: "Primary",
+                url: febboxStream.playlist,
+                servers,
+                subtitles: [],
               };
             }
-            updateSourceStatus(sourceId, "notfound", 100, "No streams found");
+            updateSourceStatus(
+              provider.id,
+              "notfound",
+              100,
+              "No streams found",
+            );
+          } else {
+            // Use backend client with actual API
+            // Wrap with timeout to prevent hanging on unresponsive providers
+            let response: StreamResponse;
+
+            try {
+              if (media.type === "movie") {
+                response = await withTimeout(
+                  backendClient.scrapeMovie(media.tmdbId, provider.id),
+                  TIMEOUTS.PROVIDER_SCRAPE,
+                  `Provider ${provider.name} timed out`,
+                );
+              } else {
+                // TV show
+                const season = media.season?.number ?? 1;
+                const episode = media.episode?.number ?? 1;
+                response = await withTimeout(
+                  backendClient.scrapeShow(
+                    media.tmdbId,
+                    season,
+                    episode,
+                    provider.id,
+                  ),
+                  TIMEOUTS.PROVIDER_SCRAPE,
+                  `Provider ${provider.name} timed out`,
+                );
+              }
+            } catch (timeoutError: any) {
+              // Timeout or other error - mark as failed and continue to next
+              updateSourceStatus(
+                provider.id,
+                "failure",
+                100,
+                timeoutError.message || "Provider failed",
+              );
+              analytics.track("stream_failure", {
+                provider: provider.name,
+                server: "unknown",
+                error: timeoutError.message || "Timeout",
+              });
+              continue; // Skip to next provider
+            }
+
+            // Check if we got valid servers
+            if (response.servers && Object.keys(response.servers).length > 0) {
+              // Auto-select best server
+              const bestServer = await selectBestServer(response.servers);
+
+              if (!bestServer) {
+                analytics.track("stream_failure", {
+                  provider: provider.name,
+                  server: "all",
+                  error: "All servers failed validation",
+                });
+                updateSourceStatus(
+                  provider.id,
+                  "notfound",
+                  100,
+                  "No valid servers",
+                );
+                continue; // Try next provider
+              }
+
+              // Track successful scrape
+              analytics.track("scrape_complete", {
+                provider: provider.name,
+                success: true,
+                duration_ms: 0,
+                servers_found: Object.keys(response.servers).length,
+              });
+
+              updateSourceStatus(provider.id, "success", 100);
+              return {
+                sourceId: provider.id,
+                provider: provider.name,
+                streamType: response.type,
+                selectedServer: bestServer.server,
+                url: bestServer.url,
+                servers: response.servers,
+                subtitles: response.subtitles,
+                headers: response.headers,
+              };
+            }
+            updateSourceStatus(
+              provider.id,
+              "notfound",
+              100,
+              "No streams found",
+            );
           }
         } catch (error: any) {
-          const isNotFound = error.message?.includes("Couldn't find a stream");
+          // Check for "not found" indicators in error
+          const errorString = error.toString().toLowerCase();
+          const errorMessage = (error.message || "").toLowerCase();
+
+          const isNotFound =
+            errorString.includes("couldn't find a stream") ||
+            errorString.includes("no streams found") ||
+            errorMessage.includes("couldn't find a stream") ||
+            errorMessage.includes("no streams found") ||
+            errorMessage.includes("404") ||
+            errorMessage.includes("500");
+
           updateSourceStatus(
-            sourceId,
+            provider.id,
             isNotFound ? "notfound" : "failure",
             100,
-            error.message,
+            error.message || error.toString(),
             error,
           );
         }
