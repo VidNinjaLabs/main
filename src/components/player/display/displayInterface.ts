@@ -51,6 +51,7 @@ export type DisplayInterfaceEvents = {
   canairplay: boolean;
   playbackrate: number;
   error: DisplayError;
+  tryNextSource: { reason: string }; // Emitted when HLS fails and should try next provider
 };
 
 export interface qualityChangeOptions {

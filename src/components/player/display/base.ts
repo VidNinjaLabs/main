@@ -268,11 +268,33 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                // Try to recover by reloading the manifest (gets fresh signed URLs)
+                // Check if this is a 403/404 error - don't try to recover, skip to next source
+                const errorStatus = (data as any).response?.code || 0;
+                if (errorStatus === 403 || errorStatus === 404) {
+                  console.warn(
+                    `[VidPly] Fatal ${errorStatus} error, skipping to next source...`,
+                  );
+                  emit("tryNextSource", {
+                    reason: `Stream returned ${errorStatus}`,
+                  });
+                  return;
+                }
+                // For other network errors, try to recover
                 console.warn(
                   "[VidPly] Attempting recovery from network error...",
                 );
                 hls?.startLoad();
+                // Set a timeout - if still failing after 5s, skip to next source
+                setTimeout(() => {
+                  if (hls && !videoElement?.paused && videoElement?.readyState === 0) {
+                    console.warn(
+                      "[VidPly] Recovery failed, skipping to next source...",
+                    );
+                    emit("tryNextSource", {
+                      reason: "Network recovery failed",
+                    });
+                  }
+                }, 5000);
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.warn(
@@ -281,7 +303,10 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 hls?.recoverMediaError();
                 break;
               default:
-                // Cannot recover, emit error
+                // Cannot recover, emit error and try next source
+                emit("tryNextSource", {
+                  reason: data.error?.message || "HLS Error",
+                });
                 if (
                   src?.url === data.frag?.baseurl &&
                   !exceptions.includes(data.error?.message || "")
@@ -297,7 +322,13 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 break;
             }
           } else if (data.details === "manifestLoadError") {
-            // Handle manifest load errors specifically
+            // Handle manifest load errors specifically - skip to next source
+            console.warn(
+              "[VidPly] Manifest load failed, skipping to next source...",
+            );
+            emit("tryNextSource", {
+              reason: "Failed to load HLS manifest",
+            });
             emit("error", {
               message: "Failed to load HLS manifest",
               stackTrace: data.error?.stack || "",

@@ -7,6 +7,7 @@ import type {
   StreamResponse,
 } from "@/backend/api/types";
 import { backendClient } from "@/backend/api/vidninja";
+import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import analytics from "@/utils/analytics";
 import { selectBestServer } from "@/utils/serverValidator";
@@ -239,6 +240,9 @@ export function useScrape() {
   );
   const disabledSources = usePreferencesStore((s) => s.disabledSources);
 
+  // Get failed providers from player store (providers that had HLS playback errors)
+  const failedProviders = usePlayerStore((s) => s.failedProviders);
+
   const startScraping = useCallback(
     async (media: ScrapeMedia): Promise<RunOutput | null> => {
       // Get all available providers (already normalized) - with timeout
@@ -273,6 +277,13 @@ export function useScrape() {
             ...providerIds.filter((id) => id !== lastSuccessfulSource),
           ];
         }
+      }
+
+      // Filter out providers that have already failed (HLS playback errors)
+      if (failedProviders.length > 0) {
+        // eslint-disable-next-line no-console
+        console.log(`[Scrape] Skipping failed providers:`, failedProviders);
+        providerIds = providerIds.filter((id) => !failedProviders.includes(id));
       }
 
       // Filter available providers based on ordered IDs
@@ -451,6 +462,7 @@ export function useScrape() {
       lastSuccessfulSource,
       enableLastSuccessfulSource,
       disabledSources,
+      failedProviders,
     ],
   );
 

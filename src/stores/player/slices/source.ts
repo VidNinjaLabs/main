@@ -1,6 +1,4 @@
 /* eslint-disable no-console */
-import { convertProviderCaption } from "@/components/player/utils/captions";
-import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
 import { ScrapeMedia } from "@/hooks/useProviderScrape";
 import { MakeSlice } from "@/stores/player/slices/types";
 import {
@@ -93,6 +91,10 @@ export interface SourceSlice {
   // Multi-stream support
   availableStreams: any[]; // Array of VidNinjaStream
   currentStreamIndex: number;
+  // Failed providers (HLS playback errors)
+  failedProviders: string[];
+  addFailedProvider(providerId: string): void;
+  clearFailedProviders(): void;
   setStatus(status: PlayerStatus): void;
   setSource(
     stream: SourceSliceSource,
@@ -153,6 +155,19 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
   },
   availableStreams: [],
   currentStreamIndex: 0,
+  failedProviders: [],
+  addFailedProvider(providerId: string) {
+    set((s) => {
+      if (!s.failedProviders.includes(providerId)) {
+        s.failedProviders = [...s.failedProviders, providerId];
+      }
+    });
+  },
+  clearFailedProviders() {
+    set((s) => {
+      s.failedProviders = [];
+    });
+  },
   setSourceId(id) {
     set((s) => {
       s.status = playerStatus.PLAYING;
@@ -265,30 +280,17 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
     }
   },
   switchStream(index) {
+    // TODO: Multi-stream switching not implemented with new RunOutput format
+    // This would require re-fetching the stream from a different server
     const store = get();
     const stream = store.availableStreams[index];
     if (!stream) return;
 
-    const source = convertRunoutputToSource({ stream });
-    const captions = convertProviderCaption(stream.captions);
-
-    let qualities: string[] = [];
-    if (source.type === "file") qualities = Object.keys(source.qualities);
-    const qualityPreferences = useQualityStore.getState();
-    const loadableStream = selectQuality(source, qualityPreferences.quality);
-
-    set((s) => {
-      s.source = source;
-      s.qualities = qualities as SourceQuality[];
-      s.currentQuality = loadableStream.quality;
-      s.captionList = captions;
-      s.interface.error = undefined;
-      s.status = playerStatus.PLAYING;
-      s.currentStreamIndex = index;
-      s.currentAudioTrack = s.audioTracks[index] || null;
-    });
-
-    get().redisplaySource(store.progress.time);
+    // For now, just log and do nothing - multi-stream selection not supported
+    // eslint-disable-next-line no-console
+    console.log(
+      `[Player] switchStream called for index ${index}, but not implemented`,
+    );
   },
   enableAutomaticQuality() {
     const store = get();

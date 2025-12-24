@@ -106,6 +106,25 @@ export const createDisplaySlice: MakeSlice<DisplaySlice> = (set, get) => ({
         s.interface.error = err;
       });
     });
+    newDisplay.on("tryNextSource", ({ reason }) => {
+      // eslint-disable-next-line no-console
+      console.log(`[Player] tryNextSource triggered: ${reason}`);
+
+      // Get the current sourceId and add it to failed providers
+      const currentSourceId = get().sourceId;
+      if (currentSourceId) {
+        // eslint-disable-next-line no-console
+        console.log(`[Player] Adding ${currentSourceId} to failed providers`);
+        get().addFailedProvider(currentSourceId);
+      }
+
+      // Set status to SCRAPING which will trigger the UI to try next provider
+      set((s) => {
+        s.status = playerStatus.SCRAPING;
+        // Clear the current source so ScrapingPart can re-run
+        s.source = null;
+      });
+    });
 
     set((s) => {
       s.display = newDisplay;
