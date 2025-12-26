@@ -32,9 +32,11 @@ import { Discover } from "@/pages/discover/Discover";
 import { MoreContent } from "@/pages/discover/MoreContent";
 import MaintenancePage from "@/pages/errors/MaintenancePage";
 import { NotFoundPage } from "@/pages/errors/NotFoundPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPassword";
 import { JipPage } from "@/pages/Jip";
 import { LegalPage, shouldHaveLegalPage } from "@/pages/Legal";
 import { LoginPage } from "@/pages/Login";
+import { ResetPasswordPage } from "@/pages/ResetPassword";
 import { SignupPage } from "@/pages/Signup";
 import {
   StandaloneMoviePlayer,
@@ -191,6 +193,8 @@ function App() {
             />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/about" element={<AboutPage />} />
 
             {shouldHaveLegalPage() ? (

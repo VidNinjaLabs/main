@@ -3,45 +3,24 @@ import { useEffect, useState } from "react";
 interface Config {
   turnstileSiteKey: string;
   enablePremium: boolean;
-  backendUrl: string;
-  appDomain: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
 }
 
 let cachedConfig: Config | null = null;
-let configPromise: Promise<Config> | null = null;
 
-async function fetchConfig(): Promise<Config> {
-  if (cachedConfig) {
-    return cachedConfig;
-  }
-
-  if (configPromise) {
-    return configPromise;
-  }
-
-  const apiUrl = "/api/config";
-
-  configPromise = fetch(apiUrl)
-    .then((res) => res.json())
-    .then((data) => {
-      cachedConfig = data;
-      return data;
-    })
-    .catch((error) => {
-      // Return defaults on error
-      const defaults: Config = {
-        turnstileSiteKey: "",
-        enablePremium: false,
-        backendUrl: "",
-        appDomain: "",
-      };
-      return defaults;
-    })
-    .finally(() => {
-      configPromise = null;
-    });
-
-  return configPromise;
+function getEnvConfig(): Config {
+  return {
+    turnstileSiteKey:
+      import.meta.env.VITE_TURNSTILE_SITE_KEY ||
+      import.meta.env.TURNSTILE_SITE_KEY ||
+      "",
+    enablePremium:
+      import.meta.env.VITE_ENABLE_PREMIUM === "true" ||
+      import.meta.env.ENABLE_PREMIUM === "true",
+    supabaseUrl: import.meta.env.VITE_SUPABASE_URL || "",
+    supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+  };
 }
 
 export function useConfig() {
@@ -50,10 +29,9 @@ export function useConfig() {
 
   useEffect(() => {
     if (!cachedConfig) {
-      fetchConfig().then((data) => {
-        setConfig(data);
-        setLoading(false);
-      });
+      cachedConfig = getEnvConfig();
+      setConfig(cachedConfig);
+      setLoading(false);
     }
   }, []);
 
@@ -62,10 +40,16 @@ export function useConfig() {
 
 // Synchronous getter (use only after config is loaded)
 export function getConfig(): Config | null {
+  if (!cachedConfig) {
+    cachedConfig = getEnvConfig();
+  }
   return cachedConfig;
 }
 
 // Initialize config on app load
 export async function initConfig(): Promise<Config> {
-  return fetchConfig();
+  if (!cachedConfig) {
+    cachedConfig = getEnvConfig();
+  }
+  return Promise.resolve(cachedConfig);
 }

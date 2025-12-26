@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-prop-types */
 /* eslint-disable import/no-extraneous-dependencies */
 import { FormEvent, useState } from "react";
 import { Trans } from "react-i18next";
@@ -24,6 +25,7 @@ export function SignupFormPart(props: SignupFormPartProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const { signup } = useAuthContext();
@@ -34,6 +36,7 @@ export function SignupFormPart(props: SignupFormPartProps) {
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     setError("");
+    setSuccess(false);
     setLoading(true);
 
     try {
@@ -55,22 +58,40 @@ export function SignupFormPart(props: SignupFormPartProps) {
         throw new Error("Please complete the security check");
       }
 
-      // Call signup API
-      await signup(
-        email,
-        password,
-        confirmPassword,
-        turnstileToken || undefined,
-      );
+      // Call Supabase signup
+      await signup(email, password);
 
-      // Success - call onSignup callback
-      props.onSignup?.();
+      // Success - show verification message
+      setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <LargeCard top={<BrandPill backgroundClass="bg-[#161527]" />}>
+        <LargeCardText title="Check your email">
+          <div className="space-y-4">
+            <p>
+              We&apos;ve sent a verification link to <strong>{email}</strong>
+            </p>
+            <p className="text-gray-400 text-sm">
+              Click the link in the email to verify your account and complete
+              signup.
+            </p>
+          </div>
+        </LargeCardText>
+        <LargeCardButtons>
+          <MwLink to="/login">
+            <Button theme="purple">Go to Login</Button>
+          </MwLink>
+        </LargeCardButtons>
+      </LargeCard>
+    );
+  }
 
   return (
     <LargeCard top={<BrandPill backgroundClass="bg-[#161527]" />}>
@@ -84,7 +105,7 @@ export function SignupFormPart(props: SignupFormPartProps) {
           autoComplete="email"
           name="email"
           onChange={setEmail}
-          placeholder="your@email.com"
+          placeholder="you@example.com"
         />
         <AuthInputBox
           label="Password"
@@ -102,8 +123,10 @@ export function SignupFormPart(props: SignupFormPartProps) {
           passwordToggleable
           autoComplete="new-password"
         />
-        {turnstileSiteKey && import.meta.env.PROD && (
-          <div className="flex justify-center">
+
+        {/* Cloudflare Turnstile - Only in production */}
+        {import.meta.env.PROD && turnstileSiteKey && (
+          <div className="flex justify-center py-2">
             <Turnstile
               sitekey={turnstileSiteKey}
               onVerify={(token) => setTurnstileToken(token)}
@@ -112,7 +135,12 @@ export function SignupFormPart(props: SignupFormPartProps) {
             />
           </div>
         )}
-        {error && <p className="text-authentication-errorText">{error}</p>}
+
+        {error && (
+          <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
       </form>
 
       <LargeCardButtons>

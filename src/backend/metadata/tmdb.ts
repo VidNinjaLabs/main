@@ -154,8 +154,8 @@ export function decodeTMDBId(
   };
 }
 
-const tmdbBaseUrl1 = "https://tmdb-proxy.swasthikshetty101.workers.dev";
-const tmdbBaseUrl2 = "https://api.themoviedb.org/3";
+const tmdbBaseUrl1 = "https://tmdb-proxy.rev9dev.workers.dev";
+// const tmdbBaseUrl2 = "https://api.themoviedb.org/3"; // Disabled: Direct TMDB doesn't work
 
 const apiKey = conf().TMDB_READ_API_KEY;
 
@@ -249,21 +249,13 @@ export async function get<T>(url: string, params?: object): Promise<T> {
   }
 
   if (!result!) {
-    try {
-      result = await mwFetch<T>(encodeURI(url), {
-        headers: tmdbHeaders,
-        baseURL: tmdbBaseUrl1,
-        params: allParams,
-        signal: abortOnTimeout(5000),
-      });
-    } catch (err) {
-      result = await mwFetch<T>(encodeURI(url), {
-        headers: tmdbHeaders,
-        baseURL: tmdbBaseUrl2,
-        params: allParams,
-        signal: abortOnTimeout(30000),
-      });
-    }
+    // Only use proxy - direct TMDB access doesn't work
+    result = await mwFetch<T>(encodeURI(url), {
+      headers: tmdbHeaders,
+      baseURL: tmdbBaseUrl1,
+      params: allParams,
+      signal: abortOnTimeout(10000), // Increased timeout for proxy
+    });
   }
 
   // Cache the result for 1 hour (3600 seconds)

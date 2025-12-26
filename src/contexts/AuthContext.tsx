@@ -1,4 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-no-constructed-context-values */
+import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import React, {
   ReactNode,
   createContext,
@@ -7,172 +10,160 @@ import React, {
   useState,
 } from "react";
 
+import { supabase } from "@/lib/supabase";
+
 interface User {
-  createdAt: string | number | Date;
   id: string;
   email: string;
   role: "ADMIN" | "USER";
   isPremium: boolean;
+  emailVerified: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
+  session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isPremium: boolean;
-  login: (
-    email: string,
-    password: string,
-    turnstileToken?: string,
-  ) => Promise<void>;
-  signup: (
-    email: string,
-    password: string,
-    confirmPassword?: string,
-    turnstileToken?: string,
-  ) => Promise<void>;
-  logout: () => void;
+  emailVerified: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Initialize auth state and listen for changes
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
-
-    if (storedToken && storedUser) {
-      try {
-        // Validate JWT expiry
-        const tokenParts = storedToken.split(".");
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(atob(tokenParts[1]));
-          const now = Math.floor(Date.now() / 1000);
-
-          if (payload.exp && payload.exp < now) {
-            console.log("Token expired, clearing session");
-            localStorage.removeItem("auth_token");
-            localStorage.removeItem("auth_user");
-            setLoading(false);
-            return;
-          }
-        }
-
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user:", error);
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      if (initialSession?.user) {
+        setUser(transformUser(initialSession.user));
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, changedSession) => {
+      setSession(changedSession);
+      if (changedSession?.user) {
+        setUser(transformUser(changedSession.user));
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-    turnstileToken?: string,
-  ) => {
-    const apiUrl = "/api/auth/login";
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, turnstileToken }),
-    });
-
-    if (!response.ok) {
-      // Try to get error message
-      let errorMessage = "Login failed";
-      try {
-        const error = await response.json();
-        errorMessage = error.error || errorMessage;
-      } catch {
-        // If JSON parsing fails, it's likely an HTML error page
-        errorMessage = `Server error (${response.status}). Please check Vercel logs.`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    const data = await response.json();
-
-    // Store in state
-    setToken(data.token);
-    setUser(data.user);
-
-    // Store in localStorage
-    localStorage.setItem("auth_token", data.token);
-    localStorage.setItem("auth_user", JSON.stringify(data.user));
+  // Transform Supabase user to our User interface
+  const transformUser = (supabaseUser: SupabaseUser): User => {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || "",
+      role: (supabaseUser.user_metadata?.role as "ADMIN" | "USER") || "USER",
+      isPremium: supabaseUser.user_metadata?.is_premium === true,
+      emailVerified: supabaseUser.email_confirmed_at != null,
+    };
   };
 
-  const signup = async (
-    email: string,
-    password: string,
-    confirmPassword?: string,
-    turnstileToken?: string,
-  ) => {
-    const apiUrl = "/api/auth/signup";
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        confirmPassword,
-        turnstileToken,
-      }),
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    if (!response.ok) {
-      // Try to get error message
-      let errorMessage = "Signup failed";
-      try {
-        const error = await response.json();
-        errorMessage = error.error || errorMessage;
-      } catch {
-        // If JSON parsing fails, it's likely an HTML error page
-        errorMessage = `Server error (${response.status}). Please check Vercel logs.`;
-      }
-      throw new Error(errorMessage);
+    if (error) {
+      throw new Error(error.message);
     }
 
-    const data = await response.json();
-
-    // Store in state
-    setToken(data.token);
-    setUser(data.user);
-
-    // Store in localStorage
-    localStorage.setItem("auth_token", data.token);
-    localStorage.setItem("auth_user", JSON.stringify(data.user));
+    if (data.user) {
+      setUser(transformUser(data.user));
+      setSession(data.session);
+    }
   };
 
-  const logout = () => {
+  const signup = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          role: "USER",
+          is_premium: false,
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Note: User will need to verify email before they can log in
+    // Supabase sends verification email automatically
+    if (data.user) {
+      setUser(transformUser(data.user));
+      setSession(data.session);
+    }
+  };
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw new Error(error.message);
+    }
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
+    setSession(null);
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const value: AuthContextType = {
     user,
-    token,
+    session,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!session,
     isAdmin: user?.role?.toUpperCase() === "ADMIN",
     isPremium: user?.isPremium || false,
+    emailVerified: user?.emailVerified || false,
     login,
     signup,
     logout,
+    resetPassword,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

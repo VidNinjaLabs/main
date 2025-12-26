@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable no-promise-executor-return */
 import { FormEvent, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import Turnstile from "react-turnstile";
@@ -50,8 +49,8 @@ export function LoginFormPart(props: LoginFormPartProps) {
         throw new Error("Please complete the security check");
       }
 
-      // Call login API
-      await login(email, password, turnstileToken || undefined);
+      // Call Supabase login (Turnstile verification would need backend integration)
+      await login(email, password);
 
       // Success - call onLogin callback
       props.onLogin?.();
@@ -65,7 +64,7 @@ export function LoginFormPart(props: LoginFormPartProps) {
   return (
     <LargeCard top={<BrandPill backgroundClass="bg-[#161527]" />}>
       <LargeCardText title={t("auth.login.title")}>
-        Sign in with your email and password
+        Sign in to access your account
       </LargeCardText>
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInputBox
@@ -74,7 +73,7 @@ export function LoginFormPart(props: LoginFormPartProps) {
           autoComplete="email"
           name="email"
           onChange={setEmail}
-          placeholder="admin@cloudclash.local"
+          placeholder="you@example.com"
         />
         <AuthInputBox
           label="Password"
@@ -84,8 +83,10 @@ export function LoginFormPart(props: LoginFormPartProps) {
           passwordToggleable
           autoComplete="current-password"
         />
-        {turnstileSiteKey && import.meta.env.PROD && (
-          <div className="flex justify-center">
+
+        {/* Cloudflare Turnstile - Only in production */}
+        {import.meta.env.PROD && turnstileSiteKey && (
+          <div className="flex justify-center py-2">
             <Turnstile
               sitekey={turnstileSiteKey}
               onVerify={(token) => setTurnstileToken(token)}
@@ -94,7 +95,12 @@ export function LoginFormPart(props: LoginFormPartProps) {
             />
           </div>
         )}
-        {error && <p className="text-authentication-errorText">{error}</p>}
+
+        {error && (
+          <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
       </form>
 
       <LargeCardButtons>
@@ -102,11 +108,22 @@ export function LoginFormPart(props: LoginFormPartProps) {
           {t("auth.login.submit")}
         </Button>
       </LargeCardButtons>
-      <p className="text-center mt-6">
-        <Trans i18nKey="auth.createAccount">
-          <MwLink to="/signup">.</MwLink>
-        </Trans>
-      </p>
+
+      <div className="space-y-3 mt-6">
+        <p className="text-center">
+          <Trans i18nKey="auth.createAccount">
+            <MwLink to="/signup">.</MwLink>
+          </Trans>
+        </p>
+        <p className="text-center">
+          <MwLink
+            to="/forgot-password"
+            className="text-sm text-gray-400 hover:text-white transition"
+          >
+            Forgot your password?
+          </MwLink>
+        </p>
+      </div>
     </LargeCard>
   );
 }

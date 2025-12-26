@@ -214,17 +214,13 @@ export async function testTorboxToken(
 
 async function testTmdbProxy(): Promise<Status> {
   try {
-    // Test TMDB API access through proxy
-    const response = await fetch("https://api.themoviedb.org/3/configuration", {
-      headers: {
-        Authorization: `Bearer ${conf().TMDB_READ_API_KEY}`,
-      },
-    });
+    // Import the get function from tmdb.ts to use the proxy
+    const { get } = await import("@/backend/metadata/tmdb");
 
-    if (response.ok) {
-      return "success";
-    }
-    return "error";
+    // Test TMDB API access through proxy
+    await get<any>("/configuration", {});
+
+    return "success";
   } catch (error) {
     console.error("TMDB proxy test failed:", error);
     return "error";
