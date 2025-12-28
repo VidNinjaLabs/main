@@ -92,33 +92,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  // Fetch real-time premium status from database
+  // Fetch real-time premium status via custom endpoint /who/are-you
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !session?.access_token) return;
 
     const fetchPremiumStatus = async () => {
-      console.log("[Premium Check] Fetching status for user:", user.id);
-      const { data, error } = await supabase
-        .from("users")
-        .select("is_premium")
-        .eq("id", user.id)
-        .single();
+      console.log("[Premium Check] Asking: Who are you?", user.id);
 
-      console.log("[Premium Check] Database result:", { data, error });
-
-      if (!error && data && user.isPremium !== (data.is_premium === true)) {
-        console.log("[Premium Check] Updating premium status:", {
-          from: user.isPremium,
-          to: data.is_premium === true,
-        });
-        // Update user state with fresh premium status from database
-        setUser((prev) =>
-          prev ? { ...prev, isPremium: data.is_premium === true } : null,
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/who-are-you`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              "Content-Type": "application/json",
+            },
+          },
         );
+
+        const data = await response.json();
+        console.log("[Premium Check] Identity revealed:", data);
+
+        if (response.ok && data.you_are) {
+          const isPremiumFromDb = data.you_are.premium === true;
+
+          if (user.isPremium !== isPremiumFromDb) {
+            console.log("[Premium Check] Updating status:", {
+              from: user.isPremium,
+              to: isPremiumFromDb,
+            });
+            setUser((prev) =>
+              prev ? { ...prev, isPremium: isPremiumFromDb } : null,
+            );
+          }
+        }
+      } catch (error) {
+        console.error("[Premium Check] Failed:", error);
       }
 
-      // Mark that we've completed the initial premium check
-      // This allows loading to become false
       setLoading(false);
     };
 
@@ -130,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       fetchPremiumStatus();
     }, 30000);
     return () => clearInterval(interval);
-  }, [user?.id]); // Remove user?.isPremium from dependencies
+  }, [user?.id, session?.access_token]);
 
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
