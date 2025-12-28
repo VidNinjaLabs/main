@@ -18,6 +18,7 @@ import { DetailsModal } from "@/components/overlays/detailsModal";
 import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsModal";
 import { NotificationModal } from "@/components/overlays/notificationsModal";
 import { TurnstileGate } from "@/components/TurnstileGate";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useGlobalKeyboardEvents } from "@/hooks/useGlobalKeyboardEvents";
@@ -112,11 +113,15 @@ function App() {
 
   const isAdmin = useIsAdmin();
   const isPremium = useIsPremium();
-  const showAds = import.meta.env.PROD && !isAdmin && !isPremium;
+  const { loading } = useAuthContext();
+
+  // Wait for auth to finish loading before showing ads
+  const showAds = import.meta.env.PROD && !loading && !isAdmin && !isPremium;
 
   // Debug logging
   console.log("[Ad Display Debug]", {
     isProduction: import.meta.env.PROD,
+    loading,
     isAdmin,
     isPremium,
     showAds,
@@ -136,6 +141,17 @@ function App() {
 
   return (
     <TurnstileGate>
+      {/* Loading Screen - Show while authentication is loading */}
+      {loading && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-16 w-16 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+            <p className="text-white text-lg">Loading...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Ads - Only show in production, when not loading, and user is not admin/premium */}
       {showAds && (
         <>
           <PopAds />
@@ -143,6 +159,8 @@ function App() {
           <AdMaven />
         </>
       )}
+
+      {/* Main App - Hidden while loading */}
       <Layout>
         <LanguageProvider />
         <NotificationModal id="notifications" />

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-no-constructed-context-values */
@@ -115,14 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           prev ? { ...prev, isPremium: data.is_premium === true } : null,
         );
       }
+
+      // Mark that we've completed the initial premium check
+      // This allows loading to become false
+      setLoading(false);
     };
 
+    // Only fetch on mount, not on every premium change
     fetchPremiumStatus();
 
-    // Poll for changes every 30 seconds
-    const interval = setInterval(fetchPremiumStatus, 30000);
+    // Poll for changes every 30 seconds (but don't affect loading state)
+    const interval = setInterval(() => {
+      fetchPremiumStatus();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [user?.id, user?.isPremium]);
+  }, [user?.id]); // Remove user?.isPremium from dependencies
 
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
