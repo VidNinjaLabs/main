@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user?.id || !session?.access_token) return;
 
     const fetchPremiumStatus = async () => {
+      // eslint-disable-next-line no-console
       console.log("[Premium Check] Asking: Who are you?", user.id);
 
       try {
@@ -111,12 +112,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
 
         const data = await response.json();
+        // eslint-disable-next-line no-console
         console.log("[Premium Check] Identity revealed:", data);
 
         if (response.ok && data.you_are) {
           const isPremiumFromDb = data.you_are.premium === true;
 
           if (user.isPremium !== isPremiumFromDb) {
+            // eslint-disable-next-line no-console
             console.log("[Premium Check] Updating status:", {
               from: user.isPremium,
               to: isPremiumFromDb,
@@ -127,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("[Premium Check] Failed:", error);
       }
 
