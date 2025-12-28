@@ -3,7 +3,6 @@ import classNames from "classnames";
 import Fuse from "fuse.js";
 import { Clipboard as ClipboardIcon, Ear, Upload } from "lucide-react";
 import { type DragEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useAsyncFn } from "react-use";
 import { convert } from "subsrt-ts";
 
@@ -25,6 +24,7 @@ import {
   getPrettyLanguageNameFromLocale,
   sortLangCodes,
 } from "@/utils/language";
+import { useTranslation } from "react-i18next";
 
 export function CaptionOption(props: {
   children: React.ReactNode;
@@ -142,7 +142,9 @@ export function useSubtitleList(subs: CaptionListItem[], searchQuery: string) {
     const input = subs.map((t) => ({
       ...t,
       languageName:
-        getPrettyLanguageNameFromLocale(t.language) ?? unknownChoice,
+        t.display || // Use provider's languageName if available
+        getPrettyLanguageNameFromLocale(t.language) ||
+        unknownChoice,
     }));
     const sorted = sortLangCodes(input.map((t) => t.language));
     let results = input.sort((a, b) => {
