@@ -7,10 +7,9 @@ import { useIsPremium } from "@/hooks/auth/useIsPremium";
  * Ad component for PopAds scripts
  */
 export function PopAds() {
-  const isPremium = useIsPremium();
-  const isAdmin = useIsAdmin();
+  // Note: isPremium/isAdmin check is done in App.tsx where this component is rendered
+  // Removing the check here prevents race condition where ads load before premium status updates
   useEffect(() => {
-    if (isPremium || isAdmin) return;
     // Inject the ad script
     try {
       /* eslint-disable */
@@ -81,7 +80,7 @@ export function PopAds() {
     } catch (err) {
       console.error("Ad script error:", err);
     }
-  }, [isPremium, isAdmin]);
+  }, []);
 
   return null;
 }
@@ -91,8 +90,6 @@ export function PopAds() {
  */
 export function AdsterraAds() {
   const [showOverlay, setShowOverlay] = useState(false);
-  const isPremium = useIsPremium();
-  const isAdmin = useIsAdmin();
 
   // Adsterra Direct Links
   const links = [
@@ -101,7 +98,7 @@ export function AdsterraAds() {
   ];
 
   useEffect(() => {
-    if (isPremium || isAdmin) return;
+    // Note: isPremium/isAdmin check is done in App.tsx where this component is rendered
     if (!showOverlay) {
       // Random interval between 5s and 10s (Faster for testing)
       const time = Math.random() * (10000 - 5000) + 5000;
@@ -111,7 +108,7 @@ export function AdsterraAds() {
 
       return () => clearTimeout(timer);
     }
-  }, [showOverlay, isPremium, isAdmin]);
+  }, [showOverlay]);
 
   const handleInteraction = () => {
     // Pick a random link

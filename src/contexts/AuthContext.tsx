@@ -96,13 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user?.id) return;
 
     const fetchPremiumStatus = async () => {
+      console.log("[Premium Check] Fetching status for user:", user.id);
       const { data, error } = await supabase
         .from("users")
         .select("is_premium")
         .eq("id", user.id)
         .single();
 
+      console.log("[Premium Check] Database result:", { data, error });
+
       if (!error && data && user.isPremium !== (data.is_premium === true)) {
+        console.log("[Premium Check] Updating premium status:", {
+          from: user.isPremium,
+          to: data.is_premium === true,
+        });
         // Update user state with fresh premium status from database
         setUser((prev) =>
           prev ? { ...prev, isPremium: data.is_premium === true } : null,

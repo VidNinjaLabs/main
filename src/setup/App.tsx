@@ -114,6 +114,14 @@ function App() {
   const isPremium = useIsPremium();
   const showAds = import.meta.env.PROD && !isAdmin && !isPremium;
 
+  // Debug logging
+  console.log("[Ad Display Debug]", {
+    isProduction: import.meta.env.PROD,
+    isAdmin,
+    isPremium,
+    showAds,
+  });
+
   const handleButtonClick = () => {
     setShowDowntime(false);
   };

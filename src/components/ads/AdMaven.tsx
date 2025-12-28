@@ -1,15 +1,9 @@
 import { useEffect } from "react";
 
-import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
-import { useIsPremium } from "@/hooks/auth/useIsPremium";
-
 export function AdMaven() {
-  const isPremium = useIsPremium();
-  const isAdmin = useIsAdmin();
+  // Note: isPremium/isAdmin check is done in App.tsx where this component is rendered
 
   useEffect(() => {
-    if (isPremium || isAdmin) return;
-
     try {
       // External Script
       const externalScript = document.createElement("script");
