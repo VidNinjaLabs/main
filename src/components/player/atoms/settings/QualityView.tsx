@@ -1,6 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import Hls from "@rev9dev-netizen/vidply.js";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { SelectableLink } from "@/components/player/internals/ContextMenu/Links";
@@ -12,7 +11,6 @@ import {
   qualityToString,
 } from "@/stores/player/utils/qualities";
 import { useQualityStore } from "@/stores/quality";
-import { canPlayHlsNatively } from "@/utils/detectFeatures";
 import { useTranslation } from "react-i18next";
 
 export function QualityView({ id }: { id: string }) {
