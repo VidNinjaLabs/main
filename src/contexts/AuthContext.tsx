@@ -91,6 +91,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  // Fetch real-time premium status from database
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchPremiumStatus = async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("is_premium")
+        .eq("id", user.id)
+        .single();
+
+      if (!error && data && user.isPremium !== (data.is_premium === true)) {
+        // Update user state with fresh premium status from database
+        setUser((prev) =>
+          prev ? { ...prev, isPremium: data.is_premium === true } : null,
+        );
+      }
+    };
+
+    fetchPremiumStatus();
+
+    // Poll for changes every 30 seconds
+    const interval = setInterval(fetchPremiumStatus, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id, user?.isPremium]);
+
   const login = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,

@@ -110,7 +110,7 @@ export function PlayerPart(props: PlayerPartProps) {
         {status === playerStatus.PLAYING ? (
           <Player.CenterControls>
             <Player.LoadingSpinner />
-            <Player.AutoPlayStart />
+            {/* <Player.AutoPlayStart /> */}
             <Player.CastingNotification />
           </Player.CenterControls>
         ) : null}
