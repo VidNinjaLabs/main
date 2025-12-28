@@ -35,7 +35,7 @@ export function AdMaven() {
     } catch (err) {
       console.error("AdMaven script injection error:", err);
     }
-  }, [isPremium, isAdmin]);
+  }, []);
 
   return null;
 }
