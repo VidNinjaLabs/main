@@ -21,7 +21,9 @@
       "@vidninja/providers": ["backend/providers/lib"],
       "@sozialhelden/ietf-language-tags": [
         "../node_modules/@sozialhelden/ietf-language-tags/dist/cjs"
-      ]
+      ],
+      "react-i18next": ["./i18nShim.tsx"],
+      "i18next": ["./i18nShim.tsx"]
     },
     "typeRoots": ["node_modules/@types"]
   },

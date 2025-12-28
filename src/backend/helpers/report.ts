@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { ofetch } from "ofetch";
 import { useCallback } from "react";
 
-import { isExtensionActiveCached } from "@/backend/extension/messaging";
+// Extension removed
 import {
   ScrapeMedia,
   ScrapingItems,
@@ -33,8 +33,8 @@ export type ProviderMetric = {
 
 export type ScrapeTool = "default" | "custom-proxy" | "extension";
 
+// Extension removed
 export function getScrapeTool(): ScrapeTool {
-  if (isExtensionActiveCached()) return "extension";
   const hasProxySet = !!useAuthStore.getState().proxySet;
   if (hasProxySet) return "custom-proxy";
   return "default";

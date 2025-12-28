@@ -4,6 +4,6 @@ export async function getApiToken(): Promise<string | null> {
   return null;
 }
 
-export function setApiToken(): void {
-  // No-op
+export function setApiToken(_token: string): void {
+  // No-op (token parameter prefixed with _ to satisfy linter)
 }

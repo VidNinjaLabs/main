@@ -145,7 +145,7 @@
     "confirm": "Confirm"
   },
   "auth": {
-    "createAccount": "Don't have an account yet 😬 <0>Create an account.</0>",
+    "createAccount": "Don't have an account yet Create an account.",
     "deviceNameLabel": "Device name",
     "deviceNamePlaceholder": "Personal phone",
     "generate": {
@@ -179,27 +179,6 @@
         "next": "Next",
         "title": "Account information"
       }
-    },
-    "trust": {
-      "failed": {
-        "text": "Did you configure it correctly?",
-        "title": "Failed to reach server"
-      },
-      "noHostTitle": "Server not configured!",
-      "noHost": "The server has not been configured, therefore you cannot create an account",
-      "host": "You are connecting to <0>{{hostname}}</0> - please confirm you trust it before making an account...",
-      "no": "Go back",
-      "title": "Do you trust this server?",
-      "yes": "I trust this server 🤞"
-    },
-    "verify": {
-      "description": "Please enter your passphrase from earlier to confirm you have saved it and to create your account",
-      "invalidData": "Data is not valid",
-      "noMatch": "Passphrase doesn't match 😭",
-      "passphraseLabel": "Your 12-word passphrase",
-      "recaptchaFailed": "ReCaptcha validation failed",
-      "register": "Create account",
-      "title": "Confirm your passphrase"
     }
   },
   "errors": {

@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-import i18n from "@/setup/i18n";
+// import i18n from "@/setup/i18n"; // Removed
 import { getLocaleInfo } from "@/utils/language";
 
 export interface LanguageStore {
@@ -15,7 +15,7 @@ export interface LanguageStore {
 export const useLanguageStore = create(
   persist(
     immer<LanguageStore>((set) => ({
-      language: navigator.language.split("-")[0],
+      language: "en",
       setLanguage(v) {
         set((s) => {
           s.language = v;
@@ -26,9 +26,8 @@ export const useLanguageStore = create(
   ),
 );
 
-export function changeAppLanguage(language: string) {
-  const lang = getLocaleInfo(language);
-  if (lang) i18n.changeLanguage(lang.code);
+export function changeAppLanguage(_language: string) {
+  // no-op
 }
 
 export function isRightToLeft(language: string) {

@@ -6,11 +6,17 @@ export function MwLink(props: {
   to?: string;
   url?: string;
   onClick?: () => void;
+  className?: string;
 }) {
   const isExternal = !!props.url;
   const isInternal = !!props.to;
   const content = (
-    <span className="group mt-1 cursor-pointer font-bold text-type-link hover:text-type-linkHover active:scale-95">
+    <span
+      className={
+        props.className ||
+        "group mt-1 cursor-pointer font-bold text-type-link hover:text-type-linkHover active:scale-95"
+      }
+    >
       {props.children}
     </span>
   );

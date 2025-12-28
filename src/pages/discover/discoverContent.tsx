@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { t } from "i18next";
+import i18n from "i18next";
 import { useRef } from "react";
 
 import { WideContainer } from "@/components/layout/WideContainer";
@@ -13,6 +13,8 @@ import type { FeaturedMedia } from "./components/FeaturedCarousel";
 import { LazyLoadCuratedLists } from "./components/LazyLoadCuratedLists";
 import { MediaCarousel } from "./components/MediaCarousel";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
+
+const t = i18n.t;
 
 export function DiscoverContent() {
   const { selectedCategory, setSelectedCategory } = useDiscoverStore();

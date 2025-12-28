@@ -8,7 +8,7 @@ import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { PlayerHoverState } from "@/stores/player/slices/interface";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
-import { useWatchPartyStore } from "@/stores/watchParty";
+// import { useWatchPartyStore } from "@/stores/watchParty"; // Removed
 
 export function VideoClickTarget(props: { showingControls: boolean }) {
   const show = useShouldShowVideoElement();
@@ -23,7 +23,7 @@ export function VideoClickTarget(props: { showingControls: boolean }) {
   const setShowSpeedIndicator = usePlayerStore((s) => s.setShowSpeedIndicator);
   const hovering = usePlayerStore((s) => s.interface.hovering);
   const setCurrentOverlay = useOverlayStack((s) => s.setCurrentOverlay);
-  const isInWatchParty = useWatchPartyStore((s) => s.enabled);
+  const isInWatchParty = false; // WatchParty removed
   const enableHoldToBoost = usePreferencesStore((s) => s.enableHoldToBoost);
   const enableDoubleClickToSeek = usePreferencesStore(
     (s) => s.enableDoubleClickToSeek,

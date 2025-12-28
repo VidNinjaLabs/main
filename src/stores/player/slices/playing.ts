@@ -13,6 +13,7 @@ export interface PlayingSlice {
   };
   play(): void;
   pause(): void;
+  setIsLoading(loading: boolean): void;
 }
 
 export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
@@ -36,6 +37,11 @@ export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
     set((state) => {
       state.mediaPlaying.isPlaying = false;
       state.mediaPlaying.isPaused = false;
+    });
+  },
+  setIsLoading(loading: boolean) {
+    set((state) => {
+      state.mediaPlaying.isLoading = loading;
     });
   },
 });

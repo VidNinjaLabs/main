@@ -1,11 +1,10 @@
 import classNames from "classnames";
-import { t } from "i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
-import { isExtensionActive } from "@/backend/extension/messaging";
+// Extension and scrapers removed
 import { get, getMediaLogo } from "@/backend/metadata/tmdb";
 import {
   getDiscoverContent,
@@ -20,14 +19,16 @@ import { conf } from "@/setup/config";
 import { useDiscoverStore } from "@/stores/discover";
 import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
-import { scrapeIMDb } from "@/utils/imdbScraper";
 import { getTmdbLanguageCode } from "@/utils/language";
+import i18n from "i18next";
 
 import { RandomMovieButton } from "./RandomMovieButton";
 import {
   EDITOR_PICKS_MOVIES,
   EDITOR_PICKS_TV_SHOWS,
 } from "../hooks/useDiscoverMedia";
+
+const t = i18n.t;
 
 export interface FeaturedMedia extends Partial<Movie & TVShow> {
   children?: ReactNode;
@@ -159,48 +160,14 @@ export function FeaturedCarousel({
   const SLIDE_QUANTITY_EDITOR_PICKS_TV_SHOWS = 4;
   const SLIDE_DURATION = 8000;
 
-  // Check for extension on mount
+  // Extension removed - hardcode to false
   useEffect(() => {
-    isExtensionActive().then((active) => {
-      hasExtension.current = active;
-    });
+    hasExtension.current = false;
   }, []);
 
-  // Fetch IMDb ratings when media changes
+  // IMDb scraper removed - feature disabled
   useEffect(() => {
-    const fetchImdbRatings = async () => {
-      if (!hasExtension.current || !currentMedia?.external_ids?.imdb_id) return;
-
-      try {
-        const imdbData = await scrapeIMDb(
-          currentMedia.external_ids.imdb_id,
-          undefined,
-          undefined,
-          undefined,
-          currentMedia.type,
-        );
-        // Only update if we have both rating and votes as non-null numbers
-        if (
-          typeof imdbData.imdb_rating === "number" &&
-          typeof imdbData.votes === "number"
-        ) {
-          const ratingData: IMDbRatingData = {
-            rating: imdbData.imdb_rating,
-            votes: imdbData.votes,
-          };
-          setImdbRatings((prev) => ({
-            ...prev,
-            [currentMedia.external_ids!.imdb_id!]: ratingData,
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching IMDb ratings:", error);
-      }
-    };
-
-    if (currentMedia) {
-      fetchImdbRatings();
-    }
+    // Scraping functionality removed
   }, [currentMedia]);
 
   useEffect(() => {

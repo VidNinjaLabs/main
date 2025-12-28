@@ -1,4 +1,5 @@
-import { t } from "i18next";
+import i18n from "i18next";
+const t = i18n.t;
 import { Plus } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 

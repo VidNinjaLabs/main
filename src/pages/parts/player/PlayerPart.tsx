@@ -4,14 +4,12 @@ import { ReactNode, useRef, useState } from "react";
 import { Player } from "@/components/player";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
-import { WatchPartyStatus } from "@/components/player/atoms/WatchPartyStatus";
 import { useShouldShowControls } from "@/components/player/hooks/useShouldShowControls";
 import { useSkipTime } from "@/components/player/hooks/useSkipTime";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
-import { useWatchPartyStore } from "@/stores/watchParty";
 
 import { Tips } from "./ScrapingPart";
 
@@ -32,9 +30,9 @@ export function PlayerPart(props: PlayerPartProps) {
     (s) => s.manualSourceSelection,
   );
   const isLoading = usePlayerStore((s) => s.mediaPlaying.isLoading);
-  const { isHost, enabled } = useWatchPartyStore();
+  // const { isHost, enabled } = useWatchPartyStore(); // Removed
 
-  const inControl = !enabled || isHost;
+  const inControl = true; // Always in control as watchparty is removed
 
   const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const _isPWA = window.matchMedia("(display-mode: standalone)").matches;
@@ -137,14 +135,6 @@ export function PlayerPart(props: PlayerPartProps) {
               onAction={() => setFeedbackAction("forward")}
             />
           </Player.CenterMobileControls>
-        </div>
-
-        <div
-          className={`absolute right-4 z-50 transition-all duration-300 ease-in-out ${
-            showTargets ? "top-16" : "top-1"
-          }`}
-        >
-          <WatchPartyStatus />
         </div>
 
         <Player.TopControls show={showTargets}>

@@ -2,10 +2,9 @@
 import classNames from "classnames";
 import { FetchError } from "ofetch";
 import { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
 
-import { isExtensionActive } from "@/backend/extension/messaging";
+// Extension removed
 import { proxiedFetch, singularProxiedFetch } from "@/backend/helpers/fetch";
 import { Icon, Icons } from "@/components/Icon";
 import { Loading } from "@/components/layout/Loading";
@@ -18,6 +17,7 @@ import { Heading3 } from "@/components/utils/Text";
 import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
+import { useTranslation } from "react-i18next";
 
 const testUrl = "https://postman-echo.com/get";
 
@@ -233,9 +233,8 @@ function useIsSetup() {
   const debridToken = usePreferencesStore((s) => s.debridToken);
   const debridService = usePreferencesStore((s) => s.debridService);
   const { loading, value } = useAsync(async (): Promise<SetupData> => {
-    const extensionStatus: Status = (await isExtensionActive())
-      ? "success"
-      : "unset";
+    // Extension removed - always return unset
+    const extensionStatus: Status = "unset";
 
     // Test environment-configured proxies or custom user proxies
     let proxyStatus: Status = "unset";

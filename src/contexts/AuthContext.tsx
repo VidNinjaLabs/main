@@ -18,6 +18,12 @@ interface User {
   role: "ADMIN" | "USER";
   isPremium: boolean;
   emailVerified: boolean;
+  createdAt?: string; // Optional for settings page
+  profile?: {
+    profile?: {
+      name?: string;
+    };
+  }; // Optional nested profile for legacy compatibility
 }
 
 interface AuthContextType {
@@ -33,6 +39,10 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  // Legacy auth methods (stubbed for compatibility)
+  restore?: (account: any) => Promise<void>;
+  register?: (account: any) => Promise<void>;
+  importData?: (data: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -164,6 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     resetPassword,
     updatePassword,
+    // Legacy auth stubs (no-op for compatibility)
+    restore: async () => {},
+    register: async () => {},
+    importData: async () => {},
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

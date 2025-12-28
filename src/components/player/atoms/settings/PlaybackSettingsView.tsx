@@ -12,7 +12,7 @@ import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { useAuthStore } from "@/stores/auth";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
-import { useWatchPartyStore } from "@/stores/watchParty";
+// import { useWatchPartyStore } from "@/stores/watchParty"; // Removed
 import { isAutoplayAllowed } from "@/utils/autoplay";
 
 function ButtonList(props: {
@@ -190,7 +190,7 @@ export function PlaybackSettingsView({ id }: { id: string }) {
   const enableLowPerformanceMode = usePreferencesStore(
     (s) => s.enableLowPerformanceMode,
   );
-  const isInWatchParty = useWatchPartyStore((s) => s.enabled);
+  const isInWatchParty = false; // WatchParty removed
 
   const account = useAuthStore((s) => s.account);
   const backendUrl = useBackendUrl();

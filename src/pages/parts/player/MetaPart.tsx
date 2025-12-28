@@ -1,14 +1,11 @@
 /* eslint-disable no-console */
 import classNames from "classnames";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAsync } from "react-use";
 import type { AsyncReturnType } from "type-fest";
 
 import { fetchMetadata } from "@/backend/api/metadata";
-import { isAllowedExtensionVersion } from "@/backend/extension/compatibility";
-import { extensionInfo, sendPage } from "@/backend/extension/messaging";
 import { DetailedMeta, getMetaFromId } from "@/backend/metadata/getmeta";
 import { decodeTMDBId } from "@/backend/metadata/tmdb";
 import { MWMediaType } from "@/backend/metadata/types/mw";
@@ -20,6 +17,7 @@ import { Paragraph } from "@/components/text/Paragraph";
 import { Title } from "@/components/text/Title";
 import { ErrorContainer, ErrorLayout } from "@/pages/layouts/ErrorLayout";
 import { conf } from "@/setup/config";
+import { useTranslation } from "react-i18next";
 
 export interface MetaPartProps {
   onGetMeta?: (meta: DetailedMeta, episodeId?: string) => void;
@@ -53,14 +51,6 @@ export function MetaPart(props: MetaPartProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const { error, value, loading } = useAsync(async () => {
-    const info = await extensionInfo();
-    const isValidExtension =
-      info?.success && isAllowedExtensionVersion(info.version) && info.allowed;
-
-    if (isValidExtension) {
-      if (!info.hasPermission) throw new Error("extension-no-permission");
-    }
-
     // Fetch VidNinja API metadata
     try {
       await fetchMetadata();
@@ -128,6 +118,10 @@ export function MetaPart(props: MetaPartProps) {
   }, []);
 
   if (error && error.message === "extension-no-permission") {
+    function sendPage(arg0: { page: string; redirectUrl: string }) {
+      throw new Error("Function not implemented.");
+    }
+
     return (
       <ErrorLayout>
         <ErrorContainer>

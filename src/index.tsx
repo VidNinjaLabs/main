@@ -1,17 +1,14 @@
-import "@/setup/pwa";
 import "core-js/stable";
 import "./stores/__old/imports";
-import "@/setup/ga";
 import "@/assets/css/index.css";
 
 import { CircleAlert } from "lucide-react";
-import { StrictMode, Suspense, useCallback } from "react";
+import { Suspense, useCallback } from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
-import { useTranslation } from "react-i18next";
 import { BrowserRouter, HashRouter } from "react-router-dom";
-import { useAsync, useAsyncFn } from "react-use";
+import { useAsyncFn } from "react-use";
 
 import { Button } from "@/components/buttons/Button";
 import { Loading } from "@/components/layout/Loading";
@@ -26,21 +23,15 @@ import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
 import { BookmarkSyncer } from "@/stores/bookmarks/BookmarkSyncer";
 import { GroupSyncer } from "@/stores/groupOrder/GroupSyncer";
-import { changeAppLanguage, useLanguageStore } from "@/stores/language";
 import { ProgressSyncer } from "@/stores/progress/ProgressSyncer";
 import { SettingsSyncer } from "@/stores/subtitles/SettingsSyncer";
 import { ThemeProvider } from "@/stores/theme";
-import { detectRegion, useRegionStore } from "@/utils/detectRegion";
+import { useTranslation } from "react-i18next";
 
 import { initializeFebbox, initializeVidNinja } from "./backend/api/init";
-import {
-  extensionInfo,
-  isExtensionActiveCached,
-} from "./backend/extension/messaging";
 import { ErrorBoundary } from "./pages/errors/ErrorBoundary";
 import { initializeChromecast } from "./setup/chromecast";
 import { initializeImageFadeIn } from "./setup/imageFadeIn";
-import { initializeOldStores } from "./stores/__old/migrations";
 
 // initialize
 initializeChromecast();
@@ -144,21 +135,6 @@ function AuthWrapper() {
   );
 }
 
-function MigrationRunner() {
-  const status = useAsync(async () => {
-    changeAppLanguage(useLanguageStore.getState().language);
-    await initializeOldStores();
-
-    const region = await detectRegion();
-    useRegionStore.getState().setRegion(region);
-  }, []);
-  const { t } = useTranslation();
-
-  if (status.error)
-    return <ErrorScreen>{t("screens.migration.failed")}</ErrorScreen>;
-  return <AuthWrapper />;
-}
-
 function TheRouter(props: { children: ReactNode }) {
   const normalRouter = conf().NORMAL_ROUTER;
 
@@ -166,43 +142,23 @@ function TheRouter(props: { children: ReactNode }) {
   return <HashRouter>{props.children}</HashRouter>;
 }
 
-// Checks if the extension is installed
-function ExtensionStatus() {
-  const { t } = useTranslation();
-  const [state] = useAsyncFn(async () => {
-    if (!isExtensionActiveCached) {
-      return extensionInfo();
-    }
-  });
-
-  if (state.loading) {
-    return <LoadingScreen type="lazy" />;
-  }
-  if (state.error) {
-    return <ErrorScreen>{t("screens.loadingUserError.reload")}</ErrorScreen>;
-  }
-  return null;
-}
 const container = document.getElementById("root");
 const root = createRoot(container!);
 
 root.render(
-  <StrictMode>
-    <ErrorBoundary>
-      <HelmetProvider>
-        <Suspense fallback={<LoadingScreen type="lazy" />}>
-          <ExtensionStatus />
-          <ThemeProvider applyGlobal>
-            <ProgressSyncer />
-            <BookmarkSyncer />
-            <GroupSyncer />
-            <SettingsSyncer />
-            <TheRouter>
-              <MigrationRunner />
-            </TheRouter>
-          </ThemeProvider>
-        </Suspense>
-      </HelmetProvider>
-    </ErrorBoundary>
-  </StrictMode>,
+  <ErrorBoundary>
+    <HelmetProvider>
+      <Suspense fallback={<LoadingScreen type="lazy" />}>
+        <ThemeProvider applyGlobal>
+          <ProgressSyncer />
+          <BookmarkSyncer />
+          <GroupSyncer />
+          <SettingsSyncer />
+          <TheRouter>
+            <AuthWrapper />
+          </TheRouter>
+        </ThemeProvider>
+      </Suspense>
+    </HelmetProvider>
+  </ErrorBoundary>,
 );

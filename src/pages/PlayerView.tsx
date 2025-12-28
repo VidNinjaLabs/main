@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { DetailedMeta } from "@/backend/metadata/getmeta";
@@ -93,8 +93,6 @@ export function RealPlayerView(props: PlayerViewProps) {
   const setLastSuccessfulSource = usePreferencesStore(
     (s) => s.setLastSuccessfulSource,
   );
-  const router = useOverlayRouter("settings");
-  const openedWatchPartyRef = useRef<boolean>(false);
   const progressItems = useProgressStore((s) => s.items);
   const [backdropUrl, setBackdropUrl] = useState<string | null>(null);
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
@@ -160,23 +158,7 @@ export function RealPlayerView(props: PlayerViewProps) {
   useEffect(() => {
     reset();
     // Reset watch party state when media changes
-    openedWatchPartyRef.current = false;
   }, [paramsData, reset]);
-
-  // Auto-open watch party menu if URL contains watchparty parameter
-  useEffect(() => {
-    if (openedWatchPartyRef.current) return;
-
-    if (status === playerStatus.PLAYING) {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has("watchparty")) {
-        setTimeout(() => {
-          router.navigate("/watchparty");
-          openedWatchPartyRef.current = true;
-        }, 1000);
-      }
-    }
-  }, [status, router]);
 
   const metaChange = useCallback(
     (meta: PlayerMeta) => {

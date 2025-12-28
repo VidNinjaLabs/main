@@ -1,4 +1,3 @@
-import { t } from "i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCopyToClipboard } from "react-use";
 
@@ -9,9 +8,9 @@ import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
 import { shouldShowProgress } from "@/stores/progress/utils";
-import { scrapeIMDb } from "@/utils/imdbScraper";
+// Scrapers removed - imdbScraper and rottenTomatoesScraper deleted
 import { getTmdbLanguageCode } from "@/utils/language";
-import { scrapeRottenTomatoes } from "@/utils/rottenTomatoesScraper";
+import i18n from "i18next";
 
 import { DetailsContentProps } from "../../types";
 import { EpisodeCarousel } from "../carousels/EpisodeCarousel";
@@ -20,6 +19,8 @@ import { CollectionOverlay } from "../overlays/CollectionOverlay";
 import { TrailerOverlay } from "../overlays/TrailerOverlay";
 import { DetailsBody } from "../sections/DetailsBody";
 import { DetailsInfo } from "../sections/DetailsInfo";
+
+const t = i18n.t;
 
 export function DetailsContent({ data, minimal = false }: DetailsContentProps) {
   const [imdbData, setImdbData] = useState<any>(null);
@@ -93,56 +94,9 @@ export function DetailsContent({ data, minimal = false }: DetailsContentProps) {
   }, [data.id]);
 
   useEffect(() => {
-    const fetchExternalData = async () => {
-      if (!data.imdbId) return;
-
-      setIsLoadingImdb(true);
-      try {
-        // Get the user's selected language and format it properly
-        const userLanguage = useLanguageStore.getState().language;
-        const formattedLanguage = getTmdbLanguageCode(userLanguage);
-
-        // Fetch IMDb data
-        const imdbMetadata = await scrapeIMDb(
-          data.imdbId,
-          undefined,
-          undefined,
-          formattedLanguage,
-          data.type,
-        );
-        // Transform the data to match the expected format
-        if (
-          (typeof imdbMetadata.imdb_rating === "number" &&
-            typeof imdbMetadata.votes === "number") ||
-          imdbMetadata.trailer_url
-        ) {
-          setImdbData({
-            rating: imdbMetadata.imdb_rating,
-            votes: imdbMetadata.votes,
-            trailer_url: imdbMetadata.trailer_url,
-          });
-        } else {
-          setImdbData(null);
-        }
-
-        // Fetch Rotten Tomatoes data
-        if (data.type === "movie") {
-          const rtMetadata = await scrapeRottenTomatoes(
-            data.title,
-            data.releaseDate
-              ? new Date(data.releaseDate).getFullYear()
-              : undefined,
-          );
-          setRtData(rtMetadata);
-        }
-      } catch (error) {
-        console.error("Failed to fetch external data:", error);
-      } finally {
-        setIsLoadingImdb(false);
-      }
-    };
-
-    fetchExternalData();
+    // External scraper functionality removed - imdbScraper and rottenTomatoesScraper deleted
+    // Keep the hooks clean by removing the scraping logic
+    setIsLoadingImdb(false);
   }, [data.imdbId, data.title, data.releaseDate, data.type]);
 
   const handlePlayClick = () => {

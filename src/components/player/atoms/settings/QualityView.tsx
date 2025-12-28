@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import Hls from "@rev9dev-netizen/vidply.js";
-import { t } from "i18next";
+import i18n from "i18next";
+const t = i18n.t;
 import { useCallback, useMemo } from "react";
 import { Trans } from "react-i18next";
 

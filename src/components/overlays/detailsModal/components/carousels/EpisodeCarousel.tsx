@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { t } from "i18next";
+import i18n from "i18next";
+const t = i18n.t;
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";

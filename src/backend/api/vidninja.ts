@@ -234,6 +234,18 @@ class BackendClient {
     }
   }
 
+  /**
+   * GET /status
+   * Get provider status information (stub for now)
+   */
+  async getStatus(): Promise<Record<string, any>> {
+    this.checkConfigured();
+
+    // Stub implementation - returns empty object
+    // Can be implemented when backend endpoint is available
+    return {};
+  }
+
   // ==========================================================================
   // Health Endpoints
   // ==========================================================================

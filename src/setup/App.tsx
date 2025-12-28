@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import { ReactElement, Suspense, lazy, useEffect, useState } from "react";
+import { ReactElement, Suspense, useEffect, useState } from "react";
 import { lazyWithPreload } from "react-lazy-with-preload";
 import {
   Navigate,
@@ -26,14 +26,12 @@ import { AboutPage } from "@/pages/About";
 import { AdminPage } from "@/pages/admin/AdminPage";
 import { AllBookmarks } from "@/pages/bookmarks/AllBookmarks";
 import { BrowsePage } from "@/pages/Browse";
-import VideoTesterView from "@/pages/developer/VideoTesterView";
 import { DiscoverMore } from "@/pages/discover/AllMovieLists";
 import { Discover } from "@/pages/discover/Discover";
 import { MoreContent } from "@/pages/discover/MoreContent";
 import MaintenancePage from "@/pages/errors/MaintenancePage";
 import { NotFoundPage } from "@/pages/errors/NotFoundPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPassword";
-import { JipPage } from "@/pages/Jip";
 import { LegalPage, shouldHaveLegalPage } from "@/pages/Legal";
 import { LoginPage } from "@/pages/Login";
 import { ResetPasswordPage } from "@/pages/ResetPassword";
@@ -48,8 +46,6 @@ import { useHistoryListener } from "@/stores/history";
 import { useClearModalsOnNavigation } from "@/stores/interface/overlayStack";
 import { LanguageProvider } from "@/stores/language";
 
-const DeveloperPage = lazy(() => import("@/pages/DeveloperPage"));
-const TestView = lazy(() => import("@/pages/developer/TestView"));
 const PlayerView = lazyWithPreload(() => import("@/pages/PlayerView"));
 const SettingsPage = lazyWithPreload(() => import("@/pages/Settings"));
 
@@ -117,15 +113,6 @@ function App() {
   const isAdmin = useIsAdmin();
   const isPremium = useIsPremium();
   const showAds = import.meta.env.PROD && !isAdmin && !isPremium;
-
-  useEffect(() => {
-    console.log("[AdDebug] Check:", {
-      isAdmin,
-      isPremium,
-      PROD: import.meta.env.PROD,
-      showAds,
-    });
-  }, [isAdmin, isPremium, showAds]);
 
   const handleButtonClick = () => {
     setShowDowntime(false);
@@ -202,7 +189,6 @@ function App() {
             ) : null}
             {/* Support page */}
             <Route path="/support" element={<SupportPage />} />
-            <Route path="/jip" element={<JipPage />} />
             {/* Browse/Search pages */}
             <Route path="/browse" element={<BrowsePage />} />
             <Route path="/browse/:query" element={<BrowsePage />} />
@@ -231,13 +217,6 @@ function App() {
             />
             {/* admin routes */}
             <Route path="/admin" element={<AdminPage />} />
-            {/* other */}
-            <Route path="/dev" element={<DeveloperPage />} />
-            <Route path="/dev/video" element={<VideoTesterView />} />
-            {/* developer routes that can abuse workers are disabled in production */}
-            {process.env.NODE_ENV === "development" ? (
-              <Route path="/dev/test" element={<TestView />} />
-            ) : null}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         )}

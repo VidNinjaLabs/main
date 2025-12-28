@@ -348,10 +348,9 @@ export function CaptionsView({
   const language = usePlayerStore((s) => s.caption.selected?.language);
   const captionList = usePlayerStore((s) => s.captionList);
   const getHlsCaptionList = usePlayerStore((s) => s.display?.getCaptionList);
-  const isLoadingExternalSubtitles = usePlayerStore(
-    (s) => s.isLoadingExternalSubtitles,
-  );
   const delay = useSubtitleStore((s) => s.delay);
+  // isLoadingExternalSubtitles removed - subtitles come with provider response
+  const isLoadingExternalSubtitles = false;
 
   // Get combined caption list
   const captions = useMemo(

@@ -1,10 +1,14 @@
-import { t } from "i18next";
-
 import { PROVIDER_TO_IMAGE_MAP } from "@/backend/metadata/traktApi";
 import { Icon, Icons } from "@/components/Icon";
-import { getRTIcon } from "@/utils/rottenTomatoesScraper";
+import i18n from "i18next";
+// Scraper removed - rottenTomatoesScraper deleted
 
 import { DetailsRatingsProps } from "../../types";
+
+const t = i18n.t;
+
+// Stub for deleted scraper functionality
+const getRTIcon = (icon: string) => `/rt-${icon}.svg`;
 
 export function DetailsRatings({
   rtData,

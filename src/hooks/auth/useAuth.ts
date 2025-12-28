@@ -172,5 +172,9 @@ export function useAuth() {
     loggedIn,
     profile,
     logout,
+    restore,
+    importData,
+    login,
+    register: login, // register is just an alias for login in this context
   };
 }

@@ -8,7 +8,7 @@ import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useSubtitleStore } from "@/stores/subtitles";
 import { useEmpheralVolumeStore } from "@/stores/volume";
-import { useWatchPartyStore } from "@/stores/watchParty";
+// import { useWatchPartyStore } from "@/stores/watchParty"; // Removed
 
 export function KeyboardEvents() {
   const router = useOverlayRouter("");
@@ -19,7 +19,7 @@ export function KeyboardEvents() {
   const time = usePlayerStore((s) => s.progress.time);
   const duration = usePlayerStore((s) => s.progress.duration);
   const { setVolume, toggleMute } = useVolume();
-  const isInWatchParty = useWatchPartyStore((s) => s.enabled);
+  const isInWatchParty = false; // WatchParty removed
 
   const { toggleLastUsed } = useCaptions();
   const setShowVolume = useEmpheralVolumeStore((s) => s.setShowVolume);

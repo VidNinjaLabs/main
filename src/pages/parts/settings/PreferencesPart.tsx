@@ -10,9 +10,10 @@ import { FlagIcon } from "@/components/FlagIcon";
 import { Dropdown } from "@/components/form/Dropdown";
 import { SortableListWithToggles } from "@/components/form/SortableListWithToggles";
 import { Heading1 } from "@/components/utils/Text";
-import { appLanguageOptions } from "@/setup/i18n";
 import { isAutoplayAllowed } from "@/utils/autoplay";
 import { getLocaleInfo, sortLangCodes } from "@/utils/language";
+
+import { appLanguageOptions } from "@/setup/i18n";
 
 export function PreferencesPart(props: {
   language: string;

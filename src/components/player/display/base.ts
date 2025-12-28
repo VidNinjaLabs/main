@@ -1,13 +1,10 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
 import Hls, { Level } from "@rev9dev-netizen/vidply.js";
 import fscreen from "fscreen";
 
-import {
-  RULE_IDS,
-  isExtensionActiveCached,
-  setDomainRule,
-} from "@/backend/extension/messaging";
+// Extension imports removed
 import {
   DisplayInterface,
   DisplayInterfaceEvents,
@@ -286,7 +283,11 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 hls?.startLoad();
                 // Set a timeout - if still failing after 5s, skip to next source
                 setTimeout(() => {
-                  if (hls && !videoElement?.paused && videoElement?.readyState === 0) {
+                  if (
+                    hls &&
+                    !videoElement?.paused &&
+                    videoElement?.readyState === 0
+                  ) {
                     console.warn(
                       "[VidPly] Recovery failed, skipping to next source...",
                     );
@@ -344,38 +345,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           setupQualityForHls();
           reportAudioTracks();
 
-          if (isExtensionActiveCached()) {
-            hls.on(Hls.Events.LEVEL_LOADED, async (_, data) => {
-              const chunkUrlsDomains = data.details.fragments.map(
-                (v) => new URL(v.url).hostname,
-              );
-              const chunkUrls = [...new Set(chunkUrlsDomains)];
-
-              await setDomainRule({
-                ruleId: RULE_IDS.SET_DOMAINS_HLS,
-                targetDomains: chunkUrls,
-                requestHeaders: {
-                  ...src.preferredHeaders,
-                  ...src.headers,
-                },
-              });
-            });
-            hls.on(Hls.Events.AUDIO_TRACK_LOADED, async (_, data) => {
-              const chunkUrlsDomains = data.details.fragments.map(
-                (v) => new URL(v.url).hostname,
-              );
-              const chunkUrls = [...new Set(chunkUrlsDomains)];
-
-              await setDomainRule({
-                ruleId: RULE_IDS.SET_DOMAINS_HLS_AUDIO,
-                targetDomains: chunkUrls,
-                requestHeaders: {
-                  ...src.preferredHeaders,
-                  ...src.headers,
-                },
-              });
-            });
-          }
+          // Extension event listeners removed
         });
         hls.on(Hls.Events.LEVEL_SWITCHED, () => {
           if (!hls) return;

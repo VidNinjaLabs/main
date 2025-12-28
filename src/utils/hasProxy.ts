@@ -1,12 +1,7 @@
-import { isExtensionActive } from "@/backend/extension/messaging";
 import { useAuthStore } from "@/stores/auth";
 
-let hasExtension: boolean | null = null;
-
+// Extension functionality removed - only check for configured proxy
 export async function hasProxyCheck(): Promise<boolean> {
-  if (hasExtension === null) {
-    hasExtension = await isExtensionActive();
-  }
   const hasProxy = Boolean(useAuthStore.getState().proxySet);
-  return hasExtension || hasProxy;
+  return hasProxy;
 }

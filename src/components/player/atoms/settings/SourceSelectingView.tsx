@@ -105,35 +105,42 @@ export function SourceSelectionView({
   // Track which source is currently loading
   const [loadingSourceId, setLoadingSourceId] = useState<string | null>(null);
   const [errorSourceId, setErrorSourceId] = useState<string | null>(null);
+  const lastFetchedSourceId = useRef<string | null>(null);
+
+  const performPlay = usePlayerStore((s) => s.play);
+  const performPause = usePlayerStore((s) => s.pause);
+  const setIsLoading = usePlayerStore((s) => s.setIsLoading);
 
   // Use scraping hook for the selected source
   const { run, loading, errored } = useSourceScraping(loadingSourceId, id);
 
   // Start scraping when a source is selected
   useEffect(() => {
-    if (loadingSourceId) {
+    if (loadingSourceId && lastFetchedSourceId.current !== loadingSourceId) {
+      lastFetchedSourceId.current = loadingSourceId; // Mark as fetched immediately
       setErrorSourceId(null);
-      run().catch(() => {
-        setErrorSourceId(loadingSourceId);
-        setLoadingSourceId(null);
-      });
+      run()
+        .then(() => {
+          setLoadingSourceId(null);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setErrorSourceId(loadingSourceId);
+          setLoadingSourceId(null);
+          setIsLoading(false);
+          performPlay();
+        });
     }
-  }, [loadingSourceId, run]);
-
-  // Reset loading state when scraping completes successfully
-  useEffect(() => {
-    if (!loading && loadingSourceId && !errored) {
-      setLoadingSourceId(null);
-    }
-  }, [loading, loadingSourceId, errored]);
+  }, [loadingSourceId, run, performPlay, setIsLoading]);
 
   // Handle errors
   useEffect(() => {
     if (errored && loadingSourceId) {
       setErrorSourceId(loadingSourceId);
       setLoadingSourceId(null);
+      setIsLoading(false);
     }
-  }, [errored, loadingSourceId]);
+  }, [errored, loadingSourceId, setIsLoading]);
 
   const sources = useMemo(() => {
     if (!metaType) return [];
@@ -188,7 +195,10 @@ export function SourceSelectionView({
   ]);
 
   const handleSourceClick = (sourceId: string) => {
+    if (loadingSourceId === sourceId) return;
     onChoose?.(sourceId);
+    performPause();
+    setIsLoading(true);
     setLoadingSourceId(sourceId);
     setErrorSourceId(null);
   };

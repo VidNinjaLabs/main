@@ -5,10 +5,7 @@ import { convertSubtitlesToSrt } from "@/components/player/utils/captions";
 import { CaptionListItem } from "@/stores/player/slices/source";
 import { SimpleCache } from "@/utils/cache";
 
-import {
-  isExtensionActiveCached,
-  sendExtensionRequest,
-} from "../extension/messaging";
+// Extension removed
 
 export const subtitleTypeList = list().map((type) => `.${type}`);
 const downloadCache = new SimpleCache<string, string>();
@@ -26,27 +23,13 @@ export async function downloadCaption(
 
   let data: string | undefined;
   if (caption.needsProxy) {
-    if (isExtensionActiveCached()) {
-      const extensionResponse = await sendExtensionRequest({
-        url: caption.url,
-        method: "GET",
-      });
-      if (
-        !extensionResponse?.success ||
-        typeof extensionResponse.response.body !== "string"
-      ) {
-        throw new Error("failed to get caption data from extension");
-      }
-
-      data = extensionResponse.response.body;
-    } else {
-      data = await proxiedFetch<string>(caption.url, {
-        responseType: "text",
-        headers: {
-          "Accept-Charset": "utf-8",
-        },
-      });
-    }
+    // Extension removed - always use proxy
+    data = await proxiedFetch<string>(caption.url, {
+      responseType: "text",
+      headers: {
+        "Accept-Charset": "utf-8",
+      },
+    });
   } else {
     const response = await fetch(caption.url);
     const contentType = response.headers.get("content-type") || "";

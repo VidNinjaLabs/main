@@ -11,11 +11,11 @@ import { ProgressSaver } from "@/components/player/internals/ProgressSaver";
 import { ThumbnailScraper } from "@/components/player/internals/ThumbnailScraper";
 import { VideoClickTarget } from "@/components/player/internals/VideoClickTarget";
 import { VideoContainer } from "@/components/player/internals/VideoContainer";
-import { WatchPartyResetter } from "@/components/player/internals/WatchPartyResetter";
+// import { WatchPartyResetter } from "@/components/player/internals/WatchPartyResetter"; // Removed
 import { PlayerHoverState } from "@/stores/player/slices/interface";
 import { usePlayerStore } from "@/stores/player/store";
 
-import { WatchPartyReporter } from "../internals/Backend/WatchPartyReporter";
+// import { WatchPartyReporter } from "../internals/Backend/WatchPartyReporter"; // Removed
 
 export interface PlayerProps {
   children?: ReactNode;
@@ -97,9 +97,9 @@ export function Container(props: PlayerProps) {
         <ProgressSaver />
         <KeyboardEvents />
         <MediaSession />
-        <WatchPartyReporter />
+        {/* <WatchPartyReporter /> Removed */}
         <SkipTracker />
-        <WatchPartyResetter />
+        {/* <WatchPartyResetter /> Removed */}
         <div className="relative h-screen overflow-hidden">
           <VideoClickTarget showingControls={props.showingControls} />
           <HeadUpdater />

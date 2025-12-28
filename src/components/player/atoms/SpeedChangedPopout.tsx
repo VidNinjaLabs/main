@@ -1,4 +1,4 @@
-import { t } from "i18next";
+import i18n from "i18next";
 import { Gauge } from "lucide-react";
 
 import { LucideIcon } from "@/components/LucideIcon";
@@ -6,6 +6,8 @@ import { Flare } from "@/components/utils/Flare";
 import { Transition } from "@/components/utils/Transition";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { usePlayerStore } from "@/stores/player/store";
+
+const t = i18n.t;
 
 export function SpeedChangedPopout() {
   const isSpeedBoosted = usePlayerStore((s) => s.interface.isSpeedBoosted);

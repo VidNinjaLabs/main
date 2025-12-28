@@ -2,8 +2,7 @@ import { useAsyncFn } from "react-use";
 
 import { febboxClient } from "@/backend/api/febbox";
 import { backendClient } from "@/backend/api/vidninja";
-import { isExtensionActiveCached } from "@/backend/extension/messaging";
-import { prepareStream } from "@/backend/extension/streams";
+// Extension imports removed
 import {
   scrapeSourceOutputToProviderMetric,
   useReportProviders,
@@ -53,6 +52,9 @@ export function useEmbedScraping(
   };
 }
 
+// Global cache for in-flight requests to prevent duplicates across component remounts
+const inflightRequests = new Map<string, Promise<any>>();
+
 export function useSourceScraping(sourceId: string | null, routerId: string) {
   const meta = usePlayerStore((s) => s.meta);
   const setSource = usePlayerStore((s) => s.setSource);
@@ -71,155 +73,173 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
 
   const [request, run] = useAsyncFn(async () => {
     if (!sourceId || !meta) return null;
-    setEmbedId(null);
-    const scrapeMedia = metaToScrapeMedia(meta);
-    const startTime = performance.now();
 
-    try {
-      let runOutput: RunOutput | null = null;
+    // Deduplication Key
+    const cacheKey = `${meta.tmdbId}:${sourceId}`;
 
-      // Route to correct client based on source ID
-      if (sourceId === "febbox") {
-        // Use Febbox client
-        const febboxStream = await febboxClient.getStream({
-          tmdbId: scrapeMedia.tmdbId,
-          type: scrapeMedia.type,
-          title: scrapeMedia.title,
-          season: scrapeMedia.season?.number,
-          episode: scrapeMedia.episode?.number,
-        });
+    // Return existing promise if already in flight
+    if (inflightRequests.has(cacheKey)) {
+      return inflightRequests.get(cacheKey);
+    }
 
-        if (febboxStream) {
-          runOutput = {
-            sourceId,
-            provider: "Febbox",
-            streamType: "hls",
-            selectedServer: "Primary",
-            url: febboxStream.playlist,
-            servers: { Primary: febboxStream.playlist },
-            subtitles: [],
-          };
-        }
-      } else {
-        // Use backend client with new API - with timeout
-        const response = await withTimeout(
-          scrapeMedia.type === "movie"
-            ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
-            : backendClient.scrapeShow(
-                scrapeMedia.tmdbId,
-                scrapeMedia.season?.number ?? 1,
-                scrapeMedia.episode?.number ?? 1,
-                sourceId,
-              ),
-          TIMEOUTS.PROVIDER_SCRAPE,
-          `Provider ${sourceId} timed out`,
-        );
+    const requestPromise = (async () => {
+      const scrapeMedia = metaToScrapeMedia(meta);
+      const startTime = performance.now();
 
-        // Check if we got valid servers
-        if (response.servers && Object.keys(response.servers).length > 0) {
-          // Auto-select best server
-          const bestServer = await selectBestServer(response.servers);
+      try {
+        let runOutput: RunOutput | null = null;
 
-          if (bestServer) {
+        // Route to correct client based on source ID
+        if (sourceId === "febbox") {
+          // Use Febbox client
+          const febboxStream = await febboxClient.getStream({
+            tmdbId: scrapeMedia.tmdbId,
+            type: scrapeMedia.type,
+            title: scrapeMedia.title,
+            season: scrapeMedia.season?.number,
+            episode: scrapeMedia.episode?.number,
+          });
+
+          if (febboxStream) {
             runOutput = {
               sourceId,
-              provider: sourceId,
-              streamType: response.type,
-              selectedServer: bestServer.server,
-              url: bestServer.url,
-              servers: response.servers,
-              subtitles: response.subtitles,
-              headers: response.headers,
+              provider: "Febbox",
+              streamType: "hls",
+              selectedServer: "Primary",
+              url: febboxStream.playlist,
+              servers: { Primary: febboxStream.playlist },
+              subtitles: [],
             };
-          } else {
-            analytics.track("stream_failure", {
-              provider: sourceId,
-              server: "all",
-              error: "All servers failed validation",
-            });
+          }
+        } else {
+          // Use backend client with new API - with timeout
+          const response = await withTimeout(
+            scrapeMedia.type === "movie"
+              ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
+              : backendClient.scrapeShow(
+                  scrapeMedia.tmdbId,
+                  scrapeMedia.season?.number ?? 1,
+                  scrapeMedia.episode?.number ?? 1,
+                  sourceId,
+                ),
+            TIMEOUTS.PROVIDER_SCRAPE,
+            `Provider ${sourceId} timed out`,
+          );
+
+          // Check if we got valid servers
+          if (response.servers && Object.keys(response.servers).length > 0) {
+            // Auto-select best server
+            const bestServer = await selectBestServer(response.servers);
+
+            if (bestServer) {
+              runOutput = {
+                sourceId,
+                provider: sourceId,
+                streamType: response.type,
+                selectedServer: bestServer.server,
+                url: bestServer.url,
+                servers: response.servers,
+                subtitles: response.subtitles,
+                headers: response.headers,
+              };
+            } else {
+              analytics.track("stream_failure", {
+                provider: sourceId,
+                server: "all",
+                error: "All servers failed validation",
+              });
+            }
           }
         }
-      }
 
-      const duration = Math.round(performance.now() - startTime);
+        const duration = Math.round(performance.now() - startTime);
 
-      if (runOutput) {
-        // Track successful scrape
-        analytics.track("scrape_complete", {
-          provider: runOutput.provider,
-          success: true,
-          duration_ms: duration,
-          servers_found: Object.keys(runOutput.servers).length,
-        });
+        if (runOutput) {
+          // Track successful scrape
+          analytics.track("scrape_complete", {
+            provider: runOutput.provider,
+            success: true,
+            duration_ms: duration,
+            servers_found: Object.keys(runOutput.servers).length,
+          });
 
+          report([
+            scrapeSourceOutputToProviderMetric(
+              meta,
+              sourceId,
+              null,
+              "success",
+              null,
+            ),
+          ]);
+
+          // Extension removed - prepareStream call removed
+
+          setEmbedId(null);
+          setCaption(null);
+          setSource(
+            convertRunoutputToSource(runOutput),
+            convertProviderCaption(runOutput.subtitles),
+            getSavedProgress(progressItems, meta),
+            [],
+          );
+          setSourceId(sourceId);
+
+          if (enableLastSuccessfulSource) {
+            setLastSuccessfulSource(sourceId);
+          }
+
+          // Track stream play
+          analytics.track("stream_play", {
+            provider: runOutput.provider,
+            server: runOutput.selectedServer,
+            tmdbId: scrapeMedia.tmdbId,
+            type: scrapeMedia.type,
+          });
+
+          router.close();
+          return null;
+        }
+
+        // No stream found
         report([
           scrapeSourceOutputToProviderMetric(
             meta,
             sourceId,
             null,
-            "success",
+            "notfound",
             null,
           ),
         ]);
+        throw new Error("No stream found");
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(`Failed to scrape ${sourceId}`, err);
 
-        if (isExtensionActiveCached()) await prepareStream(runOutput as any);
-
-        setEmbedId(null);
-        setCaption(null);
-        setSource(
-          convertRunoutputToSource(runOutput),
-          convertProviderCaption(runOutput.subtitles),
-          getSavedProgress(progressItems, meta),
-          [],
-        );
-        setSourceId(sourceId);
-
-        if (enableLastSuccessfulSource) {
-          setLastSuccessfulSource(sourceId);
-        }
-
-        // Track stream play
-        analytics.track("stream_play", {
-          provider: runOutput.provider,
-          server: runOutput.selectedServer,
-          tmdbId: scrapeMedia.tmdbId,
-          type: scrapeMedia.type,
+        analytics.track("stream_failure", {
+          provider: sourceId,
+          server: "unknown",
+          error: err instanceof Error ? err.message : String(err),
         });
 
-        router.close();
-        return null;
+        const status =
+          err instanceof Error && err.message.includes("Couldn't find")
+            ? "notfound"
+            : "failed";
+        report([
+          scrapeSourceOutputToProviderMetric(meta, sourceId, null, status, err),
+        ]);
+        throw err;
       }
+    })();
 
-      // No stream found
-      report([
-        scrapeSourceOutputToProviderMetric(
-          meta,
-          sourceId,
-          null,
-          "notfound",
-          null,
-        ),
-      ]);
-      throw new Error("No stream found");
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(`Failed to scrape ${sourceId}`, err);
+    // Store the promise in the cache
+    inflightRequests.set(cacheKey, requestPromise);
 
-      analytics.track("stream_failure", {
-        provider: sourceId,
-        server: "unknown",
-        error: err instanceof Error ? err.message : String(err),
-      });
-
-      const status =
-        err instanceof Error && err.message.includes("Couldn't find")
-          ? "notfound"
-          : "failed";
-      report([
-        scrapeSourceOutputToProviderMetric(meta, sourceId, null, status, err),
-      ]);
-      throw err;
-    }
+    // Clean up cache when promise settles
+    return requestPromise.finally(() => {
+      inflightRequests.delete(cacheKey);
+    });
   }, [
     sourceId,
     meta,
@@ -241,4 +261,12 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
     ),
     errored: !!request.error,
   };
+}
+
+function isExtensionActiveCached() {
+  throw new Error("Function not implemented.");
+}
+
+function prepareStream(arg0: any) {
+  throw new Error("Function not implemented.");
 }

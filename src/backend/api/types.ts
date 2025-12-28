@@ -47,6 +47,13 @@ export interface SubtitleTrack {
   hearingImpaired: boolean;
 }
 
+export interface VidNinjaStream {
+  type: "hls" | "file";
+  playlist?: string;
+  qualities?: Record<string, { url: string }>;
+  headers?: Record<string, string>;
+}
+
 export interface StreamResponse {
   type: "hls" | "file";
   servers: Record<string, string>;
