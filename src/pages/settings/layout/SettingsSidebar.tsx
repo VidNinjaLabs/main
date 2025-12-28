@@ -1,12 +1,14 @@
-import { Link, Palette, Settings, Store, Subtitles, User } from "lucide-react";
+import { Link, Palette, Settings, Store, Subtitles, User, Shield } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { BrandPill } from "@/components/layout/BrandPill";
 import { SidebarLink, SidebarSection } from "@/components/layout/Sidebar";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 export function SettingsSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuthContext();
 
   // Map the hash to category IDs that Settings.tsx expects
   const getActiveSection = () => {
@@ -18,6 +20,7 @@ export function SettingsSidebar() {
       "settings-captions": "settings-captions",
       "settings-connection": "settings-connection",
       "settings-providers": "settings-providers",
+      "settings-admin": "settings-admin",
     };
     return hashToCategoryMap[hash] || "settings-account";
   };
@@ -97,6 +100,19 @@ export function SettingsSidebar() {
             Providers
           </SidebarLink>
         </SidebarSection>
+
+        {/* Admin Section - Only visible to admins */}
+        {user?.role === "ADMIN" && (
+          <SidebarSection title="Administration" className="mt-6">
+            <SidebarLink
+              icon={Shield}
+              active={activeSection === "settings-admin"}
+              onClick={() => navigateToSection("settings-admin")}
+            >
+              Admin Dashboard
+            </SidebarLink>
+          </SidebarSection>
+        )}
       </div>
     </div>
   );

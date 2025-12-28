@@ -1,5 +1,3 @@
-import i18n from "i18next";
-const t = i18n.t;
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -19,8 +17,11 @@ import { SubPageLayout } from "@/pages/layouts/SubPageLayout";
 import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { MediaItem } from "@/utils/mediaTypes";
+import i18n from "i18next";
 
 import { MediaCarousel } from "./components/MediaCarousel";
+
+const t = i18n.t;
 
 export function DiscoverMore() {
   const [curatedLists, setCuratedLists] = useState<CuratedMovieList[]>([]);

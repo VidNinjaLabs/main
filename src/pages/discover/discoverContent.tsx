@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import i18n from "i18next";
 import { useRef } from "react";
 
 import { WideContainer } from "@/components/layout/WideContainer";
@@ -7,6 +6,7 @@ import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { useProgressStore } from "@/stores/progress";
 import { MediaItem } from "@/utils/mediaTypes";
+import i18n from "i18next";
 
 import { DiscoverNavigation } from "./components/DiscoverNavigation";
 import type { FeaturedMedia } from "./components/FeaturedCarousel";

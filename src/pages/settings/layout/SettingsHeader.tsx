@@ -30,9 +30,7 @@ export function SettingsHeader(props: SettingsHeaderProps) {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-settings-card-background border border-settings-card-border">
-            <div className="w-8 h-8 rounded-full bg-settings-card-altBackground flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
+            <div className="rounded-full bg-settings-card-altBackground flex items-center justify-center" />
             <span className="text-sm font-medium text-white hidden sm:inline">
               {user?.profile?.profile?.name ||
                 user?.email?.split("@")[0] ||

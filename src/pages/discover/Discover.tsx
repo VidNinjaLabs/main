@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Helmet } from "react-helmet-async";
 
 import { WideContainer } from "@/components/layout/WideContainer";

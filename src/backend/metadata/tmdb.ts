@@ -203,8 +203,6 @@ export async function get<T>(url: string, params?: object): Promise<T> {
   const userLanguage = useLanguageStore.getState().language;
   const formattedLanguage = getTmdbLanguageCode(userLanguage);
 
-  if (!apiKey) throw new Error("TMDB API key not set");
-
   // Check cache first
   const cacheKey: TMDBCacheKey = {
     url,
@@ -249,7 +247,7 @@ export async function get<T>(url: string, params?: object): Promise<T> {
   }
 
   if (!result!) {
-    // Only use proxy - direct TMDB access doesn't work
+    // Use TMDB proxy - no auth header needed, proxy handles it
     result = await mwFetch<T>(encodeURI(url), {
       headers: tmdbHeaders,
       baseURL: tmdbBaseUrl1,

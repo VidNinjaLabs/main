@@ -18,8 +18,6 @@ export function initializeVidNinja() {
   backendClient.configure({
     baseUrl: backendUrl,
   });
-
-  console.log("Backend client initialized with URL:", backendUrl);
 }
 
 /**

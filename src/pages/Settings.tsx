@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unused-prop-types */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useAsyncFn } from "react-use";
 
@@ -25,10 +24,12 @@ import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useSettingsState } from "@/hooks/useSettingsState";
 import { AccountActionsPart } from "@/pages/parts/settings/AccountActionsPart";
 import { AccountEditPart } from "@/pages/parts/settings/AccountEditPart";
+import { AdminDashboardPart } from "@/pages/parts/settings/AdminDashboardPart";
 import { AppearancePart } from "@/pages/parts/settings/AppearancePart";
 import { CaptionsPart } from "@/pages/parts/settings/CaptionsPart";
 import { ConnectionsPart } from "@/pages/parts/settings/ConnectionsPart";
 import { DeviceListPart } from "@/pages/parts/settings/DeviceListPart";
+import { PasswordChangePart } from "@/pages/parts/settings/PasswordChangePart";
 import { PreferencesPart } from "@/pages/parts/settings/PreferencesPart";
 import { ProvidersPart } from "@/pages/parts/settings/ProvidersPart";
 import { PageTitle } from "@/pages/parts/util/PageTitle";
@@ -40,6 +41,7 @@ import { usePreferencesStore } from "@/stores/preferences";
 import { useSubtitleStore } from "@/stores/subtitles";
 import { usePreviewThemeStore, useThemeStore } from "@/stores/theme";
 import { scrollToHash } from "@/utils/scroll";
+import { useTranslation } from "react-i18next";
 
 function SettingsLayout(props: {
   className?: string;
@@ -163,6 +165,7 @@ export function SettingsPage() {
         "settings-captions",
         "settings-connection",
         "settings-providers",
+        "settings-admin",
       ];
 
       if (validCategories.includes(hashId)) {
@@ -183,6 +186,7 @@ export function SettingsPage() {
         "settings-captions",
         "settings-connection",
         "settings-providers",
+        "settings-admin",
       ];
 
       // Map sub-section hashes to their parent categories
@@ -234,6 +238,7 @@ export function SettingsPage() {
           "settings-captions",
           "settings-connection",
           "settings-providers",
+          "settings-admin",
         ];
         const subSectionToCategory: Record<string, string> = {
           "source-order": "settings-preferences",
@@ -785,6 +790,11 @@ export function SettingsPage() {
 
                 <Divider marginClass="my-4" />
 
+                {/* Password Change */}
+                <PasswordChangePart />
+
+                <Divider marginClass="my-4" />
+
                 {/* Logout Button */}
                 <div className="flex justify-between items-center">
                   <div>
@@ -911,6 +921,15 @@ export function SettingsPage() {
             />
           </div>
         )}
+        {/* Admin Dashboard - Only visible to admins */}
+        {authUser?.role === "ADMIN" &&
+          (searchQuery.trim() ||
+            !selectedCategory ||
+            selectedCategory === "settings-admin") && (
+            <div id="settings-admin">
+              <AdminDashboardPart />
+            </div>
+          )}
       </SettingsLayout>
       <Transition
         animation="fade"

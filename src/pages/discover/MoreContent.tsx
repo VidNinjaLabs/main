@@ -1,6 +1,5 @@
 import { ArrowLeft } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useIntersection, useWindowSize } from "react-use";
 
@@ -22,6 +21,7 @@ import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { useProgressStore } from "@/stores/progress";
 import { MediaItem } from "@/utils/mediaTypes";
+import { useTranslation } from "react-i18next";
 
 interface MoreContentProps {
   onShowDetails?: (media: MediaItem) => void;

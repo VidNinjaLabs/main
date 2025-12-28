@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { get } from "@/backend/metadata/tmdb";
 import {
@@ -43,6 +42,7 @@ import type {
 import { conf } from "@/setup/config";
 import { useLanguageStore } from "@/stores/language";
 import { getTmdbLanguageCode } from "@/utils/language";
+import { useTranslation } from "react-i18next";
 
 // Re-export types for backward compatibility
 export type {

@@ -5,7 +5,6 @@ import { Link, To, useNavigate } from "react-router-dom";
 
 import { SearchBarInput } from "@/components/form/SearchBar";
 import { LinksDropdown } from "@/components/LinksDropdown";
-import { Lightbar } from "@/components/utils/Lightbar";
 import { useRandomTranslation } from "@/hooks/useRandomTranslation";
 import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { BlurEllipsis } from "@/pages/layouts/SubPageLayout";
@@ -70,11 +69,7 @@ export function Navigation(props: NavigationProps) {
           style={{
             top: `${bannerHeight}px`,
           }}
-        >
-          <div className="absolute inset-x-0 -mt-[22%] flex items-center sm:mt-0">
-            <Lightbar noParticles={enableLowPerformanceMode} />
-          </div>
-        </div>
+        />
       ) : null}
 
       {/* backgrounds - these are seperate because of z-index issues */}
@@ -172,27 +167,20 @@ export function Navigation(props: NavigationProps) {
               </div>
             )}
             <div className="relative pointer-events-auto flex items-center space-x-3">
-              {!enableLowPerformanceMode &&
-                window.location.pathname === "/discover" && (
-                  <a
-                    onClick={() => handleClick("/browse")}
-                    rel="noreferrer"
-                    className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200"
-                  >
-                    <Search size={28} />
-                  </a>
-                )}
-              {/* Hide settings icon on mobile browse page, show on desktop */}
+              {window.location.pathname === "/discover" && (
+                <a
+                  onClick={() => handleClick("/browse")}
+                  rel="noreferrer"
+                  className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200"
+                >
+                  <Search size={28} />
+                </a>
+              )}
+              {/* Settings icon - now visible on all screen sizes */}
               {!props.hideSettings &&
                 (!window.location.pathname.startsWith("/browse") ||
                   window.innerWidth >= 768) && (
-                  <div
-                    className={
-                      window.location.pathname === "/discover"
-                        ? "hidden md:block"
-                        : ""
-                    }
-                  >
+                  <div>
                     <LinksDropdown>
                       <a className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer bg-white/10 hover:bg-white/30 transition-all duration-200">
                         <Settings size={28} />

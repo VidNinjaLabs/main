@@ -29,20 +29,42 @@ export function initializeChromecast() {
     (window as any).__onGCastApiAvailable = (isAvailable: boolean) => {
       try {
         if (isAvailable && (window as any).cast?.framework) {
-          const context = (
-            window as any
-          ).cast.framework.CastContext.getInstance();
-          context.setOptions({
-            receiverApplicationId: (window as any).chrome?.cast?.media
-              ?.DEFAULT_MEDIA_RECEIVER_APP_ID,
-            autoJoinPolicy: (window as any).cast.framework.AutoJoinPolicy
-              .ORIGIN_SCOPED,
-          });
+          const castFramework = (window as any).cast.framework;
+
+          // Check if CastContext and required properties exist
+          if (!castFramework.CastContext) {
+            console.warn("Chromecast CastContext not available");
+            init(false);
+            return;
+          }
+
+          const context = castFramework.CastContext.getInstance();
+
+          // Build options with defensive checks
+          const options: any = {};
+
+          // Set receiver application ID if available
+          if (
+            (window as any).chrome?.cast?.media?.DEFAULT_MEDIA_RECEIVER_APP_ID
+          ) {
+            options.receiverApplicationId = (
+              window as any
+            ).chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+          }
+
+          // Set auto join policy if available
+          if (castFramework.AutoJoinPolicy?.ORIGIN_SCOPED !== undefined) {
+            options.autoJoinPolicy = castFramework.AutoJoinPolicy.ORIGIN_SCOPED;
+          }
+
+          context.setOptions(options);
+          init(true);
+        } else {
+          init(false);
         }
       } catch (e) {
         console.warn("Chromecast initialization error:", e);
-      } finally {
-        init(!!isAvailable);
+        init(false);
       }
     };
   }

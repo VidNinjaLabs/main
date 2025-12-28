@@ -1,9 +1,6 @@
-// I'm sorry this is so confusing 😭
-
 import classNames from "classnames";
 import { Edit, Ellipsis, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { mediaItemToId } from "@/backend/metadata/tmdb";
@@ -13,6 +10,7 @@ import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { usePreferencesStore } from "@/stores/preferences";
 import { MediaItem } from "@/utils/mediaTypes";
+import { useTranslation } from "react-i18next";
 
 import { MediaBookmarkButton } from "./MediaBookmark";
 import { IconPatch } from "../buttons/IconPatch";
@@ -178,7 +176,7 @@ function MediaCardContent({
       />
       <Flare.Child
         className={`pointer-events-auto relative mb-2 p-[0.4em] transition-transform duration-300 ${
-          canLink ? "group-hover:scale-95" : "opacity-60"
+          canLink ? "" : "opacity-60"
         }`}
       >
         <div
@@ -194,6 +192,21 @@ function MediaCardContent({
               : "url(/placeholder.png)",
           }}
         >
+          {/* Play button overlay - Desktop only */}
+          {canLink && (
+            <div className="absolute inset-0 hidden md:flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110">
+                <svg
+                  className="w-8 h-8 text-black ml-1"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          )}
+
           {series ? (
             <div
               className={[
@@ -268,11 +281,14 @@ function MediaCardContent({
           </div>
         </div>
 
-        <h1 className="mb-1 line-clamp-3 max-h-[4.5rem] text-ellipsis break-words font-bold text-white">
+        <h1 className="mb-1 line-clamp-3 max-h-[4.5rem] text-ellipsis break-words font-bold text-white text-sm md:text-base">
           <span>{media.title}</span>
         </h1>
         <div className="media-info-container justify-content-center flex flex-wrap">
-          <DotList className="text-xs" content={dotListContent} />
+          <DotList
+            className="text-[10px] md:text-xs"
+            content={dotListContent}
+          />
         </div>
 
         {!closable && (

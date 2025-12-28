@@ -1,30 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import classNames from "classnames";
 import {
-  ArrowRight,
-  CircleHelp,
   LogIn,
   LogOut,
   LucideIcon as LucideIconType,
   Settings,
-  TrendingUp,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { base64ToBuffer, decryptData } from "@/backend/accounts/crypto";
-import { getRoomStatuses } from "@/backend/player/status";
 import { UserAvatar } from "@/components/Avatar";
 import { Icon, Icons } from "@/components/Icon";
-import { Spinner } from "@/components/layout/Spinner";
 import { LucideIcon } from "@/components/LucideIcon";
 import { Transition } from "@/components/utils/Transition";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/auth/useAuth";
-import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useAuthStore } from "@/stores/auth";
-import { usePreferencesStore } from "@/stores/preferences";
+import { useTranslation } from "react-i18next";
 
 function Divider() {
   return <hr className="border-0 w-full h-px bg-dropdown-border" />;
@@ -114,119 +107,6 @@ function CircleDropdownLink(props: {
   );
 }
 
-function WatchPartyInputLink() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [code, setCode] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const backendUrl = useBackendUrl();
-  const account = useAuthStore((s) => s.account);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim() || !backendUrl) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await getRoomStatuses(
-        backendUrl,
-        account,
-        code.trim().toUpperCase(),
-      );
-      const users = Object.values(response.users);
-
-      if (users.length === 0) {
-        setError(t("watchParty.emptyRoom"));
-        return;
-      }
-
-      const hostUser = users.find((user) => user[0].isHost)?.[0];
-      if (!hostUser) {
-        setError(t("watchParty.noHost"));
-        return;
-      }
-
-      const { content } = hostUser;
-
-      let targetUrl = "";
-      if (
-        content.type.toLowerCase() === "tv show" &&
-        content.seasonId &&
-        content.episodeId
-      ) {
-        targetUrl = `/media/tmdb-tv-${content.tmdbId}/${content.seasonId}/${content.episodeId}`;
-      } else {
-        targetUrl = `/media/tmdb-movie-${content.tmdbId}`;
-      }
-
-      const url = new URL(targetUrl, window.location.origin);
-      url.searchParams.set("watchparty", code.trim().toUpperCase());
-
-      navigate(url.pathname + url.search);
-      setCode("");
-    } catch (err) {
-      console.error("Failed to fetch room data:", err);
-      setError(t("watchParty.invalidRoom"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className={classNames(
-        "m-3 p-1 rounded font-medium transition-colors duration-100 group",
-        "text-dropdown-text hover:text-white",
-        isFocused ? "bg-dropdown-contentBackground" : "",
-      )}
-    >
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <Icon icon={Icons.WATCH_PARTY} className="text-xl" />
-          <input
-            type="text"
-            value={code}
-            onChange={(e) => {
-              setCode(e.target.value.toUpperCase());
-              setError(null);
-            }}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={t("watchParty.joinParty")}
-            className="bg-transparent border-none outline-none w-full text-base placeholder:text-dropdown-text group-hover:placeholder:text-white"
-            maxLength={10}
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            className={classNames(
-              "p-1 rounded hover:bg-dropdown-contentBackground transition-colors",
-              isLoading && "opacity-50 cursor-not-allowed",
-              !code.trim() && "opacity-0 pointer-events-none",
-            )}
-            disabled={!code.trim() || isLoading}
-          >
-            {isLoading ? (
-              <Spinner className="w-5 h-5" />
-            ) : (
-              <LucideIcon
-                icon={ArrowRight}
-                className="text-xl transition-opacity duration-200"
-              />
-            )}
-          </button>
-        </div>
-        {error && <p className="text-xs text-red-500 px-1 ml-8">{error}</p>}
-      </div>
-    </form>
-  );
-}
-
 export function LinksDropdown(props: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -272,11 +152,6 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
   const toggleOpen = useCallback(() => {
     setOpen((s) => !s);
   }, []);
-
-  const enableLowPerformanceMode = usePreferencesStore(
-    (s) => s.enableLowPerformanceMode,
-  );
-
   return (
     <div className="relative is-dropdown">
       <div
@@ -329,21 +204,6 @@ export function LinksDropdown(props: { children: React.ReactNode }) {
               {t("navigation.menu.settings")}
             </DropdownLink>
           )}
-
-          {/* About and FAQ - always show */}
-          <DropdownLink href="/about" icon={CircleHelp}>
-            {t("navigation.menu.about")}
-          </DropdownLink>
-
-          {/* Discover - always show (unless low performance mode) */}
-          {!enableLowPerformanceMode && (
-            <DropdownLink href="/discover" icon={TrendingUp}>
-              {t("navigation.menu.discover")}
-            </DropdownLink>
-          )}
-
-          {/* Join a Watch Party - always show */}
-          <WatchPartyInputLink />
 
           {/* Logout - only for logged in users */}
           {isLoggedIn ? (
