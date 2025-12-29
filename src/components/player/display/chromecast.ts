@@ -343,5 +343,8 @@ export function makeChromecastDisplayInterface(
     changeAudioTrack() {
       // cant change audio tracks
     },
+    // Provider switch - no-op for chromecast (cast receiver handles its own buffering)
+    pauseFetching() {},
+    resumeFetching() {},
   };
 }

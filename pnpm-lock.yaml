@@ -39,6 +39,9 @@ importers:
       '@ladjs/country-language':
         specifier: ^1.0.3
         version: 1.0.3
+      '@lottiefiles/dotlottie-react':
+        specifier: ^0.17.12
+        version: 0.17.12(react@18.3.1)
       '@marsidev/react-turnstile':
         specifier: ^0.7.2
         version: 0.7.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1389,6 +1392,14 @@ packages:
   '@ladjs/country-language@1.0.3':
     resolution: {integrity: sha512-FJROu9/hh4eqVAGDyfL8vpv6Vb0qKHX1ozYLRZ+beUzD5xFf+3r0J+SVIWKviEa7W524Qvqou+ta1WrsRgzxGw==}
     engines: {node: '>= 14'}
+
+  '@lottiefiles/dotlottie-react@0.17.12':
+    resolution: {integrity: sha512-9GdIiJ6L7i24Av9TWGDLnmS6Ud3skNTbG10/kuZPL6m7qq68UNxyAhiA1/7DOo5y1Y+DWZpdkKXYnXntXdYQZA==}
+    peerDependencies:
+      react: ^17 || ^18 || ^19
+
+  '@lottiefiles/dotlottie-web@0.60.0':
+    resolution: {integrity: sha512-AbQYmyZ8ZihCGPwjdN0e7bJ7W7yVmHG24IXn8kxyFJJNJmSJEaarpOSivu/1KoFGiw86OMmiWcLXrPs1XjT6Qw==}
 
   '@mapbox/node-pre-gyp@2.0.3':
     resolution: {integrity: sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg==}
@@ -6342,6 +6353,13 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@ladjs/country-language@1.0.3': {}
+
+  '@lottiefiles/dotlottie-react@0.17.12(react@18.3.1)':
+    dependencies:
+      '@lottiefiles/dotlottie-web': 0.60.0
+      react: 18.3.1
+
+  '@lottiefiles/dotlottie-web@0.60.0': {}
 
   '@mapbox/node-pre-gyp@2.0.3':
     dependencies:

@@ -46,12 +46,12 @@ export function Title() {
   return (
     <p
       onClick={handleTitleClick}
-      className="cursor-copy transform transition-transform duration-200 hover:scale-105 font-bold text-xl"
+      className="cursor-copy transform transition-transform duration-200 hover:scale-105 font-bold text-xs sm:text-base md:text-xl whitespace-nowrap"
       title={isShifting ? "Copy with current time" : "Copy link"}
     >
       {meta?.title}
       {meta?.releaseYear ? (
-        <span className="font-normal text-type-secondary ml-2">
+        <span className="font-normal text-type-secondary ml-1 text-xs sm:text-sm md:text-base">
           ({meta.releaseYear})
         </span>
       ) : null}

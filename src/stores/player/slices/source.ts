@@ -93,6 +93,9 @@ export interface SourceSlice {
   currentStreamIndex: number;
   // Failed providers (HLS playback errors)
   failedProviders: string[];
+  // Provider switch state
+  isSwitchingProvider: boolean;
+  wasPlayingBeforeSwitch: boolean;
   addFailedProvider(providerId: string): void;
   clearFailedProviders(): void;
   setStatus(status: PlayerStatus): void;
@@ -111,6 +114,9 @@ export interface SourceSlice {
   enableAutomaticQuality(): void;
   redisplaySource(startAt: number): void;
   setCaptionAsTrack(asTrack: boolean): void;
+  // Provider switch - pause/resume current playback
+  pauseCurrentPlayback(): void;
+  resumeCurrentPlayback(): void;
 }
 
 export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
@@ -156,6 +162,8 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
   availableStreams: [],
   currentStreamIndex: 0,
   failedProviders: [],
+  isSwitchingProvider: false,
+  wasPlayingBeforeSwitch: false,
   addFailedProvider(providerId: string) {
     set((s) => {
       if (!s.failedProviders.includes(providerId)) {
@@ -299,6 +307,37 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
   setCaptionAsTrack(asTrack: boolean) {
     set((s) => {
       s.caption.asTrack = asTrack;
+    });
+  },
+  // Provider switch - pause current playback and segment fetching
+  pauseCurrentPlayback() {
+    const store = get();
+    // Only pause if we have an active source and not already switching
+    if (!store.source || store.isSwitchingProvider) return;
+
+    console.log("[Player] Pausing current playback for provider switch");
+    set((s) => {
+      s.isSwitchingProvider = true;
+      s.wasPlayingBeforeSwitch = s.status === playerStatus.PLAYING;
+    });
+    store.display?.pauseFetching();
+  },
+  // Provider switch - resume current playback if new provider failed
+  resumeCurrentPlayback() {
+    const store = get();
+    // Only resume if we were switching and still have a source
+    if (!store.isSwitchingProvider || !store.source) return;
+
+    console.log("[Player] Resuming current playback - new provider failed");
+    set((s) => {
+      s.isSwitchingProvider = false;
+    });
+    // Resume only if we were playing before the switch
+    if (store.wasPlayingBeforeSwitch) {
+      store.display?.resumeFetching();
+    }
+    set((s) => {
+      s.wasPlayingBeforeSwitch = false;
     });
   },
 });

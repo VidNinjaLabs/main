@@ -17,6 +17,7 @@ import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
 import analytics from "@/utils/analytics";
 import { selectBestServer } from "@/utils/serverValidator";
+import { getCachedStream, setCachedStream } from "@/utils/streamCache";
 import { TIMEOUTS, withTimeout } from "@/utils/timeout";
 
 function getSavedProgress(items: Record<string, any>, meta: any): number {
@@ -61,6 +62,9 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
   const setCaption = usePlayerStore((s) => s.setCaption);
   const setSourceId = usePlayerStore((s) => s.setSourceId);
   const setEmbedId = usePlayerStore((s) => (s as any).setEmbedId);
+  // Provider switch - pause/resume methods
+  const pauseCurrentPlayback = usePlayerStore((s) => s.pauseCurrentPlayback);
+  const resumeCurrentPlayback = usePlayerStore((s) => s.resumeCurrentPlayback);
   const progressItems = useProgressStore((s) => s.items);
   const router = useOverlayRouter(routerId);
   const { report } = useReportProviders();
@@ -86,11 +90,26 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
       const scrapeMedia = metaToScrapeMedia(meta);
       const startTime = performance.now();
 
+      // Pause current playback while we fetch the new provider
+      pauseCurrentPlayback();
+
       try {
         let runOutput: RunOutput | null = null;
 
-        // Route to correct client based on source ID
-        if (sourceId === "febbox") {
+        // Check cache first for faster loading
+        const cachedStream = getCachedStream(
+          scrapeMedia.tmdbId,
+          scrapeMedia.type,
+          sourceId,
+          scrapeMedia.season?.number,
+          scrapeMedia.episode?.number,
+        );
+
+        if (cachedStream) {
+          // Use cached stream - much faster!
+          runOutput = cachedStream;
+          console.log(`[StreamCache] Using cached stream for ${sourceId}`);
+        } else if (sourceId === "febbox") {
           // Use Febbox client
           const febboxStream = await febboxClient.getStream({
             tmdbId: scrapeMedia.tmdbId,
@@ -197,11 +216,24 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
             type: scrapeMedia.type,
           });
 
+          // Cache the successful stream for faster replay
+          if (!cachedStream) {
+            setCachedStream(
+              scrapeMedia.tmdbId,
+              scrapeMedia.type,
+              sourceId,
+              runOutput,
+              scrapeMedia.season?.number,
+              scrapeMedia.episode?.number,
+            );
+          }
+
           router.close();
           return null;
         }
 
-        // No stream found
+        // No stream found - resume previous playback
+        resumeCurrentPlayback();
         report([
           scrapeSourceOutputToProviderMetric(
             meta,
@@ -213,6 +245,8 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
         ]);
         throw new Error("No stream found");
       } catch (err) {
+        // Resume previous playback on error
+        resumeCurrentPlayback();
         // eslint-disable-next-line no-console
         console.error(`Failed to scrape ${sourceId}`, err);
 

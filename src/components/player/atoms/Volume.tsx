@@ -13,6 +13,7 @@ import {
   makePercentageString,
   useProgressBar,
 } from "@/hooks/useProgressBar";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { usePlayerStore } from "@/stores/player/store";
 import { canChangeVolume } from "@/utils/detectFeatures";
 
@@ -29,6 +30,7 @@ export function Volume(props: Props) {
   const hovering = usePlayerStore((s) => s.interface.leftControlHovering);
   const volume = usePlayerStore((s) => s.mediaPlaying.volume);
   const { setVolume, toggleMute } = useVolume();
+  const { isMobile } = useIsMobile();
 
   const commitVolume = useCallback(
     (percentage: number) => {
@@ -83,6 +85,9 @@ export function Volume(props: Props) {
     return VolumeHighIcon;
   };
 
+  // On mobile, always show the slider
+  const showSlider = isMobile || hovering || dragging;
+
   return (
     <div
       className={props.className}
@@ -100,7 +105,7 @@ export function Volume(props: Props) {
         </div>
         <div
           className={`linear -ml-2 w-0 overflow-hidden transition-[width,opacity] duration-300 ${
-            hovering || dragging ? "!w-24 opacity-100" : "w-4 opacity-0"
+            showSlider ? "!w-24 opacity-100" : "w-4 opacity-0"
           }`}
         >
           <div
@@ -125,3 +130,4 @@ export function Volume(props: Props) {
     </div>
   );
 }
+

@@ -100,4 +100,7 @@ export interface DisplayInterface extends Listener<DisplayInterfaceEvents> {
   getCaptionList(): CaptionListItem[];
   getSubtitleTracks(): MediaPlaylist[];
   setSubtitlePreference(lang: string): Promise<void>;
+  // Provider switch - pause/resume segment fetching
+  pauseFetching(): void;
+  resumeFetching(): void;
 }

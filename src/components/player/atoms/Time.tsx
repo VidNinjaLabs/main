@@ -1,10 +1,9 @@
-import { useTranslation } from "react-i18next";
-
 import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { VideoPlayerTimeFormat } from "@/stores/player/slices/interface";
 import { usePlayerStore } from "@/stores/player/store";
 import { durationExceedsHour, formatSeconds } from "@/utils/formatSeconds";
 import { uses12HourClock } from "@/utils/uses12HourClock";
+import { useTranslation } from "react-i18next";
 
 export function Time(props: { short?: boolean }) {
   const timeFormat = usePlayerStore((s) => s.interface.timeFormat);
@@ -19,6 +18,11 @@ export function Time(props: { short?: boolean }) {
   const { isSeeking } = usePlayerStore((s) => s.interface);
   const { t } = useTranslation();
   const hasHours = durationExceedsHour(timeDuration);
+
+  // Hide time display when duration is not available (loading/scraping state)
+  if (!timeDuration || timeDuration <= 0) {
+    return null;
+  }
 
   function toggleMode() {
     setTimeFormat(

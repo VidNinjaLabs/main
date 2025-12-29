@@ -14,6 +14,7 @@ import { convertLegacyUrl, isLegacyUrl } from "@/backend/metadata/getmeta";
 import { generateQuickSearchMediaUrl } from "@/backend/metadata/tmdb";
 import { AdMaven } from "@/components/ads/AdMaven";
 import { AdsterraAds, PopAds } from "@/components/ads/PropellerAds";
+import { Spinner } from "@/components/layout/Spinner";
 import { DetailsModal } from "@/components/overlays/detailsModal";
 import { KeyboardCommandsModal } from "@/components/overlays/KeyboardCommandsModal";
 import { NotificationModal } from "@/components/overlays/notificationsModal";
@@ -145,7 +146,7 @@ function App() {
       {loading && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+            <Spinner />
             <p className="text-white text-lg">Loading...</p>
           </div>
         </div>

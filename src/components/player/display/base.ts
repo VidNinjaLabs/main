@@ -854,5 +854,50 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         language: audioTrack.lang ?? "unknown",
       });
     },
+    // Provider switch - fully disconnect and abort all in-flight requests
+    pauseFetching() {
+      console.log("[VidPly] Disconnecting video for provider switch");
+      // Save current time before disconnecting
+      if (videoElement && videoElement.currentTime > 0) {
+        lastValidTime = videoElement.currentTime;
+      }
+      // Emit loading state to show spinner
+      emit("loading", true);
+      if (hls) {
+        // stopLoad cancels pending requests
+        hls.stopLoad();
+        // detachMedia aborts any in-flight segment downloads and clears video
+        hls.detachMedia();
+      }
+      // Clear video src to show black background immediately
+      if (videoElement) {
+        videoElement.pause();
+        // Remove src to show black bg
+        videoElement.removeAttribute("src");
+        videoElement.load(); // Reset to blank state
+      }
+    },
+    // Provider switch - resume segment fetching if provider switch fails
+    resumeFetching() {
+      console.log("[VidPly] Reconnecting video - provider switch failed");
+      if (hls && videoElement && source) {
+        // Reattach and reload the source
+        hls.attachMedia(videoElement);
+        hls.loadSource(processCdnLink(source.url));
+        // Resume at saved position
+        videoElement.currentTime = lastValidTime > 0 ? lastValidTime : startAt;
+      } else if (videoElement && source) {
+        // Native playback - reload the source
+        videoElement.src = processCdnLink(source.url);
+        videoElement.currentTime = lastValidTime > 0 ? lastValidTime : startAt;
+      }
+      // Attempt to resume playback
+      if (videoElement) {
+        videoElement.play().catch(() => {
+          emit("pause", undefined);
+        });
+      }
+      emit("loading", false);
+    },
   };
 }
