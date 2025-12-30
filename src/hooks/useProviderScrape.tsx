@@ -117,34 +117,23 @@ async function getAvailableProviders(): Promise<NormalizedProvider[]> {
   providerFetchPromise = (async () => {
     try {
       // eslint-disable-next-line no-console
-      console.log("[DEBUG] Fetching providers from backend...");
       const response = await backendClient.getProviders();
-      // eslint-disable-next-line no-console
-      console.log("[DEBUG] Backend response:", response);
 
       // Backend returns {sources: [...], embeds: [...]}
       const backendProviders = response.sources || [];
-      // eslint-disable-next-line no-console
-      console.log("[DEBUG] Backend providers:", backendProviders);
 
       const febboxSources = febboxClient.getSources();
-      // eslint-disable-next-line no-console
-      console.log("[DEBUG] Febbox sources:", febboxSources);
 
       // Normalize all providers
       const allProviders = [
         ...backendProviders.map(normalizeProvider),
         ...febboxSources.map(normalizeProvider),
       ];
-      // eslint-disable-next-line no-console
-      console.log("[DEBUG] All normalized providers:", allProviders);
 
       // Cache the result
       cachedProviders = allProviders;
       return allProviders;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("[DEBUG] Failed to fetch providers:", error);
       // Return febbox as fallback if backend fails
       const fallback = febboxClient.getSources().map(normalizeProvider);
       cachedProviders = fallback;

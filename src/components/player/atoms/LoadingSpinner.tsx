@@ -6,5 +6,6 @@ export function LoadingSpinner() {
 
   if (!isLoading) return null;
 
-  return <Spinner className="text-4xl" />;
+  // Use consistent 72px size to match all other loading spinners in app
+  return <Spinner size={96} />;
 }

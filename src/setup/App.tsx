@@ -119,15 +119,6 @@ function App() {
   // Wait for auth to finish loading before showing ads
   const showAds = import.meta.env.PROD && !loading && !isAdmin && !isPremium;
 
-  // Debug logging
-  console.log("[Ad Display Debug]", {
-    isProduction: import.meta.env.PROD,
-    loading,
-    isAdmin,
-    isPremium,
-    showAds,
-  });
-
   const handleButtonClick = () => {
     setShowDowntime(false);
   };

@@ -5,8 +5,8 @@ export interface LoadingProps {
   className?: string;
 }
 
-// Standard size: 48px for consistency with Spinner
-const DEFAULT_SIZE = 48;
+// Standard size: 72px for consistency with Spinner
+const DEFAULT_SIZE = 96;
 
 export function Loading(props: LoadingProps) {
   return (

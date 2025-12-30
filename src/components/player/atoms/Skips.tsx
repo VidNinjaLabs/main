@@ -4,12 +4,12 @@ import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 
-// Size mapping - larger for better visibility
+// Size mapping - skip buttons slightly smaller than play/pause
 const sizeMap = {
-  sm: 24,
-  md: 28,
-  lg: 32,
-  xl: 38,
+  sm: 26,
+  md: 30,
+  lg: 36,
+  xl: 42,
 };
 
 interface SkipIconProps {

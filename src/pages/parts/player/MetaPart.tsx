@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 /* eslint-disable no-console */
 import classNames from "classnames";
 import { useState } from "react";
@@ -118,7 +119,7 @@ export function MetaPart(props: MetaPartProps) {
   }, []);
 
   if (error && error.message === "extension-no-permission") {
-    function sendPage(arg0: { page: string; redirectUrl: string }) {
+    function sendPage(_arg0: { page: string; redirectUrl: string }) {
       throw new Error("Function not implemented.");
     }
 
@@ -256,7 +257,7 @@ export function MetaPart(props: MetaPartProps) {
 
       {/* Centered Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center">
-        <div className="mb-8 scale-150">
+        <div className="mb-8 scale-250">
           <Loading />
         </div>
       </div>

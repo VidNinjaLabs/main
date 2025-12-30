@@ -268,18 +268,12 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 // Check if this is a 403/404 error - don't try to recover, skip to next source
                 const errorStatus = (data as any).response?.code || 0;
                 if (errorStatus === 403 || errorStatus === 404) {
-                  console.warn(
-                    `[VidPly] Fatal ${errorStatus} error, skipping to next source...`,
-                  );
                   emit("tryNextSource", {
                     reason: `Stream returned ${errorStatus}`,
                   });
                   return;
                 }
                 // For other network errors, try to recover
-                console.warn(
-                  "[VidPly] Attempting recovery from network error...",
-                );
                 hls?.startLoad();
                 // Set a timeout - if still failing after 5s, skip to next source
                 setTimeout(() => {
@@ -288,9 +282,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                     !videoElement?.paused &&
                     videoElement?.readyState === 0
                   ) {
-                    console.warn(
-                      "[VidPly] Recovery failed, skipping to next source...",
-                    );
                     emit("tryNextSource", {
                       reason: "Network recovery failed",
                     });
@@ -298,9 +289,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 }, 5000);
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
-                console.warn(
-                  "[VidPly] Attempting recovery from media error...",
-                );
                 hls?.recoverMediaError();
                 break;
               default:
@@ -324,9 +312,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
             }
           } else if (data.details === "manifestLoadError") {
             // Handle manifest load errors specifically - skip to next source
-            console.warn(
-              "[VidPly] Manifest load failed, skipping to next source...",
-            );
             emit("tryNextSource", {
               reason: "Failed to load HLS manifest",
             });
@@ -365,15 +350,9 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
         // VidPly.js Prefetch Events (for debugging)
         if (import.meta.env.DEV) {
-          hls.on("hlsFragPrefetched" as any, (_: any, data: any) => {
-            console.log("[VidPly] Prefetched segment:", data?.frag?.sn);
-          });
-          hls.on("hlsFragPrefetchPromoted" as any, (_: any, data: any) => {
-            console.log("[VidPly] Cache hit! Segment:", data?.frag?.sn);
-          });
-          hls.on("hlsFragPrefetchAborted" as any, (_: any, data: any) => {
-            console.log("[VidPly] Prefetch aborted:", data?.reason);
-          });
+          hls.on("hlsFragPrefetched" as any, (_: any) => {});
+          hls.on("hlsFragPrefetchPromoted" as any, (_: any) => {});
+          hls.on("hlsFragPrefetchAborted" as any, (_: any) => {});
         }
       }
 
@@ -856,7 +835,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     },
     // Provider switch - fully disconnect and abort all in-flight requests
     pauseFetching() {
-      console.log("[VidPly] Disconnecting video for provider switch");
       // Save current time before disconnecting
       if (videoElement && videoElement.currentTime > 0) {
         lastValidTime = videoElement.currentTime;
@@ -879,7 +857,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     },
     // Provider switch - resume segment fetching if provider switch fails
     resumeFetching() {
-      console.log("[VidPly] Reconnecting video - provider switch failed");
       if (hls && videoElement && source) {
         // Reattach and reload the source
         hls.attachMedia(videoElement);

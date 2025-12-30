@@ -7,8 +7,8 @@ interface SpinnerProps {
   size?: number;
 }
 
-// Standard size: 48px everywhere for consistency
-const DEFAULT_SIZE = 48;
+// Standard size: 72px everywhere for consistency
+const DEFAULT_SIZE = 96;
 
 export function Spinner(props: SpinnerProps) {
   const size = props.size || DEFAULT_SIZE;

@@ -3,12 +3,12 @@ import { usePlayerStore } from "@/stores/player/store";
 
 export type PauseAction = "play" | "pause";
 
-// Size mapping
+// Size mapping - play/pause should be larger than other controls
 const sizeMap = {
-  sm: 20,
-  md: 24,
-  lg: 28,
-  xl: 32,
+  sm: 28,
+  md: 34,
+  lg: 40,
+  xl: 48,
 };
 
 function PlayIcon({ size }: { size: number }) {

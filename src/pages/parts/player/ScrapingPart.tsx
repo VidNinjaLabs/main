@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useMountedState } from "react-use";
 
 import {
@@ -16,6 +15,7 @@ import {
   ScrapingSegment,
   useScrape,
 } from "@/hooks/useProviderScrape";
+import { useTranslation } from "react-i18next";
 
 import { WarningPart } from "../util/WarningPart";
 
@@ -105,7 +105,7 @@ export function ScrapingPart(props: ScrapingProps) {
 
       {/* Centered Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center">
-        <div className="mb-8 scale-150">
+        <div className="mb-8 scale-250">
           <Loading />
         </div>
       </div>

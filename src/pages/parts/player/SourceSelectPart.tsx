@@ -1,5 +1,4 @@
 import React, { ReactNode, useEffect, useMemo, useRef } from "react";
-import { useTranslation } from "react-i18next";
 
 import { getCachedMetadata } from "@/backend/api/metadata";
 import { Loading } from "@/components/layout/Loading";
@@ -11,6 +10,7 @@ import { Menu } from "@/components/player/internals/ContextMenu";
 import { SelectableLink } from "@/components/player/internals/ContextMenu/Links";
 import { ScrapeMedia } from "@/hooks/useProviderScrape";
 import { usePreferencesStore } from "@/stores/preferences";
+import { useTranslation } from "react-i18next";
 
 // Embed option component
 function EmbedOption(props: {

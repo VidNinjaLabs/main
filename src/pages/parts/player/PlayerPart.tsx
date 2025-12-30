@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ReactNode, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Player } from "@/components/player";
 import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
@@ -44,8 +44,25 @@ export function PlayerPart(props: PlayerPartProps) {
     "play" | "pause" | "forward" | "backward" | null
   >(null);
 
-  // Show backdrop during all loading states, hide only when video is playing
-  const showBackdrop = status !== playerStatus.PLAYING;
+  // Track if video has ever started playing to distinguish initial load from mid-playback buffering
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+
+  // Once video starts playing (not loading), mark it
+  useEffect(() => {
+    if (status === playerStatus.PLAYING && !isLoading) {
+      setHasStartedPlaying(true);
+    }
+  }, [status, isLoading]);
+
+  // Reset when status goes back to non-playing states (new media)
+  useEffect(() => {
+    if (status !== playerStatus.PLAYING) {
+      setHasStartedPlaying(false);
+    }
+  }, [status]);
+
+  // Show backdrop only during initial loading, not mid-playback buffering
+  const showBackdrop = !hasStartedPlaying;
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Shift") {
