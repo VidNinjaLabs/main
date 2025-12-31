@@ -4,68 +4,132 @@ import { VideoPlayerButton } from "@/components/player/internals/Button";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 
-// Size mapping - skip buttons slightly smaller than play/pause
-const sizeMap = {
-  sm: 26,
-  md: 30,
-  lg: 36,
-  xl: 42,
-};
+// Size mapping - matching Hugeicons responsive sizing
+const sizeMap: Record<"sm" | "md" | "lg" | "xl", { base: number; lg: number }> =
+  {
+    sm: { base: 24, lg: 28 },
+    md: { base: 32, lg: 40 }, // Default for all controls
+    lg: { base: 40, lg: 48 },
+    xl: { base: 56, lg: 64 },
+  };
 
 interface SkipIconProps {
-  size: number;
+  baseSize: number;
+  lgSize: number;
   isAnimating: boolean;
 }
 
-function SkipForwardIcon({ size, isAnimating }: SkipIconProps) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 250 250"
-      fill="currentColor"
-    >
+function SkipForwardIcon({ baseSize, lgSize, isAnimating }: SkipIconProps) {
+  const svgContent = (
+    <>
       {/* Circle with arrow - ANIMATED */}
       <path
-        d="M125 250C56 250 0 194 0 125S56 0 125 0h6c9 0 17 1 20 8 4 8-1 14-6 22l-13 18c-3 4-8 5-12 2s-5-8-2-12l13-18c1-1 1-2 2-2h-8C66 18 17 66 17 126c0 59 48 108 108 108 59 0 108-48 108-108 0-34-16-66-43-86-4-3-5-8-2-12s8-5 12-2c31 23 50 61 50 100 0 69-56 125-125 125z"
+        d="M12 5L13.1039 3.45459C13.5149 2.87911 13.7205 2.59137 13.5907 2.32411C13.4609 2.05684 13.1311 2.04153 12.4714 2.01092C12.3152 2.00367 12.158 2 12 2C6.4772 2 2 6.47715 2 12C2 17.5228 6.4772 22 12 22C17.5229 22 22 17.5228 22 12C22 8.72836 20.4289 5.82368 18 3.99927"
         style={{
-          transformOrigin: "125px 125px",
+          transformOrigin: "center",
           transition: isAnimating
             ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
           transform: isAnimating ? "rotate(360deg)" : "rotate(0deg)",
         }}
       />
-      {/* "10" text - STATIC */}
-      <path d="M89 172c-3 0-5-1-7-3s-3-4-3-7v-60c0-2-1-3-3-2l-4 2c-1 0-1 0-2 1h-2c-3 0-5-1-7-3s-3-4-3-7q0-6 6-9l17-7c2-1 4-1 5-1 3 0 6 1 8 3s3 5 3 8v74c0 3-1 5-3 7s-4 3-7 3zm35-48c0-15 3-26 8-34 6-8 14-12 25-12s20 4 26 12 9 20 9 34c0 15-3 26-9 35s-14 13-26 13c-11 0-20-4-25-13-6-9-8-20-8-35m20 0c0 10 1 17 3 22s6 7 11 7 9-3 11-8 3-13 3-22q0-15-3-21c-2-4-6-6-11-6s-9 2-11 7q-3 6-3 21" />
-    </svg>
+      {/* "1" - STATIC */}
+      <path d="M7.99219 11.004C8.52019 10.584 9.00019 9.89143 9.30019 10.02C9.60019 10.1486 9.50419 10.572 9.50419 11.232C9.50419 11.892 9.50419 14.6847 9.50419 16.008" />
+      {/* "0" - STATIC */}
+      <path d="M16.0022 12.6C16.0022 11.22 16.0682 10.848 15.8042 10.404C15.5402 9.96001 14.8802 9.99841 14.2202 9.99841C13.5602 9.99841 13.0802 9.96001 12.7622 10.32C12.3722 10.74 12.5402 11.52 12.4922 12.6C12.6002 14.04 12.3062 15.18 12.7562 15.66C13.0802 16.056 13.6553 15.996 14.3402 16.008C15.0201 15.9997 15.4322 16.032 15.7682 15.648C16.1402 15.312 15.9602 13.98 16.0022 12.6Z" />
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={baseSize}
+        height={baseSize}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lg:hidden"
+      >
+        {svgContent}
+      </svg>
+      {/* Desktop */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={lgSize}
+        height={lgSize}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="hidden lg:block"
+      >
+        {svgContent}
+      </svg>
+    </>
   );
 }
 
-function SkipBackwardIcon({ size, isAnimating }: SkipIconProps) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 250 250"
-      fill="currentColor"
-    >
-      {/* Circle with arrow - ANIMATED */}
+function SkipBackwardIcon({ baseSize, lgSize, isAnimating }: SkipIconProps) {
+  const svgContent = (
+    <>
+      {/* Circle with arrow - ANIMATED (backward direction) */}
       <path
-        d="M125 250c69 0 125-56 125-125S194 0 125 0h-6c-9 0-17 1-20 8-4 8 1 14 6 22l13 18c3 4 8 5 12 2s5-8 2-12l-13-18c-1-1-1-2-2-2h8c59 0 108 48 108 108 0 59-48 108-108 108-59 0-108-48-108-108 0-34 16-66 43-86 4-3 5-8 2-12s-8-5-12-2C19 49 0 87 0 126c0 69 56 125 125 125z"
+        d="M12 5L10.8961 3.45459C10.4851 2.87911 10.2795 2.59137 10.4093 2.32411C10.5391 2.05684 10.8689 2.04153 11.5286 2.01092C11.6848 2.00367 11.842 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 8.72836 3.57111 5.82368 6 3.99927"
         style={{
-          transformOrigin: "125px 125px",
+          transformOrigin: "center",
           transition: isAnimating
             ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
           transform: isAnimating ? "rotate(-360deg)" : "rotate(0deg)",
         }}
       />
-      {/* "10" text - STATIC */}
-      <path d="M89 172c-3 0-5-1-7-3s-3-4-3-7v-60c0-2-1-3-3-2l-4 2c-1 0-1 0-2 1h-2c-3 0-5-1-7-3s-3-4-3-7q0-6 6-9l17-7c2-1 4-1 5-1 3 0 6 1 8 3s3 5 3 8v74c0 3-1 5-3 7s-4 3-7 3zm35-48c0-15 3-26 8-34 6-8 14-12 25-12s20 4 26 12 9 20 9 34c0 15-3 26-9 35s-14 13-26 13c-11 0-20-4-25-13-6-9-8-20-8-35m20 0c0 10 1 17 3 22s6 7 11 7 9-3 11-8 3-13 3-22q0-15-3-21c-2-4-6-6-11-6s-9 2-11 7q-3 6-3 21" />
-    </svg>
+      {/* "1" - STATIC */}
+      <path d="M7.99219 11.004C8.52019 10.584 9.00019 9.89143 9.30019 10.02C9.60019 10.1486 9.50419 10.572 9.50419 11.232C9.50419 11.892 9.50419 14.6847 9.50419 16.008" />
+      {/* "0" - STATIC */}
+      <path d="M16.0022 12.6C16.0022 11.22 16.0682 10.848 15.8042 10.404C15.5402 9.96001 14.8802 9.99841 14.2202 9.99841C13.5602 9.99841 13.0802 9.96001 12.7622 10.32C12.3722 10.74 12.5402 11.52 12.4922 12.6C12.6002 14.04 12.3062 15.18 12.7562 15.66C13.0802 16.056 13.6553 15.996 14.3402 16.008C15.0201 15.9997 15.4322 16.032 15.7682 15.648C16.1402 15.312 15.9602 13.98 16.0022 12.6Z" />
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={baseSize}
+        height={baseSize}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="lg:hidden"
+      >
+        {svgContent}
+      </svg>
+      {/* Desktop */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={lgSize}
+        height={lgSize}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="hidden lg:block"
+      >
+        {svgContent}
+      </svg>
+    </>
   );
 }
 
@@ -94,10 +158,13 @@ export function SkipForward(props: {
 
   if (enableDoubleClickToSeek) return null;
 
+  const sizes = sizeMap[props.size || "lg"];
+
   return (
     <VideoPlayerButton onClick={commit}>
       <SkipForwardIcon
-        size={sizeMap[props.size || "lg"]}
+        baseSize={sizes.base}
+        lgSize={sizes.lg}
         isAnimating={isAnimating}
       />
     </VideoPlayerButton>
@@ -129,10 +196,13 @@ export function SkipBackward(props: {
 
   if (enableDoubleClickToSeek) return null;
 
+  const sizes = sizeMap[props.size || "lg"];
+
   return (
     <VideoPlayerButton onClick={commit}>
       <SkipBackwardIcon
-        size={sizeMap[props.size || "lg"]}
+        baseSize={sizes.base}
+        lgSize={sizes.lg}
         isAnimating={isAnimating}
       />
     </VideoPlayerButton>
