@@ -362,22 +362,9 @@ export function CaptionsView({
     [captions],
   );
 
-  // DEBUG: Log caption counts
-  console.log(`[CaptionsView] Total captions: ${captions.length}`);
-  console.log(`[CaptionsView] Source captions: ${sourceCaptions.length}`);
-  console.log(`[CaptionsView] External captions: ${externalCaptions.length}`);
-
   // Filter lists based on search query (search removed, using empty string)
   const sourceList = useSubtitleList(sourceCaptions, "");
   const externalList = useSubtitleList(externalCaptions, "");
-
-  // DEBUG: Log final lists
-  console.log(
-    `[CaptionsView] Source list after useSubtitleList: ${sourceList.length}`,
-  );
-  console.log(
-    `[CaptionsView] External list after useSubtitleList: ${externalList.length}`,
-  );
 
   // Get current subtitle text preview
   const currentSubtitleText = useMemo(() => {
