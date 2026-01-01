@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { useMemo } from "react";
-import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { getAllProviders, getProviders } from "@/backend/providers/providers";
@@ -10,10 +9,10 @@ import { FlagIcon } from "@/components/FlagIcon";
 import { Dropdown } from "@/components/form/Dropdown";
 import { SortableListWithToggles } from "@/components/form/SortableListWithToggles";
 import { Heading1 } from "@/components/utils/Text";
+import { appLanguageOptions } from "@/setup/i18n";
 import { isAutoplayAllowed } from "@/utils/autoplay";
 import { getLocaleInfo, sortLangCodes } from "@/utils/language";
-
-import { appLanguageOptions } from "@/setup/i18n";
+import { Trans, useTranslation } from "react-i18next";
 
 export function PreferencesPart(props: {
   language: string;

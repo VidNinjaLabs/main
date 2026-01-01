@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable react/no-unused-prop-types */
 import classNames from "classnames";
 import Fuse from "fuse.js";
@@ -120,16 +121,6 @@ export function CaptionOption(props: {
           )}
         </span>
       </SelectableLink>
-      {tooltipContent && showTooltip && (
-        <div className="flex flex-col absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-black/80 text-white/80 text-xs rounded-lg backdrop-blur-sm w-60 break-all whitespace-pre-line">
-          {tooltipContent}
-          {props.onDoubleClick && (
-            <span className="text-white/50 text-xs">
-              {t("player.menus.subtitles.doubleClickToCopy")}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -371,9 +362,22 @@ export function CaptionsView({
     [captions],
   );
 
+  // DEBUG: Log caption counts
+  console.log(`[CaptionsView] Total captions: ${captions.length}`);
+  console.log(`[CaptionsView] Source captions: ${sourceCaptions.length}`);
+  console.log(`[CaptionsView] External captions: ${externalCaptions.length}`);
+
   // Filter lists based on search query (search removed, using empty string)
   const sourceList = useSubtitleList(sourceCaptions, "");
   const externalList = useSubtitleList(externalCaptions, "");
+
+  // DEBUG: Log final lists
+  console.log(
+    `[CaptionsView] Source list after useSubtitleList: ${sourceList.length}`,
+  );
+  console.log(
+    `[CaptionsView] External list after useSubtitleList: ${externalList.length}`,
+  );
 
   // Get current subtitle text preview
   const currentSubtitleText = useMemo(() => {

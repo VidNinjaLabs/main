@@ -103,8 +103,22 @@ export function convertProviderCaption(
 ): CaptionListItem[] {
   if (!subtitles) return [];
 
-  return subtitles.map((v) => ({
-    id: v.id,
+  // DEBUG: Log how many subtitles we received from backend
+  console.log(
+    `[convertProviderCaption] Received ${subtitles.length} subtitles from backend:`,
+  );
+  console.log(
+    subtitles.map((s) => ({
+      id: s.id,
+      lang: s.language,
+      name: s.languageName,
+    })),
+  );
+
+  const result = subtitles.map((v, index) => ({
+    // Generate truly unique ID by combining multiple properties
+    // This ensures no deduplication even if multiple tracks share the same language
+    id: `${v.id}-${v.source || "unknown"}-${v.hearingImpaired ? "hi" : "normal"}-${index}`,
     language: v.language,
     url: v.url,
     type: v.format === "srt" ? "srt" : "vtt",
@@ -116,4 +130,9 @@ export function convertProviderCaption(
     source: v.source,
     encoding: undefined,
   }));
+
+  console.log(
+    `[convertProviderCaption] Converted to ${result.length} caption list items`,
+  );
+  return result;
 }
