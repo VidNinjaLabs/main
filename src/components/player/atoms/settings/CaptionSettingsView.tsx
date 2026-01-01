@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { Brush, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { Toggle } from "@/components/buttons/Toggle";
@@ -14,6 +13,7 @@ import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { SubtitleStyling, useSubtitleStore } from "@/stores/subtitles";
 import { isFirefox } from "@/utils/detectFeatures";
+import { useTranslation } from "react-i18next";
 
 export function ColorOption(props: {
   color: string;
@@ -449,10 +449,10 @@ export function CaptionSettingsView({
       >
         {t("player.menus.subtitles.settings.backlink")}
       </Menu.BackLink>
-      <Menu.Section className="space-y-3 pb-2">
+      <Menu.Section className="space-y-3 pb-2 pt-2">
         {!enableNativeSubtitles ? (
           <>
-            <div className="flex justify-between items-center mt-2">
+            {/* <div className="flex justify-between items-center mt-2">
               <Menu.FieldTitle>
                 {t("player.menus.subtitles.useNativeSubtitles")}
               </Menu.FieldTitle>
@@ -466,10 +466,10 @@ export function CaptionSettingsView({
                   }
                 />
               </div>
-            </div>
+            </div> 
             <span className="text-xs text-type-secondary">
               {t("player.menus.subtitles.useNativeSubtitlesDescription")}
-            </span>
+            </span> */}
             <CaptionDelay
               label={t("player.menus.subtitles.settings.delay")}
               max={20}

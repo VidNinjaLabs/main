@@ -8,7 +8,6 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, HashRouter } from "react-router-dom";
-import { useAsyncFn } from "react-use";
 
 import { Button } from "@/components/buttons/Button";
 import { Loading } from "@/components/layout/Loading";

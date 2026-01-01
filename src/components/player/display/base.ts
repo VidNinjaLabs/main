@@ -172,17 +172,13 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           const bestLevel = sortLevelsByQuality(matchingLevels)[0];
           const levelIndex = hls.levels.indexOf(bestLevel);
           if (levelIndex !== -1) {
-            hls.currentLevel = levelIndex;
-            hls.loadLevel = levelIndex;
+            hls.nextLevel = levelIndex;
           }
         }
       }
     } else {
-      hls.currentLevel = -1;
-      hls.loadLevel = -1;
+      hls.nextLevel = -1;
     }
-    const quality = hlsLevelToQuality(hls.levels[hls.currentLevel]);
-    emit("changedquality", quality);
   }
 
   function setupSource(vid: HTMLVideoElement, src: LoadableSource) {
@@ -201,14 +197,14 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           autoStartLoad: true,
           // VidPly.js Prefetch Settings - Parallel fragment download
           enableFragmentPrefetch: true, // Enable n+1 parallel prefetch
-          prefetchBufferThreshold: 10, // Min buffer (seconds) before prefetching
-          maxParallelFragmentLoads: 2, // Max concurrent fragment downloads
-          // Aggressive Buffering Settings
-          maxBufferLength: 90, // Target buffer length in seconds (1.5 minutes ahead)
-          maxMaxBufferLength: 600, // Maximum buffer allowed (10 minutes)
+          prefetchBufferThreshold: 2, // Start parallel loading after 2s of buffer
+          maxParallelFragmentLoads: 5, // Max concurrent fragment downloads (Aggr: 5)
+          // Buffering Settings
+          maxBufferLength: 60, // Target buffer length in seconds (1 minute ahead)
+          maxMaxBufferLength: 120, // Maximum buffer allowed (2 minutes)
           backBufferLength: 90, // Keep 1.5 minutes of back buffer for rewinding
           maxBufferHole: 2.0, // Tolerance for small gaps in stream
-          highBufferWatchdogPeriod: 3, // Check buffer frequently
+          highBufferWatchdogPeriod: 1, // Check buffer every second
           enableWorker: true, // Use web worker for HLS processing (smoother UI)
           // Load Policy - Be patient with slow connections
           fragLoadPolicy: {
@@ -391,7 +387,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
     videoElement.addEventListener("play", () => {
       emit("play", undefined);
-      emit("loading", false);
     });
     videoElement.addEventListener("error", () => {
       const err = videoElement?.error ?? null;
@@ -402,7 +397,10 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         type: "htmlvideo",
       });
     });
-    videoElement.addEventListener("playing", () => emit("play", undefined));
+    videoElement.addEventListener("playing", () => {
+      emit("play", undefined);
+      emit("loading", false);
+    });
     videoElement.addEventListener("pause", () => emit("pause", undefined));
     videoElement.addEventListener("canplay", () => {
       emit("loading", false);

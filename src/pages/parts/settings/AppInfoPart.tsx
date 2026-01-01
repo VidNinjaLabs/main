@@ -1,5 +1,4 @@
 import { Lock, TriangleAlert, Unlock } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAsync } from "react-use";
 
@@ -10,6 +9,7 @@ import { LucideIcon } from "@/components/LucideIcon";
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { conf } from "@/setup/config";
 import { useAuthStore } from "@/stores/auth";
+import { useTranslation } from "react-i18next";
 
 function SecureBadge(props: { url: string | null }) {
   const { t } = useTranslation();
@@ -112,7 +112,7 @@ export function AppInfoPart() {
           </p>
           <Button
             theme="secondary"
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("/settings#settings-admin")}
             className="w-full !p-2 text-xs"
           >
             {t("settings.account.admin.text")}

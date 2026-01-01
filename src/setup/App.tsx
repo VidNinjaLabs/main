@@ -25,7 +25,6 @@ import { useIsPremium } from "@/hooks/auth/useIsPremium";
 import { useGlobalKeyboardEvents } from "@/hooks/useGlobalKeyboardEvents";
 import { useOnlineListener } from "@/hooks/usePing";
 import { AboutPage } from "@/pages/About";
-import { AdminPage } from "@/pages/admin/AdminPage";
 import { AllBookmarks } from "@/pages/bookmarks/AllBookmarks";
 import { BrowsePage } from "@/pages/Browse";
 import { DiscoverMore } from "@/pages/discover/AllMovieLists";
@@ -234,7 +233,6 @@ function App() {
               }
             />
             {/* admin routes */}
-            <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         )}

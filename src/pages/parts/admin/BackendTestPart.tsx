@@ -1,27 +1,24 @@
 import { useState } from "react";
 import { useAsyncFn } from "react-use";
 
-import { MetaResponse, getBackendMeta } from "@/backend/accounts/meta";
 import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
 import { Box } from "@/components/layout/Box";
 import { Divider } from "@/components/utils/Divider";
 import { Heading2 } from "@/components/utils/Text";
-import { conf } from "@/setup/config";
+import { supabase } from "@/lib/supabase";
 
 export function BackendTestPart() {
-  const backendUrl = conf().BACKEND_URL;
-
   const [status, setStatus] = useState<{
     hasTested: boolean;
     success: boolean;
     errorText: string;
-    value: MetaResponse | null;
+    supabaseUrl?: string;
+    authenticated?: boolean;
   }>({
     hasTested: false,
     success: false,
     errorText: "",
-    value: null,
   });
 
   const [testState, runTests] = useAsyncFn(async () => {
@@ -29,36 +26,42 @@ export function BackendTestPart() {
       hasTested: false,
       success: false,
       errorText: "",
-      value: null,
     });
 
-    if (!backendUrl) {
-      return setStatus({
-        hasTested: true,
-        success: false,
-        errorText: "Backend URL is not set",
-        value: null,
-      });
-    }
-
     try {
-      const backendData = await getBackendMeta(backendUrl);
+      // Test Supabase connection
+      const { data: _data, error } = await supabase
+        .from("users")
+        .select("count");
+
+      if (error) {
+        return setStatus({
+          hasTested: true,
+          success: false,
+          errorText: `Supabase error: ${error.message}`,
+        });
+      }
+
+      // Get current session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       return setStatus({
         hasTested: true,
         success: true,
         errorText: "",
-        value: backendData,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        authenticated: !!session,
       });
     } catch (err) {
       return setStatus({
         hasTested: true,
         success: false,
-        errorText:
-          "Failed to call backend, double check the URL, your internet connection, and ensure CORS is properly configured on your backend.",
-        value: null,
+        errorText: `Failed to connect to Supabase: ${(err as Error).message}`,
       });
     }
-  }, [setStatus]);
+  }, []);
 
   return (
     <>
@@ -70,27 +73,27 @@ export function BackendTestPart() {
               <>
                 <p>
                   <span className="inline-block w-36 text-white font-medium">
-                    Version:
+                    Backend:
                   </span>
-                  {status.value?.version}
+                  Supabase
                 </p>
                 <p>
                   <span className="inline-block w-36 text-white font-medium">
-                    Backend name:
+                    URL:
                   </span>
-                  {status.value?.name}
+                  {status.supabaseUrl}
                 </p>
                 <p>
                   <span className="inline-block w-36 text-white font-medium">
-                    Description:
+                    Status:
                   </span>
-                  {status.value?.description ?? "Not set"}
+                  Connected
                 </p>
                 <p>
                   <span className="inline-block w-36 text-white font-medium">
-                    Captcha enabled:
+                    Authenticated:
                   </span>
-                  {status.value?.hasCaptcha ? "Yes" : "No"}
+                  {status.authenticated ? "Yes" : "No"}
                 </p>
                 <Divider />
               </>

@@ -192,7 +192,7 @@ export function SelectableLink(props: {
         <LucideIcon className="ml-2" icon={AlertTriangle} />
       </span>
     );
-  if (props.loading) rightContent = <Spinner className="text-lg" />; // should override selected and error
+  if (props.loading) rightContent = <Spinner className="text-lg" size={24} />; // should override selected and error
 
   return (
     <Link

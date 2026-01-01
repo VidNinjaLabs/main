@@ -105,6 +105,7 @@ export interface EpisodeCarouselProps {
   mediaId?: number;
   mediaTitle?: string;
   mediaPosterUrl?: string;
+  mediaBackdropUrl?: string;
 }
 
 export interface DetailsBodyProps {

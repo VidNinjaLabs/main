@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Stream URL Cache
  * Caches stream data in localStorage to reduce loading times for replayed content.
@@ -5,7 +6,7 @@
 
 import { RunOutput } from "@/hooks/useProviderScrape";
 
-const CACHE_PREFIX = "stream-cache:";
+const CACHE_PREFIX = "stream-cache-v2:";
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 interface CachedStream {
@@ -55,7 +56,9 @@ export function getCachedStream(
       return null;
     }
 
-    console.log(`[StreamCache] Cache HIT for ${key} (age: ${Math.round(age / 1000)}s)`);
+    console.log(
+      `[StreamCache] Cache HIT for ${key} (age: ${Math.round(age / 1000)}s)`,
+    );
     return parsed.data;
   } catch (err) {
     console.error("[StreamCache] Error reading cache:", err);

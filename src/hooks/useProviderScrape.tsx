@@ -406,7 +406,7 @@ export function useScrape() {
                 selectedServer: bestServer.server,
                 url: bestServer.url,
                 servers: response.servers,
-                subtitles: response.subtitles,
+                subtitles: response.subtitles || response.captions || [],
                 headers: response.headers,
               };
             }

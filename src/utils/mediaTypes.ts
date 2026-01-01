@@ -4,6 +4,7 @@ export interface MediaItem {
   year?: number;
   release_date?: Date;
   poster?: string;
+  backdrop?: string;
   type: "show" | "movie";
   onHoverInfoEnter?: () => void;
   onHoverInfoLeave?: () => void;

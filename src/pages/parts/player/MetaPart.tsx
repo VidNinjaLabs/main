@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 /* eslint-disable no-console */
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAsync } from "react-use";
 import type { AsyncReturnType } from "type-fest";
@@ -9,7 +9,7 @@ import type { AsyncReturnType } from "type-fest";
 import { fetchMetadata } from "@/backend/api/metadata";
 import { DetailedMeta, getMetaFromId } from "@/backend/metadata/getmeta";
 import { decodeTMDBId } from "@/backend/metadata/tmdb";
-import { MWMediaType } from "@/backend/metadata/types/mw";
+import { MWMediaMeta, MWMediaType } from "@/backend/metadata/types/mw";
 import { Button } from "@/components/buttons/Button";
 import { Icons } from "@/components/Icon";
 import { IconPill } from "@/components/layout/IconPill";
@@ -24,9 +24,11 @@ export interface MetaPartProps {
   onGetMeta?: (meta: DetailedMeta, episodeId?: string) => void;
   onBackdropLoaded?: (backdropUrl: string) => void;
   backdropUrl?: string | null;
+  posterUrl?: string | null;
   media?: string;
   season?: string;
   episode?: string;
+  initialMeta?: MWMediaMeta | null;
 }
 
 function isDisallowedMedia(id: string, type: MWMediaType): boolean {
@@ -50,6 +52,13 @@ export function MetaPart(props: MetaPartProps) {
   };
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const backdropRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (backdropRef.current?.complete) {
+      setImageLoaded(true);
+    }
+  }, []);
 
   const { error, value, loading } = useAsync(async () => {
     // Fetch VidNinja API metadata
@@ -69,6 +78,26 @@ export function MetaPart(props: MetaPartProps) {
       // error dont matter, itll just be a 404
     }
     if (!data) return null;
+
+    // Optimization: Use passed metadata if available (Movies only or complete Shows)
+    if (
+      props.initialMeta &&
+      props.initialMeta.id === data.id &&
+      props.initialMeta.type === data.type
+    ) {
+      if (data.type === MWMediaType.MOVIE) {
+        const meta: DetailedMeta = {
+          meta: props.initialMeta,
+          tmdbId: data.id,
+        };
+        // Only load backdrop if we don't have one
+        if (meta.meta.backdrop && !props.backdropUrl) {
+          props.onBackdropLoaded?.(meta.meta.backdrop);
+        }
+        props.onGetMeta?.(meta, undefined);
+        return meta;
+      }
+    }
 
     if (isDisallowedMedia(data.id, data.type)) throw new Error("legal");
 
@@ -108,7 +137,8 @@ export function MetaPart(props: MetaPartProps) {
     }
 
     // Pass backdrop to parent immediately - BEFORE changing status
-    if (meta.meta.backdrop) {
+    // Only update if we don't have one already (prevents flicker)
+    if (meta.meta.backdrop && !props.backdropUrl) {
       props.onBackdropLoaded?.(meta.meta.backdrop);
     }
 
@@ -239,21 +269,43 @@ export function MetaPart(props: MetaPartProps) {
 
   return (
     <div className="h-full w-full relative flex items-center justify-center">
-      {/* Backdrop Image */}
-      {props.backdropUrl && (
-        <div className="absolute inset-0 overflow-hidden">
+      {/* Background Images */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Poster Fallback */}
+        {props.posterUrl && (
           <img
+            src={props.posterUrl}
+            className={classNames(
+              "absolute inset-0 w-full h-full object-cover scale-110",
+              // If backdrop is loaded, fade out poster
+              imageLoaded
+                ? "opacity-0 transition-opacity duration-500"
+                : "opacity-30",
+            )}
+            alt=""
+            key="poster"
+          />
+        )}
+
+        {/* Backdrop Image */}
+        {props.backdropUrl && (
+          <img
+            ref={backdropRef}
             src={props.backdropUrl}
             className={classNames(
-              "absolute inset-0 w-full h-full object-cover blur-xl scale-110 transition-opacity duration-300",
-              imageLoaded ? "opacity-30" : "opacity-0",
+              "absolute inset-0 w-full h-full object-cover scale-110",
+              // If cached/loaded, show immediately. If loading, fade in.
+              imageLoaded
+                ? "opacity-30"
+                : "opacity-0 transition-opacity duration-500",
             )}
             onLoad={() => setImageLoaded(true)}
             alt=""
+            key="backdrop"
           />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-      )}
+        )}
+        <div className="absolute inset-0 bg-black/50" />
+      </div>
 
       {/* Centered Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center">

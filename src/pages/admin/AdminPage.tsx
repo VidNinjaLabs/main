@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { ThinContainer } from "@/components/layout/ThinContainer";
@@ -7,13 +6,12 @@ import { Heading1, Paragraph } from "@/components/utils/Text";
 import { Transition } from "@/components/utils/Transition";
 import { useEmbedOrderState } from "@/hooks/useEmbedOrderState";
 import { SubPageLayout } from "@/pages/layouts/SubPageLayout";
+import { BackendTestPart } from "@/pages/parts/admin/BackendTestPart";
 import { ConfigValuesPart } from "@/pages/parts/admin/ConfigValuesPart";
+import { EmbedOrderPart } from "@/pages/parts/admin/EmbedOrderPart";
 import { M3U8TestPart } from "@/pages/parts/admin/M3U8TestPart";
-import { TMDBTestPart } from "@/pages/parts/admin/TMDBTestPart";
 import { WorkerTestPart } from "@/pages/parts/admin/WorkerTestPart";
-
-import { BackendTestPart } from "../parts/admin/BackendTestPart";
-import { EmbedOrderPart } from "../parts/admin/EmbedOrderPart";
+import { useTranslation } from "react-i18next";
 
 export function AdminPage() {
   const { t } = useTranslation();
@@ -35,12 +33,10 @@ export function AdminPage() {
     <SubPageLayout>
       <ThinContainer>
         <Heading1>Admin tools</Heading1>
-        <Paragraph>Silly tools used test VidNinja! ૮₍´˶• . • ⑅ ₎ა</Paragraph>
 
         <ConfigValuesPart />
         <BackendTestPart />
         <WorkerTestPart />
-        <TMDBTestPart />
         <M3U8TestPart />
         <EmbedOrderPart
           embedOrder={embedOrderState.embedOrder}

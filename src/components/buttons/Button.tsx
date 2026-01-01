@@ -80,7 +80,7 @@ export function Button(props: Props) {
       ) : null}
       {props.loading ? (
         <span className="mr-3 inline-flex justify-center">
-          <Spinner className="text-lg" />
+          <Spinner className="text-lg" size={24} />
         </span>
       ) : null}
       {props.children}

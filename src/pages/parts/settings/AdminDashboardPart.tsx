@@ -9,6 +9,10 @@ import { Button } from "@/components/buttons/Button";
 import { SolidSettingsCard } from "@/components/layout/SettingsCard";
 import { Heading1 } from "@/components/utils/Text";
 import { supabase } from "@/lib/supabase";
+import { BackendTestPart } from "@/pages/parts/admin/BackendTestPart";
+import { ConfigValuesPart } from "@/pages/parts/admin/ConfigValuesPart";
+import { M3U8TestPart } from "@/pages/parts/admin/M3U8TestPart";
+import { WorkerTestPart } from "@/pages/parts/admin/WorkerTestPart";
 
 interface User {
   id: string;
@@ -79,7 +83,8 @@ export function AdminDashboardPart() {
   };
 
   const handleDeleteUser = async (user: User) => {
-    if (!confirm(`Delete user ${user.email}? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete user ${user.email}? This cannot be undone.`))
+      return;
 
     try {
       // Delete from users table
@@ -273,6 +278,14 @@ export function AdminDashboardPart() {
           </table>
         </div>
       </SolidSettingsCard>
+
+      {/* Admin Tools - Testing */}
+      <div className="mt-12 space-y-8">
+        <BackendTestPart />
+        <WorkerTestPart />
+        <M3U8TestPart />
+        <ConfigValuesPart />
+      </div>
 
       {/* Edit Modal */}
       {showEditModal && selectedUser && (

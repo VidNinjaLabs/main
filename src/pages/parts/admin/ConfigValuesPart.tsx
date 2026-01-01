@@ -1,50 +1,15 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 
 import { Divider } from "@/components/utils/Divider";
 import { Heading2 } from "@/components/utils/Text";
 import { conf } from "@/setup/config";
-import { BACKEND_URL } from "@/setup/constants";
-
-async function getAccountNumber() {
-  const response = await fetch(`${BACKEND_URL}/metrics`);
-  const text = await response.text();
-
-  // Adjusted regex to match any hostname
-  const regex =
-    /mw_provider_hostname_count{hostname="https?:\/\/[^"}]+"} (\d+)/g;
-  let total = 0;
-  let match = regex.exec(text); // Initial assignment outside the loop
-
-  while (match !== null) {
-    total += parseInt(match[1], 10);
-    match = regex.exec(text); // Update the assignment at the end of the loop body
-  }
-
-  if (total > 0) {
-    return total.toString();
-  }
-  throw new Error("ACCOUNT_NUMBER not found");
-}
-
-async function getAllAccounts() {
-  const response = await fetch(`${BACKEND_URL}/metrics`);
-  const text = await response.text();
-
-  const regex = /mw_user_count{namespace="movie-web"} (\d+)/;
-  const match = text.match(regex);
-
-  if (match) {
-    return match[1];
-  }
-  throw new Error("USER_COUNT not found");
-}
 
 function ConfigValue(props: { name: string; children?: ReactNode }) {
   return (
     <>
       <div className="flex">
         <p className="flex-1 font-bold text-white pr-5">{props.name}</p>
-        <p>{props.children}</p>
+        <p className="break-all text-right text-sm">{props.children}</p>
       </div>
       <Divider marginClass="my-3" />
     </>
@@ -52,40 +17,29 @@ function ConfigValue(props: { name: string; children?: ReactNode }) {
 }
 
 export function ConfigValuesPart() {
-  const [accountNumber, setAccountNumber] = useState<string | null>(null);
-  const [allAccounts, setAllAccounts] = useState<string | null>(null);
-  const normalRouter = conf().NORMAL_ROUTER;
-  const appVersion = conf().APP_VERSION;
-  const backendUrl = conf().BACKEND_URL;
-
-  useEffect(() => {
-    getAccountNumber()
-      .then((number) => {
-        setAccountNumber(number);
-      })
-      .catch((error) => {
-        console.error("Error fetching account number:", error);
-      });
-
-    getAllAccounts()
-      .then((accounts) => {
-        setAllAccounts(accounts);
-      })
-      .catch((error) => {
-        console.error("Error fetching all accounts:", error);
-      });
-  }, []);
+  const config = conf();
 
   return (
     <>
       <Heading2 className="mb-8 mt-12">Site Constants</Heading2>
       <ConfigValue name="Routing mode">
-        {normalRouter ? "Normal routing" : "Hash based routing"}
+        {config.NORMAL_ROUTER ? "Normal routing" : "Hash based routing"}
       </ConfigValue>
-      <ConfigValue name="Application version">v{appVersion}</ConfigValue>
-      <ConfigValue name="Backend requests">{accountNumber}</ConfigValue>
-      <ConfigValue name="Total User Accounts">{allAccounts}</ConfigValue>
-      <ConfigValue name="Backend URL">{backendUrl}</ConfigValue>
+      <ConfigValue name="Application version">
+        v{config.APP_VERSION}
+      </ConfigValue>
+      <ConfigValue name="Supabase URL">
+        {import.meta.env.VITE_SUPABASE_URL || "Not configured"}
+      </ConfigValue>
+      <ConfigValue name="VidNinja API">
+        {import.meta.env.VITE_VIDNINJA_API_URL || "Not configured"}
+      </ConfigValue>
+      <ConfigValue name="TMDB Proxy">
+        {import.meta.env.VITE_TMDB_PROXY_URL || "Not configured"}
+      </ConfigValue>
+      <ConfigValue name="Worker Proxy">
+        {config.PROXY_URLS?.join(", ") || "None configured"}
+      </ConfigValue>
     </>
   );
 }

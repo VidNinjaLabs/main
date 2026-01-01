@@ -37,14 +37,6 @@ export function selectBestServer(
 
   const [server, url] = serverEntries[0];
 
-  // Log available servers for debugging
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.log(
-      `[ServerSelector] Selected: ${server}, Available: ${serverEntries.map(([s]) => s).join(", ")}`,
-    );
-  }
-
   return { server, url };
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { DetailedMeta } from "@/backend/metadata/getmeta";
 import { PremiumModal } from "@/components/overlays/PremiumModal";
@@ -10,7 +10,6 @@ import { convertProviderCaption } from "@/components/player/utils/captions";
 import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
 import { useIsAdmin } from "@/hooks/auth/useIsAdmin";
 import { useIsPremium } from "@/hooks/auth/useIsPremium";
-import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import {
   RunOutput,
   ScrapingItems,
@@ -48,6 +47,7 @@ const ENABLE_ANTI_DEBUG = false;
 
 export function RealPlayerView(props: PlayerViewProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const routeParams = useParams<{
     media: string;
     episode?: string;
@@ -94,7 +94,13 @@ export function RealPlayerView(props: PlayerViewProps) {
     (s) => s.setLastSuccessfulSource,
   );
   const progressItems = useProgressStore((s) => s.items);
-  const [backdropUrl, setBackdropUrl] = useState<string | null>(null);
+  const [backdropUrl, setBackdropUrl] = useState<string | null>(
+    location.state?.backdrop || null,
+  );
+  const [posterUrl, setPosterUrl] = useState<string | null>(
+    location.state?.poster || null,
+  );
+  const [initialMeta] = useState(location.state?.meta || null);
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
 
   const handleBackdropLoaded = useCallback((url: string) => {
@@ -225,6 +231,9 @@ export function RealPlayerView(props: PlayerViewProps) {
       }
 
       const playerMeta = setPlayerMeta(detailedMeta, episodeId);
+      if (detailedMeta.meta.poster) {
+        setPosterUrl(detailedMeta.meta.poster);
+      }
       if (playerMeta && shouldShowResumeScreen(playerMeta)) {
         setStatus(playerStatus.RESUME);
       }
@@ -332,9 +341,11 @@ export function RealPlayerView(props: PlayerViewProps) {
           onGetMeta={handleMetaReceived}
           onBackdropLoaded={handleBackdropLoaded}
           backdropUrl={backdropUrl}
+          posterUrl={posterUrl}
           media={params.media}
           season={params.season}
           episode={params.episode}
+          initialMeta={initialMeta}
         />
       ) : null}
       {status === playerStatus.RESUME ? (

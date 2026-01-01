@@ -735,7 +735,8 @@
         "settings": {
           "backlink": "Custom subtitles",
           "delay": "Subtitle delay",
-          "fixCapitals": "Fix capitalization"
+          "fixCapitals": "Fix capitalization",
+          "useNativeSubtitles": "Use native video subtitles"
         },
         "title": "Subtitles",
         "unknownLanguage": "Unknown",
@@ -1175,7 +1176,9 @@
       "uptime": "Uptime",
       "latency": "Latency",
       "status": "Status",
-      "noSources": "No providers available."
+      "noSources": "No providers available.",
+      "refresh": "Refresh Providers",
+      "refreshing": "Refreshing..."
     },
     "unsaved": "You have unsaved changes..."
   },

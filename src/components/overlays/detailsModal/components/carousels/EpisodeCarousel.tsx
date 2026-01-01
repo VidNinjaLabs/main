@@ -1,9 +1,7 @@
 import classNames from "classnames";
-import i18n from "i18next";
-const t = i18n.t;
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/buttons/Button";
 import { Dropdown } from "@/components/form/Dropdown";
@@ -12,8 +10,11 @@ import { Modal, ModalCard, useModal } from "@/components/overlays/Modal";
 import { hasAired } from "@/components/player/utils/aired";
 import { useBookmarkStore } from "@/stores/bookmarks";
 import { getProgressPercentage, useProgressStore } from "@/stores/progress";
+import i18n from "i18next";
 
 import { EpisodeCarouselProps } from "../../types";
+
+const t = i18n.t;
 
 export function EpisodeCarousel({
   episodes,
@@ -25,7 +26,9 @@ export function EpisodeCarousel({
   mediaId,
   mediaTitle,
   mediaPosterUrl,
+  mediaBackdropUrl,
 }: EpisodeCarouselProps) {
+  const navigate = useNavigate();
   const [showEpisodeMenu, setShowEpisodeMenu] = useState(false);
   const [customSeason, setCustomSeason] = useState("");
   const [customEpisode, setCustomEpisode] = useState("");
@@ -152,7 +155,9 @@ export function EpisodeCarousel({
 
     // Navigate to the episode using the same URL format as getEpisodeUrl
     const url = `/media/tmdb-tv-${mediaId}-${mediaTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}/${seasonData.id}/${episodeData.id}`;
-    window.location.href = url;
+    navigate(url, {
+      state: { backdrop: mediaBackdropUrl, poster: mediaPosterUrl },
+    });
     setShowEpisodeMenu(false);
   };
 
@@ -589,6 +594,10 @@ export function EpisodeCarousel({
                   <Link
                     key={episode.id}
                     to={getEpisodeUrl(episode)}
+                    state={{
+                      backdrop: mediaBackdropUrl,
+                      poster: mediaPosterUrl,
+                    }}
                     ref={isActive ? activeEpisodeRef : null}
                     className={classNames(
                       "flex-shrink-0 transition-all duration-200 relative cursor-pointer hover:scale-95 rounded-lg overflow-hidden",

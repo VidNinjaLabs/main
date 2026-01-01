@@ -139,6 +139,14 @@ function MediaCardContent({
     rootMargin: "300px",
   });
 
+  // Prefetch backdrop image to ensure instant loading on details page
+  useEffect(() => {
+    if (media.backdrop) {
+      const img = new Image();
+      img.src = media.backdrop;
+    }
+  }, [media.backdrop]);
+
   // Show skeleton if forced or if media hasn't loaded yet (empty title/poster)
   const shouldShowSkeleton = forceSkeleton || (!media.title && !media.poster);
 
@@ -411,6 +419,7 @@ export function MediaCard(props: MediaCardProps) {
   return (
     <Link
       to={link}
+      state={{ backdrop: media.backdrop, poster: media.poster, meta: media }}
       tabIndex={-1}
       className={classNames(
         "tabbable",

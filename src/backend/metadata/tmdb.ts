@@ -1,6 +1,5 @@
 import slugify from "slugify";
 
-import { conf } from "@/setup/config";
 import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { SimpleCache } from "@/utils/cache";
@@ -107,7 +106,9 @@ export function formatTMDBMetaToMediaItem(media: TMDBMediaResult): MediaItem {
     id: media.id.toString(),
     year: media.original_release_date?.getFullYear() ?? 0,
     release_date: media.original_release_date,
+
     poster: media.poster,
+    backdrop: media.backdrop,
     type,
   };
 }
@@ -155,13 +156,10 @@ export function decodeTMDBId(
 }
 
 const tmdbBaseUrl1 = "https://tmdb-proxy.rev9dev.workers.dev";
-// const tmdbBaseUrl2 = "https://api.themoviedb.org/3"; // Disabled: Direct TMDB doesn't work
 
-const apiKey = conf().TMDB_READ_API_KEY;
-
+// Proxy handles authentication internally, no Authorization header needed
 const tmdbHeaders = {
   accept: "application/json",
-  Authorization: `Bearer ${apiKey}`,
 };
 
 // Cache for TMDB API responses
@@ -237,7 +235,7 @@ export async function get<T>(url: string, params?: object): Promise<T> {
         {
           headers: tmdbHeaders,
           baseURL: proxy,
-          signal: abortOnTimeout(5000),
+          signal: abortOnTimeout(30000), // Increased for dev mode
         },
       );
     } catch (err) {
@@ -252,7 +250,7 @@ export async function get<T>(url: string, params?: object): Promise<T> {
       headers: tmdbHeaders,
       baseURL: tmdbBaseUrl1,
       params: allParams,
-      signal: abortOnTimeout(10000), // Increased timeout for proxy
+      signal: abortOnTimeout(30000), // Increased timeout for dev mode
     });
   }
 
@@ -442,6 +440,7 @@ export function formatTMDBSearchResult(
     return {
       title: show.name,
       poster: getMediaPoster(show.poster_path),
+      backdrop: getMediaBackdrop(show.backdrop_path),
       id: show.id,
       original_release_date: new Date(show.first_air_date),
       object_type: mediatype,
@@ -453,6 +452,7 @@ export function formatTMDBSearchResult(
   return {
     title: movie.title,
     poster: getMediaPoster(movie.poster_path),
+    backdrop: getMediaBackdrop(movie.backdrop_path),
     id: movie.id,
     original_release_date: new Date(movie.release_date),
     object_type: mediatype,

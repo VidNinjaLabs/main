@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Trans, useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { Toggle } from "@/components/buttons/Toggle";
@@ -22,6 +21,7 @@ import {
   testTorboxToken,
   testdebridToken,
 } from "@/pages/parts/settings/SetupPart";
+import { Trans, useTranslation } from "react-i18next";
 
 const StatusMap: Record<Status, StatusCircleProps["type"]> = {
   error: "error",
@@ -30,72 +30,6 @@ const StatusMap: Record<Status, StatusCircleProps["type"]> = {
   api_down: "error",
   invalid_token: "error",
 };
-
-function ConnectionInputCard({
-  label,
-  description,
-  value,
-  onChange,
-  placeholder,
-  onValidate,
-}: {
-  label: string;
-  description: string;
-  value: string | null;
-  onChange: (v: string | null) => void;
-  placeholder?: string;
-  onValidate?: (url: string) => Promise<Status>;
-}) {
-  const [status, setStatus] = useState<Status>("unset");
-
-  useEffect(() => {
-    if (!value) {
-      setStatus("unset");
-      return;
-    }
-    const check = async () => {
-      try {
-        if (onValidate) {
-          const result = await onValidate(value);
-          setStatus(result);
-        } else {
-          // Default validation: check if valid URL
-          try {
-            // eslint-disable-next-line no-new
-            new URL(value);
-            setStatus("success");
-          } catch {
-            setStatus("error");
-          }
-        }
-      } catch {
-        setStatus("error");
-      }
-    };
-    const timer = setTimeout(check, 500); // Debounce
-    return () => clearTimeout(timer);
-  }, [value, onValidate]);
-
-  return (
-    <SettingsCard>
-      <div className="flex flex-col gap-3">
-        <p className="text-white font-bold">{label}</p>
-        <p className="max-w-[30rem] font-medium text-type-secondary">
-          {description}
-        </p>
-        <div className="flex items-center w-full">
-          <StatusCircle type={StatusMap[status]} className="mx-2" />
-          <AuthInputBox
-            value={value ?? ""}
-            onChange={(v) => onChange(v === "" ? null : v)}
-            placeholder={placeholder}
-            className="flex-grow"
-          />
-        </div>
-      </div>
-    </SettingsCard>
-  );
-}
 
 async function getFebboxKeyStatus(febboxKey: string | null) {
   if (febboxKey) {
@@ -335,17 +269,6 @@ export function DebridEdit(props: {
 }
 
 interface ConnectionsPartProps {
-  workerUrl: string | null;
-  setWorkerUrl: (v: string | null) => void;
-  streamingProxyUrl: string | null;
-  setStreamingProxyUrl: (v: string | null) => void;
-  cdnUrl: string | null;
-  setCdnUrl: (v: string | null) => void;
-  febboxUrl: string | null;
-  setFebboxUrl: (v: string | null) => void;
-  // Febbox Token Props
-  febboxKey: string | null;
-  setFebboxKey: (v: string | null) => void;
   // Debrid Props
   debridToken: string | null;
   setdebridToken: (v: string | null) => void;
@@ -360,43 +283,11 @@ export function ConnectionsPart(props: ConnectionsPartProps) {
     <div>
       <Heading1 border>{t("settings.connections.title")}</Heading1>
       <div className="space-y-6 mt-8">
-        <FebboxSetup
-          febboxKey={props.febboxKey}
-          setFebboxKey={props.setFebboxKey}
-        />
         <DebridEdit
           debridToken={props.debridToken}
           setdebridToken={props.setdebridToken}
           debridService={props.debridService}
           setdebridService={props.setdebridService}
-        />
-        <ConnectionInputCard
-          label={t("settings.connections.workerUrl.title")}
-          description={t("settings.connections.workerUrl.description")}
-          value={props.workerUrl}
-          onChange={props.setWorkerUrl}
-          placeholder="https://worker.example.com"
-        />
-        <ConnectionInputCard
-          label={t("settings.connections.streamingProxyUrl.title")}
-          description={t("settings.connections.streamingProxyUrl.description")}
-          value={props.streamingProxyUrl}
-          onChange={props.setStreamingProxyUrl}
-          placeholder="https://proxy.example.com"
-        />
-        <ConnectionInputCard
-          label={t("settings.connections.cdnUrl.title")}
-          description={t("settings.connections.cdnUrl.description")}
-          value={props.cdnUrl}
-          onChange={props.setCdnUrl}
-          placeholder="https://cdn.example.com"
-        />
-        <ConnectionInputCard
-          label={t("settings.connections.febboxUrl.title")}
-          description={t("settings.connections.febboxUrl.description")}
-          value={props.febboxUrl}
-          onChange={props.setFebboxUrl}
-          placeholder="https://febbox.com"
         />
       </div>
     </div>

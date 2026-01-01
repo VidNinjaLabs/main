@@ -124,12 +124,6 @@ export const analytics = {
     if (typeof window !== "undefined" && window.umami) {
       window.umami.track(event, eventData);
     }
-
-    // Log in development for debugging
-    if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.log(`[Analytics] ${event}`, eventData);
-    }
   },
 
   /**

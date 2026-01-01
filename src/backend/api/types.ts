@@ -58,6 +58,7 @@ export interface StreamResponse {
   type: "hls" | "file";
   servers: Record<string, string>;
   subtitles: SubtitleTrack[];
+  captions?: SubtitleTrack[];
   headers?: Record<string, string>;
 }
 

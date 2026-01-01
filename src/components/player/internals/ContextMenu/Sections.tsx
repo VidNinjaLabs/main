@@ -9,7 +9,7 @@ export function SectionTitle(props: {
     <h3
       className={classNames(
         "uppercase font-bold text-type-secondary text-xs pl-1 pb-2.5 border-b border-type-secondary/40",
-        props.children ? "pt-2.5 pb-2" : "pt-1 pb-2",
+        props.children ? "pt-2.5 pb-2.5" : "pt-1 pb-2",
         props.className,
       )}
     >

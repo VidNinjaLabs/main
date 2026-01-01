@@ -108,7 +108,6 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
         if (cachedStream) {
           // Use cached stream - much faster!
           runOutput = cachedStream;
-          console.log(`[StreamCache] Using cached stream for ${sourceId}`);
         } else if (sourceId === "febbox") {
           // Use Febbox client
           const febboxStream = await febboxClient.getStream({
@@ -158,7 +157,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
                 selectedServer: bestServer.server,
                 url: bestServer.url,
                 servers: response.servers,
-                subtitles: response.subtitles,
+                subtitles: response.subtitles || response.captions || [],
                 headers: response.headers,
               };
             } else {

@@ -80,7 +80,6 @@ export function useDiscoverOptions(mediaType: MediaType) {
 
       try {
         const data = await get<any>(`/genre/${mediaType}/list`, {
-          api_key: conf().TMDB_READ_API_KEY,
           language: formattedLanguage,
         });
         setGenres(data.genres.slice(0, 50));
@@ -150,7 +149,6 @@ export function useDiscoverMedia({
         }
 
         const data = await get<any>(endpoint, {
-          api_key: conf().TMDB_READ_API_KEY,
           language: formattedLanguage,
           ...params,
         });
@@ -211,7 +209,6 @@ export function useDiscoverMedia({
           const endpoint = `/${mediaType}/${tmdbId}`;
           try {
             const data = await get<any>(endpoint, {
-              api_key: conf().TMDB_READ_API_KEY,
               language: formattedLanguage,
             });
             return {
@@ -305,7 +302,6 @@ export function useDiscoverMedia({
       const mediaPromises = picksToFetch.map(async (item) => {
         const endpoint = `/${mediaType}/${item.id}`;
         const data = await get<any>(endpoint, {
-          api_key: conf().TMDB_READ_API_KEY,
           language: formattedLanguage,
           append_to_response: "videos,images",
         });

@@ -69,16 +69,16 @@ function SettingsOverlay({ id }: { id: string }) {
             <CaptionsView id={id} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/captions/settings" width={300}>
-          <Menu.Card>
+        <OverlayPage id={id} path="/captions/settings" width={300} maxHeight={600}>
+          <Menu.CardWithScrollable>
             <CaptionSettingsView id={id} />
-          </Menu.Card>
+          </Menu.CardWithScrollable>
         </OverlayPage>
         {/* This is used by the captions shortcut in bottomControls of player */}
-        <OverlayPage id={id} path="/captions/settingsOverlay" width={300}>
-          <Menu.Card>
+        <OverlayPage id={id} path="/captions/settingsOverlay" width={300} maxHeight={600}>
+          <Menu.CardWithScrollable>
             <CaptionSettingsView id={id} overlayBackLink />
-          </Menu.Card>
+          </Menu.CardWithScrollable>
         </OverlayPage>
         <OverlayPage id={id} path="/source" width={280} maxHeight={500}>
           <Menu.CardWithScrollable>

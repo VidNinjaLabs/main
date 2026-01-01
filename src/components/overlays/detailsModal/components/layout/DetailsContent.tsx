@@ -1,15 +1,15 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCopyToClipboard } from "react-use";
 
 import { getNetworkContent } from "@/backend/metadata/traktApi";
 import { TMDBContentTypes } from "@/backend/metadata/types/tmdb";
 import { Icon, Icons } from "@/components/Icon";
-import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
 import { shouldShowProgress } from "@/stores/progress/utils";
 // Scrapers removed - imdbScraper and rottenTomatoesScraper deleted
-import { getTmdbLanguageCode } from "@/utils/language";
 import i18n from "i18next";
 
 import { DetailsContentProps } from "../../types";
@@ -23,8 +23,9 @@ import { DetailsInfo } from "../sections/DetailsInfo";
 const t = i18n.t;
 
 export function DetailsContent({ data, minimal = false }: DetailsContentProps) {
-  const [imdbData, setImdbData] = useState<any>(null);
-  const [rtData, setRtData] = useState<any>(null);
+  const navigate = useNavigate();
+  const imdbData: any = null;
+  const rtData = null;
   const [providerData, setProviderData] = useState<string | undefined>(
     undefined,
   );
@@ -101,18 +102,39 @@ export function DetailsContent({ data, minimal = false }: DetailsContentProps) {
 
   const handlePlayClick = () => {
     if (data.type === "movie") {
-      window.location.assign(
+      navigate(
         `/media/tmdb-movie-${data.id}-${data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        {
+          state: {
+            backdrop: data.backdrop,
+            poster: data.posterUrl,
+            meta: data,
+          },
+        },
       );
     } else if (data.type === "show") {
       if (showProgress?.season?.id && showProgress?.episode?.id) {
-        window.location.assign(
+        navigate(
           `/media/tmdb-tv-${data.id}-${data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}/${showProgress.season.id}/${showProgress.episode.id}`,
+          {
+            state: {
+              backdrop: data.backdrop,
+              poster: data.posterUrl,
+              meta: data,
+            },
+          },
         );
       } else {
         // Start new show
-        window.location.assign(
+        navigate(
           `/media/tmdb-tv-${data.id}-${data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          {
+            state: {
+              backdrop: data.backdrop,
+              poster: data.posterUrl,
+              meta: data,
+            },
+          },
         );
       }
     }
@@ -307,6 +329,7 @@ export function DetailsContent({ data, minimal = false }: DetailsContentProps) {
             mediaId={data.id}
             mediaTitle={data.title}
             mediaPosterUrl={data.posterUrl}
+            mediaBackdropUrl={data.backdrop}
           />
         )}
 

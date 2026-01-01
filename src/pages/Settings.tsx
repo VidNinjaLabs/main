@@ -894,16 +894,6 @@ export function SettingsPage() {
           selectedCategory === "settings-connection") && (
           <div id="settings-connection">
             <ConnectionsPart
-              workerUrl={state.workerUrl.state}
-              setWorkerUrl={state.workerUrl.set}
-              streamingProxyUrl={state.streamingProxyUrl.state}
-              setStreamingProxyUrl={state.streamingProxyUrl.set}
-              cdnUrl={state.cdnUrl.state}
-              setCdnUrl={state.cdnUrl.set}
-              febboxUrl={state.febboxUrl.state}
-              setFebboxUrl={state.febboxUrl.set}
-              febboxKey={state.febboxKey.state}
-              setFebboxKey={state.febboxKey.set}
               debridToken={state.debridToken.state}
               setdebridToken={state.debridToken.set}
               debridService={state.debridService.state}

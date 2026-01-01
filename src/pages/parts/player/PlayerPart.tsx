@@ -2,10 +2,8 @@ import classNames from "classnames";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Player } from "@/components/player";
-import { SkipIntroButton } from "@/components/player/atoms/SkipIntroButton";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { useShouldShowControls } from "@/components/player/hooks/useShouldShowControls";
-import { useSkipTime } from "@/components/player/hooks/useSkipTime";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
@@ -93,7 +91,6 @@ export function PlayerPart(props: PlayerPartProps) {
       setIsHoldingFullscreen(false);
     }, 1000);
   };
-  const skiptime = useSkipTime();
 
   return (
     <div className="relative">
@@ -111,10 +108,6 @@ export function PlayerPart(props: PlayerPartProps) {
         )}
 
         {props.children}
-
-        <Player.BlackOverlay
-          show={showTargets && status === playerStatus.PLAYING}
-        />
         <Player.EpisodesRouter onChange={props.onMetaChange} />
         <Player.SettingsRouter />
         <Player.SubtitleView controlsShown={showTargets} />
@@ -189,7 +182,10 @@ export function PlayerPart(props: PlayerPartProps) {
             </div>
 
             <div className="flex items-center justify-center space-x-3 h-full">
-              {status === playerStatus.PLAYING ? <Player.ProgressBar /> : null}
+              {status === playerStatus.PLAYING &&
+              !usePlayerStore.getState().interface.leftControlHovering ? (
+                <Player.ProgressBar />
+              ) : null}
             </div>
           </div>
 
@@ -260,12 +256,6 @@ export function PlayerPart(props: PlayerPartProps) {
         <Player.NextEpisodeButton
           controlsShowing={showTargets}
           onChange={props.onMetaChange}
-          inControl={inControl}
-        />
-
-        <SkipIntroButton
-          controlsShowing={showTargets}
-          skipTime={skiptime}
           inControl={inControl}
         />
       </Player.Container>
