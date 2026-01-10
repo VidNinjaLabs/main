@@ -167,7 +167,7 @@ class BackendClient {
   }
 
   /**
-   * GET /scrape/show/:tmdbId/:season/:episode
+   * GET /scrape/tv/:tmdbId/:season/:episode
    * Get stream URLs for a TV show episode
    */
   async scrapeShow(
@@ -181,7 +181,7 @@ class BackendClient {
     // Ensure we have a valid token
     await this.ensureAuthenticated();
 
-    let url = `${this.baseUrl}/scrape/show/${tmdbId}/${season}/${episode}`;
+    let url = `${this.baseUrl}/scrape/tv/${tmdbId}/${season}/${episode}`;
     if (provider) {
       url += `?provider=${encodeURIComponent(provider)}`;
     }

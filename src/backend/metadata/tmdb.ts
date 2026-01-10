@@ -155,7 +155,7 @@ export function decodeTMDBId(
   };
 }
 
-const tmdbBaseUrl1 = "https://tmdb-proxy.rev9dev.workers.dev";
+const tmdbBaseUrl1 = "https://metada.vidninja.pro";
 
 // Proxy handles authentication internally, no Authorization header needed
 const tmdbHeaders = {

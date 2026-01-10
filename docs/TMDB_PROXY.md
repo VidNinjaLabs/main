@@ -2,13 +2,13 @@
 
 ## ✅ Setup Complete
 
-The app now uses **proxy-only mode** for all TMDB API requests through your Cloudflare Worker at `https://tmdb-proxy.rev9dev.workers.dev`.
+The app now uses **proxy-only mode** for all TMDB API requests through your Cloudflare Worker at `https://metada.vidninja.pro`.
 
 ## What Changed
 
 ### 1. **Proxy URL** (`src/backend/metadata/tmdb.ts`)
 ```typescript
-const tmdbBaseUrl1 = "https://tmdb-proxy.rev9dev.workers.dev";
+const tmdbBaseUrl1 = "https://metada.vidninja.pro";
 // Direct TMDB access disabled - doesn't work in this environment
 ```
 
@@ -23,7 +23,7 @@ Changed timeout from 5s to 10s to accommodate proxy response times.
 ```
 Frontend Request
     ↓
-https://tmdb-proxy.rev9dev.workers.dev/3/movie/550
+https://metada.vidninja.pro/3/movie/550
     ↓
 Your Cloudflare Worker (geo-unblocked)
     ↓
@@ -54,14 +54,14 @@ All TMDB data (search, discover, details, images) now flows through your proxy!
 ## Proxy Deployment
 
 Your proxy is deployed at:
-- **URL**: `https://tmdb-proxy.rev9dev.workers.dev`
+- **URL**: `https://metada.vidninja.pro`
 - **Version**: bc220c28-bfff-4ea6-854c-aafc4d7883e5
 - **Code**: `w:\cloudclash\frontend\trash\tmdb-full-proxy.ts`
 
 ## Troubleshooting
 
 **If you see errors:**
-1. Check proxy is responding: `curl https://tmdb-proxy.rev9dev.workers.dev/3/configuration`
+1. Check proxy is responding: `curl https://metada.vidninja.pro/3/configuration`
 2. View worker logs in Cloudflare Dashboard
 3. Verify API key in worker is valid
 
