@@ -74,6 +74,8 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
   const enableLastSuccessfulSource = usePreferencesStore(
     (s) => s.enableLastSuccessfulSource,
   );
+  const scrapeSessionId = usePlayerStore((s) => s.scrapeSessionId);
+  const sessionProviders = usePlayerStore((s) => s.sessionProviders);
 
   const [request, run] = useAsyncFn(async () => {
     if (!sourceId || !meta) return null;
@@ -131,18 +133,47 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
           }
         } else {
           // Use backend client with new API - with timeout
-          const response = await withTimeout(
-            scrapeMedia.type === "movie"
-              ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
-              : backendClient.scrapeShow(
-                  scrapeMedia.tmdbId,
-                  scrapeMedia.season?.number ?? 1,
-                  scrapeMedia.episode?.number ?? 1,
-                  sourceId,
-                ),
-            TIMEOUTS.PROVIDER_SCRAPE,
-            `Provider ${sourceId} timed out`,
+          let response: any; // StreamResponse
+          const sessionProvider = sessionProviders?.find(
+            (p) => p.name.toLowerCase() === sourceId.toLowerCase(),
           );
+
+          if (scrapeSessionId && sessionProvider) {
+            // Use session-based scraping (Fast/Cached)
+            response = await withTimeout(
+              scrapeMedia.type === "movie"
+                ? backendClient.scrapeMovie(
+                    scrapeMedia.tmdbId,
+                    undefined,
+                    scrapeSessionId,
+                    sessionProvider.index.toString(),
+                  )
+                : backendClient.scrapeShow(
+                    scrapeMedia.tmdbId,
+                    scrapeMedia.season?.number ?? 1,
+                    scrapeMedia.episode?.number ?? 1,
+                    undefined,
+                    scrapeSessionId,
+                    sessionProvider.index.toString(),
+                  ),
+              TIMEOUTS.PROVIDER_SCRAPE,
+              `Provider ${sourceId} timed out`,
+            );
+          } else {
+            // Legacy/Direct scraping
+            response = await withTimeout(
+              scrapeMedia.type === "movie"
+                ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
+                : backendClient.scrapeShow(
+                    scrapeMedia.tmdbId,
+                    scrapeMedia.season?.number ?? 1,
+                    scrapeMedia.episode?.number ?? 1,
+                    sourceId,
+                  ),
+              TIMEOUTS.PROVIDER_SCRAPE,
+              `Provider ${sourceId} timed out`,
+            );
+          }
 
           // Check if we got valid servers
           if (response.servers && Object.keys(response.servers).length > 0) {
@@ -281,6 +312,8 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
     enableLastSuccessfulSource,
     setLastSuccessfulSource,
     report,
+    scrapeSessionId,
+    sessionProviders,
   ]);
 
   return {

@@ -114,6 +114,13 @@ export interface SourceSlice {
   enableAutomaticQuality(): void;
   redisplaySource(startAt: number): void;
   setCaptionAsTrack(asTrack: boolean): void;
+  // Session-based scraping
+  scrapeSessionId: string | null;
+  sessionProviders: { index: number; name: string; status: string }[];
+  setScrapeSessionId(id: string | null): void;
+  setSessionProviders(
+    providers: { index: number; name: string; status: string }[],
+  ): void;
   // Provider switch - pause/resume current playback
   pauseCurrentPlayback(): void;
   resumeCurrentPlayback(): void;
@@ -164,6 +171,18 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
   failedProviders: [],
   isSwitchingProvider: false,
   wasPlayingBeforeSwitch: false,
+  scrapeSessionId: null,
+  sessionProviders: [],
+  setScrapeSessionId(id) {
+    set((s) => {
+      s.scrapeSessionId = id;
+    });
+  },
+  setSessionProviders(providers) {
+    set((s) => {
+      s.sessionProviders = providers;
+    });
+  },
   addFailedProvider(providerId: string) {
     set((s) => {
       if (!s.failedProviders.includes(providerId)) {

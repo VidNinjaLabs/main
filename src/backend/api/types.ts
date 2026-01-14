@@ -60,6 +60,14 @@ export interface StreamResponse {
   subtitles: SubtitleTrack[];
   captions?: SubtitleTrack[];
   headers?: Record<string, string>;
+  session?: string;
+  selectedProvider?: number;
+  availableProviders?: {
+    index: number;
+    name: string;
+    status: string;
+  }[];
+  error?: string;
 }
 
 // =============================================================================

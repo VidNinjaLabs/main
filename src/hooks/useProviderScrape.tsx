@@ -57,6 +57,8 @@ export interface RunOutput {
   servers: Record<string, string>; // All available servers for failover
   subtitles: StreamResponse["subtitles"];
   headers?: Record<string, string>;
+  session?: string; // New session ID
+  availableProviders?: { index: number; name: string; status: string }[]; // Available providers in session
 }
 
 // Normalized provider interface for internal use
@@ -199,13 +201,35 @@ function useBaseScrape() {
     setCurrentSource(id);
   }, []);
 
+  const setSourceList = useCallback((list: NormalizedProvider[]) => {
+    const initialSources = list
+      .map((provider) => {
+        const out: ScrapingSegment = {
+          name: provider.name,
+          id: provider.id,
+          status: "waiting",
+          percentage: 0,
+        };
+        return out;
+      })
+      .reduce<Record<string, ScrapingSegment>>((a, v) => {
+        a[v.id] = v;
+        return a;
+      }, {});
+
+    setSources(initialSources);
+    setSourceOrder(list.map((v) => ({ id: v.id, children: [] })));
+  }, []);
+
   return {
     sources,
     sourceOrder,
     currentSource,
     initSources,
+    setSourceList,
     updateSourceStatus,
     setCurrentSourceId,
+    setSources,
   };
 }
 
@@ -215,6 +239,7 @@ export function useScrape() {
     sourceOrder,
     currentSource,
     initSources,
+    setSourceList,
     updateSourceStatus,
     setCurrentSourceId,
   } = useBaseScrape();
@@ -231,212 +256,113 @@ export function useScrape() {
 
   // Get failed providers from player store (providers that had HLS playback errors)
   const failedProviders = usePlayerStore((s) => s.failedProviders);
+  const setScrapeSessionId = usePlayerStore((s) => s.setScrapeSessionId);
+  const setSessionProviders = usePlayerStore((s) => s.setSessionProviders);
 
   const startScraping = useCallback(
     async (media: ScrapeMedia): Promise<RunOutput | null> => {
-      // Get all available providers (already normalized) - with timeout
-      const availableProviders = await withTimeout(
-        getAvailableProviders(),
-        TIMEOUTS.PROVIDER_LIST,
-        "Failed to fetch provider list",
-      );
-      let providerIds = availableProviders.map((p) => p.id);
+      // Clear previous sources/status
+      initSources([]);
+      setCurrentSourceId("scraper");
+      setScrapeSessionId(null);
+      setSessionProviders([]);
 
-      // Apply user preferences for source order
-      if (enableSourceOrder && preferredSourceOrder.length > 0) {
-        const customOrder = preferredSourceOrder.filter(
-          (id) => !disabledSources.includes(id) && providerIds.includes(id),
-        );
-        const remainingProviders = providerIds.filter(
-          (id) => !customOrder.includes(id) && !disabledSources.includes(id),
-        );
-        providerIds = [...customOrder, ...remainingProviders];
-      } else {
-        providerIds = providerIds.filter((id) => !disabledSources.includes(id));
-      }
+      try {
+        let response: StreamResponse;
 
-      // Prioritize last successful source if enabled
-      if (enableLastSuccessfulSource && lastSuccessfulSource) {
-        if (
-          !disabledSources.includes(lastSuccessfulSource) &&
-          providerIds.includes(lastSuccessfulSource)
-        ) {
-          providerIds = [
-            lastSuccessfulSource,
-            ...providerIds.filter((id) => id !== lastSuccessfulSource),
-          ];
-        }
-      }
-
-      // Filter out providers that have already failed (HLS playback errors)
-      if (failedProviders.length > 0) {
-        // eslint-disable-next-line no-console
-        console.log(`[Scrape] Skipping failed providers:`, failedProviders);
-        providerIds = providerIds.filter((id) => !failedProviders.includes(id));
-      }
-
-      // Filter available providers based on ordered IDs
-      const orderedProviders = providerIds
-        .map((id) => availableProviders.find((p) => p.id === id))
-        .filter((p): p is NormalizedProvider => p !== undefined);
-
-      // Initialize UI
-      await initSources(orderedProviders);
-
-      // Try each provider in order
-      for (const provider of orderedProviders) {
-        setCurrentSourceId(provider.id);
-        updateSourceStatus(provider.id, "pending", 50);
-
-        try {
-          if (provider.isFebbox) {
-            // Use Febbox client
-            const febboxStream = await febboxClient.getStream({
-              tmdbId: media.tmdbId,
-              type: media.type,
-              title: media.title,
-              season: media.season?.number,
-              episode: media.episode?.number,
-            });
-
-            if (febboxStream) {
-              updateSourceStatus(provider.id, "success", 100);
-              const servers = { Primary: febboxStream.playlist };
-
-              // Track successful scrape
-              analytics.track("scrape_complete", {
-                provider: "Febbox",
-                success: true,
-                duration_ms: 0,
-                servers_found: 1,
-              });
-
-              return {
-                sourceId: provider.id,
-                provider: "Febbox",
-                streamType: "hls" as const,
-                selectedServer: "Primary",
-                url: febboxStream.playlist,
-                servers,
-                subtitles: [],
-              };
-            }
-            updateSourceStatus(
-              provider.id,
-              "notfound",
-              100,
-              "No streams found",
-            );
-          } else {
-            // Use backend client with actual API
-            // Wrap with timeout to prevent hanging on unresponsive providers
-            let response: StreamResponse;
-
-            try {
-              if (media.type === "movie") {
-                response = await withTimeout(
-                  backendClient.scrapeMovie(media.tmdbId, provider.id),
-                  TIMEOUTS.PROVIDER_SCRAPE,
-                  `Provider ${provider.name} timed out`,
-                );
-              } else {
-                // TV show
-                const season = media.season?.number ?? 1;
-                const episode = media.episode?.number ?? 1;
-                response = await withTimeout(
-                  backendClient.scrapeShow(
-                    media.tmdbId,
-                    season,
-                    episode,
-                    provider.id,
-                  ),
-                  TIMEOUTS.PROVIDER_SCRAPE,
-                  `Provider ${provider.name} timed out`,
-                );
-              }
-            } catch (timeoutError: any) {
-              // Timeout or other error - mark as failed and continue to next
-              updateSourceStatus(
-                provider.id,
-                "failure",
-                100,
-                timeoutError.message || "Provider failed",
-              );
-              analytics.track("stream_failure", {
-                provider: provider.name,
-                server: "unknown",
-                error: timeoutError.message || "Timeout",
-              });
-              continue; // Skip to next provider
-            }
-
-            // Check if we got valid servers
-            if (response.servers && Object.keys(response.servers).length > 0) {
-              // Auto-select best server
-              const bestServer = await selectBestServer(response.servers);
-
-              if (!bestServer) {
-                analytics.track("stream_failure", {
-                  provider: provider.name,
-                  server: "all",
-                  error: "All servers failed validation",
-                });
-                updateSourceStatus(
-                  provider.id,
-                  "notfound",
-                  100,
-                  "No valid servers",
-                );
-                continue; // Try next provider
-              }
-
-              // Track successful scrape
-              analytics.track("scrape_complete", {
-                provider: provider.name,
-                success: true,
-                duration_ms: 0,
-                servers_found: Object.keys(response.servers).length,
-              });
-
-              updateSourceStatus(provider.id, "success", 100);
-              return {
-                sourceId: provider.id,
-                provider: provider.name,
-                streamType: response.type,
-                selectedServer: bestServer.server,
-                url: bestServer.url,
-                servers: response.servers,
-                subtitles: response.subtitles || response.captions || [],
-                headers: response.headers,
-              };
-            }
-            updateSourceStatus(
-              provider.id,
-              "notfound",
-              100,
-              "No streams found",
-            );
-          }
-        } catch (error: any) {
-          // Check for "not found" indicators in error
-          const errorString = error.toString().toLowerCase();
-          const errorMessage = (error.message || "").toLowerCase();
-
-          const isNotFound =
-            errorString.includes("couldn't find a stream") ||
-            errorString.includes("no streams found") ||
-            errorMessage.includes("couldn't find a stream") ||
-            errorMessage.includes("no streams found") ||
-            errorMessage.includes("404") ||
-            errorMessage.includes("500");
-
-          updateSourceStatus(
-            provider.id,
-            isNotFound ? "notfound" : "failure",
-            100,
-            error.message || error.toString(),
-            error,
+        // Call backend (Auto Mode) - single request handles parallel scraping
+        if (media.type === "movie") {
+          response = await backendClient.scrapeMovie(media.tmdbId, undefined);
+        } else {
+          const season = media.season?.number ?? 1;
+          const episode = media.episode?.number ?? 1;
+          response = await backendClient.scrapeShow(
+            media.tmdbId,
+            season,
+            episode,
+            undefined,
           );
+        }
+
+        // Process available providers from backend response
+        if (response.availableProviders) {
+          const providersList: NormalizedProvider[] =
+            response.availableProviders.map((p) => ({
+              id: p.name,
+              name: p.name,
+              rank: p.index,
+              type: "source",
+              isFebbox: false,
+            }));
+          setSourceList(providersList);
+
+          // Update status based on backend status
+          response.availableProviders.forEach((p) => {
+            updateSourceStatus(
+              p.name,
+              p.status === "success"
+                ? "success"
+                : p.status === "failure"
+                  ? "failure"
+                  : "pending",
+              p.status === "success" ? 100 : 50,
+            );
+          });
+        }
+
+        // Check for success
+        if (response.servers && Object.keys(response.servers).length > 0) {
+          const bestServer = await selectBestServer(response.servers);
+
+          if (
+            response.selectedProvider !== undefined &&
+            response.availableProviders
+          ) {
+            const providerName =
+              response.availableProviders.find(
+                (p) => p.index === response.selectedProvider,
+              )?.name || "Unknown";
+            setCurrentSourceId(providerName);
+            updateSourceStatus(providerName, "success", 100);
+          }
+
+          if (!bestServer) {
+            return null;
+          }
+
+          return {
+            sourceId: response.selectedProvider?.toString() || "session",
+            provider: "Auto",
+            streamType: response.type,
+            selectedServer: bestServer.server,
+            url: bestServer.url,
+            servers: response.servers,
+            subtitles: response.subtitles || response.captions || [],
+            headers: response.headers,
+            session: response.session,
+            availableProviders: response.availableProviders,
+          };
+        }
+      } catch (error: any) {
+        console.error("Scraping failed:", error);
+        // If error has session data (as returned by updated vidninja client)
+        if (error.session && error.availableProviders) {
+          const providersList: NormalizedProvider[] =
+            error.availableProviders.map((p: any) => ({
+              id: p.name,
+              name: p.name,
+              rank: p.index,
+              type: "source",
+              isFebbox: false,
+            }));
+          setSourceList(providersList);
+          error.availableProviders.forEach((p: any) => {
+            updateSourceStatus(
+              p.name,
+              p.status === "success" ? "success" : "failure",
+              100,
+            );
+          });
         }
       }
 
@@ -444,19 +370,74 @@ export function useScrape() {
     },
     [
       initSources,
+      setSourceList,
       updateSourceStatus,
       setCurrentSourceId,
-      preferredSourceOrder,
-      enableSourceOrder,
-      lastSuccessfulSource,
-      enableLastSuccessfulSource,
-      disabledSources,
-      failedProviders,
+      setScrapeSessionId,
+      setSessionProviders,
     ],
   );
 
+  const switchProvider = useCallback(
+    async (
+      media: ScrapeMedia,
+      session: string,
+      providerIndex: string,
+    ): Promise<RunOutput | null> => {
+      // Switch provider using cached session
+      try {
+        let response: StreamResponse;
+        if (media.type === "movie") {
+          response = await backendClient.scrapeMovie(
+            media.tmdbId,
+            undefined,
+            session,
+            providerIndex,
+          );
+        } else {
+          const season = media.season?.number ?? 1;
+          const episode = media.episode?.number ?? 1;
+          response = await backendClient.scrapeShow(
+            media.tmdbId,
+            season,
+            episode,
+            undefined,
+            session,
+            providerIndex,
+          );
+        }
+
+        if (response.servers && Object.keys(response.servers).length > 0) {
+          const bestServer = await selectBestServer(response.servers);
+          if (!bestServer) return null;
+
+          return {
+            sourceId: providerIndex,
+            provider:
+              response.availableProviders?.find(
+                (p) => p.index === parseInt(providerIndex),
+              )?.name || "Manual",
+            streamType: response.type,
+            selectedServer: bestServer.server,
+            url: bestServer.url,
+            servers: response.servers,
+            subtitles: response.subtitles || response.captions || [],
+            headers: response.headers,
+            session: response.session,
+            availableProviders: response.availableProviders,
+          };
+        }
+      } catch (error) {
+        console.error("Switch provider failed", error);
+      }
+      return null;
+    },
+    [],
+  ); // Dependencies
+
   return {
     startScraping,
+    switchProvider,
     sourceOrder,
     sources,
     currentSource,

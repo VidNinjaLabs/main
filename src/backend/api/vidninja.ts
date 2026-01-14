@@ -138,6 +138,8 @@ class BackendClient {
   async scrapeMovie(
     tmdbId: string,
     provider?: string,
+    session?: string,
+    select?: string,
   ): Promise<StreamResponse> {
     this.checkConfigured();
 
@@ -148,6 +150,12 @@ class BackendClient {
     if (provider) {
       url += `?provider=${encodeURIComponent(provider)}`;
     }
+    if (session) {
+      url += `${url.includes("?") ? "&" : "?"}session=${encodeURIComponent(session)}`;
+    }
+    if (select) {
+      url += `${url.includes("?") ? "&" : "?"}select=${encodeURIComponent(select)}`;
+    }
 
     try {
       const response = await fetch(url, {
@@ -156,6 +164,21 @@ class BackendClient {
       });
 
       if (!response.ok) {
+        // Try to parse error response for session info
+        try {
+          const data = await response.json();
+          if (data.session || data.error) {
+            // Return data even if status is error (e.g. 404 with list of failed providers)
+            // We throw if it's a critical error without data, but if we have data we might want to return it
+            // for the UI to handle (e.g. "No streams found" but showing the list)
+            if (response.status === 404 && data.session) {
+              return data as StreamResponse;
+            }
+            throw new Error(data.error || `Scrape error: ${response.status}`);
+          }
+        } catch (e) {
+          // ignore json parse error
+        }
         const errorText = await response.text();
         throw new Error(`Scrape error: ${response.status} - ${errorText}`);
       }
@@ -175,6 +198,8 @@ class BackendClient {
     season: number,
     episode: number,
     provider?: string,
+    session?: string,
+    select?: string,
   ): Promise<StreamResponse> {
     this.checkConfigured();
 
@@ -185,6 +210,12 @@ class BackendClient {
     if (provider) {
       url += `?provider=${encodeURIComponent(provider)}`;
     }
+    if (session) {
+      url += `${url.includes("?") ? "&" : "?"}session=${encodeURIComponent(session)}`;
+    }
+    if (select) {
+      url += `${url.includes("?") ? "&" : "?"}select=${encodeURIComponent(select)}`;
+    }
 
     try {
       const response = await fetch(url, {
@@ -193,6 +224,18 @@ class BackendClient {
       });
 
       if (!response.ok) {
+        // Try to parse error response for session info
+        try {
+          const data = await response.json();
+          if (data.session || data.error) {
+            if (response.status === 404 && data.session) {
+              return data as StreamResponse;
+            }
+            throw new Error(data.error || `Scrape error: ${response.status}`);
+          }
+        } catch (e) {
+          // ignore
+        }
         const errorText = await response.text();
         throw new Error(`Scrape error: ${response.status} - ${errorText}`);
       }
