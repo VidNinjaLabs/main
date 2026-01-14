@@ -342,33 +342,18 @@ export async function getMediaDetails<
     });
   }
   if (type === TMDBContentTypes.TV) {
+    // PERFORMANCE FIX: Don't fetch all seasons here!
+    // getMetaFromId() will fetch only the specific season needed.
+    // Fetching all seasons causes 10+ API calls for shows with many seasons,
+    // leading to 500 errors and 30+ second delays.
+    //
+    // Before: Breaking Bad (5 seasons) = 6 API calls
+    // After:  Breaking Bad = 2 API calls (1 show + 1 season in getMetaFromId)
     const showData = await get<TReturn>(`/tv/${id}`, {
       append_to_response: "external_ids,credits,content_ratings",
     });
 
-    // Fetch episodes for each season
-    const showDetails = showData as TMDBShowData;
-    const episodePromises = showDetails.seasons.map(async (season) => {
-      const seasonData = await get<TMDBSeason>(
-        `/tv/${id}/season/${season.season_number}`,
-      );
-      return seasonData.episodes.map((episode) => ({
-        id: episode.id,
-        name: episode.name,
-        episode_number: episode.episode_number,
-        overview: episode.overview,
-        still_path: episode.still_path,
-        air_date: episode.air_date,
-        season_number: season.season_number,
-      }));
-    });
-
-    const allEpisodes = (await Promise.all(episodePromises)).flat();
-
-    return {
-      ...showData,
-      episodes: allEpisodes,
-    } as TReturn;
+    return showData;
   }
   throw new Error("Invalid media type");
 }

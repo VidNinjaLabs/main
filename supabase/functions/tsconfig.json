@@ -1,0 +1,26 @@
+{
+  // Supabase Edge Functions TypeScript Configuration
+  // These functions run on Deno runtime, not Node.js
+
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "deno.window"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    // Deno-specific
+    "allowJs": true,
+    "checkJs": false,
+
+    // Types for Deno
+    "types": ["https://esm.sh/@supabase/supabase-js@2/dist/module/index.d.ts"]
+  },
+
+  "include": ["**/*.ts"],
+
+  "exclude": ["node_modules"]
+}
