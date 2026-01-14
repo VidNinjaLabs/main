@@ -29,13 +29,24 @@
 
 ## Running Locally
 
+**📖 First time setup? See [SETUP.md](SETUP.md) for detailed instructions including GitHub token setup.**
+
 Type the following commands into your terminal / command line to run VidNinja locally
 
 ```bash
 git clone https://github.com/vidninja/vidninja.git
-cd smov
+cd cloudclash
 git pull
+
+# Setup environment (Windows)
+.\install.ps1
+
+# Or setup manually
+copy .env.example .env
+# Edit .env and add your GitHub token (see SETUP.md)
 pnpm install
+
+# Start development server
 pnpm run dev
 ```
 

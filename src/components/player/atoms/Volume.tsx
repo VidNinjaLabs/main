@@ -9,7 +9,6 @@ import {
   useProgressBar,
 } from "@/hooks/useProgressBar";
 import { usePlayerStore } from "@/stores/player/store";
-import { canChangeVolume } from "@/utils/detectFeatures";
 
 import { useVolume } from "../hooks/useVolume";
 
@@ -104,12 +103,14 @@ function VolumeFullIcon({ size }: { size: number }) {
 }
 
 export function Volume(props: Props) {
-  const ref = useRef<HTMLDivElement>(null);
   const setHovering = usePlayerStore((s) => s.setHoveringLeftControls);
   const hovering = usePlayerStore((s) => s.interface.leftControlHovering);
   const volume = usePlayerStore((s) => s.mediaPlaying.volume);
   const { setVolume, toggleMute } = useVolume();
   const { isMobile } = useIsMobile();
+
+  // Timeout ref for delayed hover state management
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const commitVolume = useCallback(
     (percentage: number) => {
@@ -118,52 +119,13 @@ export function Volume(props: Props) {
     [setVolume],
   );
 
-  // Custom vertical drag handling
-  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
-  const [verticalPercentage, setVerticalPercentage] = useState(0);
-
-  const handleVerticalDrag = useCallback(
-    (clientY: number) => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const offsetY = rect.bottom - clientY; // Distance from bottom
-      const height = rect.height;
-      let percentage = (offsetY / height) * 100;
-      percentage = Math.max(0, Math.min(percentage, 100));
-      setVerticalPercentage(percentage);
-      commitVolume(percentage / 100);
-    },
-    [commitVolume],
-  );
-
-  const handleVerticalMouseDown = useCallback(
-    (event: React.MouseEvent | React.TouchEvent) => {
-      event.preventDefault();
-      setIsDraggingVertical(true);
-      const clientY =
-        "touches" in event ? event.touches[0].clientY : event.clientY;
-      handleVerticalDrag(clientY);
-
-      const handleMove = (e: MouseEvent | TouchEvent) => {
-        const y = "touches" in e ? e.touches[0].clientY : e.clientY;
-        handleVerticalDrag(y);
-      };
-
-      const handleUp = () => {
-        setIsDraggingVertical(false);
-        document.removeEventListener("mousemove", handleMove);
-        document.removeEventListener("mouseup", handleUp);
-        document.removeEventListener("touchmove", handleMove);
-        document.removeEventListener("touchend", handleUp);
-      };
-
-      document.addEventListener("mousemove", handleMove);
-      document.addEventListener("mouseup", handleUp);
-      document.addEventListener("touchmove", handleMove);
-      document.addEventListener("touchend", handleUp);
-    },
-    [handleVerticalDrag],
-  );
+  // Vertical slider for desktop
+  const refVertical = useRef<HTMLDivElement>(null);
+  const {
+    dragging: draggingVertical,
+    dragPercentage: dragPercentageVertical,
+    dragMouseDown: dragMouseDownVertical,
+  } = useProgressBar(refVertical, commitVolume, true, true); // commitImmediately=true, vertical=true
 
   // Horizontal slider for mobile
   const refHorizontal = useRef<HTMLDivElement>(null);
@@ -177,18 +139,16 @@ export function Volume(props: Props) {
     toggleMute();
   }, [toggleMute]);
 
-  const handleMouseEnter = useCallback(async () => {
-    if (await canChangeVolume()) setHovering(true);
-    document.body.classList.add("overflow-y-hidden");
+  const handleMouseEnter = useCallback(() => {
+    setHovering(true);
   }, [setHovering]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     setHovering(false);
-    document.body.classList.remove("overflow-y-hidden");
-  };
+  }, [setHovering]);
 
   let percentage = makePercentage(volume * 100);
-  if (isDraggingVertical) percentage = makePercentage(verticalPercentage);
+  if (draggingVertical) percentage = makePercentage(dragPercentageVertical);
   if (draggingHorizontal) percentage = makePercentage(dragPercentageHorizontal);
   const percentageString = makePercentageString(percentage);
 
@@ -226,32 +186,37 @@ export function Volume(props: Props) {
   };
 
   // On mobile, always show the slider; on desktop, show on hover/drag
-  const showSlider = isMobile || hovering || isDraggingVertical;
+  const showSlider = isMobile || hovering || draggingVertical;
 
   return (
-    <div
-      className={props.className}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onWheel={handleWheel}
-    >
-      <div className="pointer-events-auto flex cursor-pointer items-center relative">
+    <div className={props.className}>
+      <div
+        className="pointer-events-auto flex cursor-pointer items-center relative"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onWheel={handleWheel}
+      >
         {/* Vertical Slider Area - Desktop Only */}
-        {!isMobile && (
+        {!isMobile && showSlider && (
           <div
-            className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-[opacity,transform] duration-300 ${
-              showSlider
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-2 pointer-events-none"
-            }`}
+            className="absolute bottom-full left-1/2 -translate-x-1/2 pointer-events-auto"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
+            {/* Bridge/spacer div */}
+            <div className="w-10 h-4" />
+
+            {/* Popup slider */}
             <div
-              ref={ref}
-              className="flex w-10 h-24 items-center justify-center px-2 bg-black bg-opacity-80 rounded-lg backdrop-blur-sm"
-              onMouseDown={handleVerticalMouseDown}
-              onTouchStart={handleVerticalMouseDown}
+              className="flex w-10 h-28 items-center justify-center rounded-lg backdrop-blur-sm pointer-events-auto"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
             >
-              <div className="relative w-1 flex-1 rounded-full bg-gray-500 bg-opacity-50">
+              <div
+                ref={refVertical}
+                className="relative w-1 h-20 rounded-full bg-gray-500 bg-opacity-50 cursor-pointer"
+                onMouseDown={dragMouseDownVertical}
+                onTouchStart={dragMouseDownVertical}
+              >
                 {/* Filled portion */}
                 <div
                   className="absolute inset-x-0 bottom-0 rounded-full bg-video-audio-set"
@@ -259,12 +224,11 @@ export function Volume(props: Props) {
                     height: percentageString,
                   }}
                 />
-                {/* White knob - positioned based on percentage */}
+                {/* White knob */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white"
+                  className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white shadow-lg"
                   style={{
-                    bottom: percentageString,
-                    transform: "translate(-50%, 50%)",
+                    bottom: `calc(${percentageString} - 6px)`,
                   }}
                 />
               </div>
