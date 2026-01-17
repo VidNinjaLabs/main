@@ -76,6 +76,7 @@ export interface DisplayCaption {
 export type DisplayType = "web" | "casting";
 
 export interface DisplayInterface extends Listener<DisplayInterfaceEvents> {
+  [x: string]: any;
   play(): void;
   pause(): void;
   load(ops: qualityChangeOptions): void;

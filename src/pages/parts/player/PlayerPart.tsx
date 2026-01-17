@@ -117,136 +117,25 @@ export function PlayerPart(props: PlayerPartProps) {
         onComplete={() => setFeedbackAction(null)}
       /> */}
 
-        {status === playerStatus.PLAYING ? (
-          <Player.CenterControls>
-            <Player.LoadingSpinner />
-            {/* <Player.AutoPlayStart /> */}
-            <Player.CastingNotification />
-          </Player.CenterControls>
-        ) : null}
+        {/* Netflix-Style Player Controls */}
+        {status === playerStatus.PLAYING && (
+          <>
+            {/* Top Bar - Always visible when controls shown */}
+            {showTargets && <Player.PlayerTopBar />}
 
-        {/* Center Playback Controls - Visible only on small/medium screens */}
-        <div className="lg:hidden">
-          <Player.CenterMobileControls
-            className="text-white"
-            show={showTargets && status === playerStatus.PLAYING}
-          >
-            <Player.SkipBackward
-              size="lg"
-              onAction={() => setFeedbackAction("backward")}
-            />
-            <Player.Pause
-              size="xl"
-              className={isLoading ? "opacity-0" : "opacity-100"}
-              onAction={(action) => setFeedbackAction(action)}
-            />
-            <Player.SkipForward
-              size="lg"
-              onAction={() => setFeedbackAction("forward")}
-            />
-          </Player.CenterMobileControls>
-        </div>
+            {/* Center Controls - Large play/pause with skip buttons */}
+            {showTargets && <Player.PlayerCenterControls />}
 
-        <Player.TopControls show={showTargets}>
-          <div
-            className={classNames(
-              "grid grid-cols-3 items-center",
-              isMobile ? "mt-0" : "",
-            )}
-          >
-            <div className="flex items-center justify-start">
-              {!props.isStandalone && <Player.BackLink url={props.backUrl} />}
-            </div>
-            <div className="flex justify-center items-center text-center">
-              <Player.Title />
-            </div>
-            <div className="flex items-center justify-end space-x-3">
-              {status === playerStatus.PLAYING ? (
-                <div className="flex lg:hidden items-center">
-                  <Player.Airplay />
-                  <Player.Chromecast />
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </Player.TopControls>
+            {/* Bottom Bar - Progress + Time + Next Episode */}
+            {showTargets && <Player.PlayerBottomBar />}
 
-        <Player.BottomControls show={showTargets}>
-          {status !== playerStatus.PLAYING && !manualSourceSelection && (
-            <Tips />
-          )}
-          <div className="flex flex-col w-full">
-            {/* Mobile Time Display - Above Progress Bar */}
-            <div className="lg:hidden flex justify-end px-4">
-              <Player.Time />
-            </div>
-
-            <div className="flex items-center justify-center space-x-3 h-full">
-              {status === playerStatus.PLAYING &&
-              !usePlayerStore.getState().interface.leftControlHovering ? (
-                <Player.ProgressBar />
-              ) : null}
-            </div>
-          </div>
-
-          <div className="flex justify-between w-full" dir="ltr">
-            <Player.LeftSideControls>
-              {status === playerStatus.PLAYING ? (
-                <>
-                  {/* Desktop Playback Controls - Hidden on mobile */}
-                  <div className="hidden lg:flex items-center space-x-1">
-                    <Player.Pause
-                      size="xl"
-                      onAction={(action) => setFeedbackAction(action)}
-                    />
-                    <Player.SkipBackward
-                      size="lg"
-                      onAction={() => setFeedbackAction("backward")}
-                    />
-                    <Player.SkipForward
-                      size="lg"
-                      onAction={() => setFeedbackAction("forward")}
-                    />
-                  </div>
-                  <Player.Volume size="md" />
-                  {/* Desktop Time Display - Hidden on mobile */}
-                  <div className="hidden lg:block">
-                    <Player.Time />
-                  </div>
-                </>
-              ) : null}
-            </Player.LeftSideControls>
-            <div className="flex items-center space-x-2 xl:space-x-3">
-              <Player.Episodes
-                inControl={inControl}
-                iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10"
-              />
-              <Player.SkipEpisodeButton
-                inControl={inControl}
-                onChange={props.onMetaChange}
-                iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10"
-              />
-              {status === playerStatus.PLAYING ? (
-                <>
-                  <Player.Pip size="md" />
-                  <Player.Airplay iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
-                  <Player.Chromecast iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
-                </>
-              ) : null}
-              {status === playerStatus.PLAYBACK_ERROR ||
-              status === playerStatus.PLAYING ? (
-                <Player.Captions size="md" />
-              ) : null}
-              {status === playerStatus.PLAYING && <Player.Settings size="md" />}
-              {status === playerStatus.PLAYING &&
-                (isShifting || isHoldingFullscreen ? (
-                  <Player.Widescreen iconSizeClass="text-3xl w-8 h-8 xl:text-4xl xl:w-10 xl:h-10" />
-                ) : (
-                  <Player.Fullscreen size="md" />
-                ))}
-            </div>
-          </div>
-        </Player.BottomControls>
+            {/* Loading Spinner & Casting Notification (Center) */}
+            <Player.CenterControls>
+              <Player.LoadingSpinner />
+              <Player.CastingNotification />
+            </Player.CenterControls>
+          </>
+        )}
 
         <Player.VolumeChangedPopout />
         <Player.SubtitleDelayPopout />

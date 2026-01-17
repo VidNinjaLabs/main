@@ -148,8 +148,8 @@ export function ProgressBar() {
         >
           <div
             className={[
-              "relative w-full h-1 bg-progress-background bg-opacity-25 rounded-full transition-[height] duration-100 group-hover:h-1.5",
-              dragging ? "!h-1.5" : "",
+              "relative w-full h-1.5 bg-progress-background bg-opacity-25 rounded-full transition-[height] duration-100 group-hover:h-2",
+              dragging ? "!h-2" : "",
             ].join(" ")}
           >
             {/* Pre-loaded content bar */}

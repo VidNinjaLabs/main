@@ -13,3 +13,8 @@ export * from "./internals/InfoButton";
 export * from "./internals/SkipEpisodeButton";
 export * from "./atoms/Chromecast";
 export * from "./atoms/Widescreen";
+
+// New Netflix-style components
+export * from "./base/PlayerTopBar";
+export * from "./base/PlayerCenterControls";
+export * from "./base/PlayerBottomBar";
