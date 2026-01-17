@@ -298,120 +298,88 @@ function EpisodeItem({
         )}
       </div>
 
-      {/* Large screens - Horizontal cards with thumbnails above title */}
+      {/* Large screens - Netflix-style horizontal cards */}
       <div
         onClick={() => onPlay(episode.id)}
         className={classNames(
-          "hidden lg:block flex-shrink-0 transition-all duration-200 relative cursor-pointer rounded-lg overflow-hidden",
+          "hidden lg:flex gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer",
           forceCompactEpisodeView ? "!hidden" : "",
           isActive
             ? "bg-video-context-hoverColor/50"
-            : "hover:bg-video-context-hoverColor/50",
-          !isAired ? "opacity-50" : "hover:scale-95",
-          expandedEpisodes[`large-${episode.id}`] ? "w-[32rem]" : "w-64",
-          "h-[280px]", // Fixed height for all states
+            : "hover:bg-video-context-hoverColor/30",
+          !isAired && "opacity-50",
         )}
       >
         {/* Thumbnail */}
-        {!expandedEpisodes[`large-${episode.id}`] && (
-          <div className="relative h-[158px] w-full bg-video-context-hoverColor">
-            {episode.still_path ? (
-              <img
-                src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
-                alt={episode.title}
-                className="w-full h-full object-cover"
+        <div className="relative w-[160px] h-[90px] flex-shrink-0 rounded overflow-hidden bg-video-context-hoverColor">
+          {episode.still_path ? (
+            <img
+              src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
+              alt={episode.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-black/50">
+              <LucideIcon
+                icon={Film}
+                className="text-video-context-type-main opacity-50 text-2xl"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-                <LucideIcon
-                  icon={Film}
-                  className="text-video-context-type-main opacity-50 text-3xl"
-                />
-              </div>
-            )}
-
-            {/* Episode Number Badge */}
-            <div className="absolute top-2 left-2 flex items-center space-x-2">
-              <span className="p-0.5 px-2 rounded inline bg-video-context-hoverColor bg-opacity-80 text-video-context-type-main text-sm">
-                {seasonNumber
-                  ? `S${seasonNumber}E${episode.number}`
-                  : `E${episode.number}`}
-              </span>
-              {!isAired && (
-                <span className="bg-video-context-hoverColor/50 text-video-context-type-main/80 text-sm px-1 py-0.5 rounded-md">
-                  {episode.air_date
-                    ? `(${t("details.airs")} - ${new Date(episode.air_date).toLocaleDateString()})`
-                    : `(${t("media.unreleased")})`}
-                </span>
-              )}
             </div>
-
-            {/* Mark as watched and favorite buttons */}
-            {isAired && (
-              <div className="absolute top-2 right-2 flex gap-1">
-                <button
-                  type="button"
-                  onClick={(e) => onToggleFavorite(episode.id, e)}
-                  className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
-                  title={t("player.menus.episodes.markAsFavorite")}
-                >
-                  <LucideIcon
-                    icon={Bookmark}
-                    fill={isFavorited ? "currentColor" : "none"}
-                    className="h-8 w-8 text-white/80"
-                  />
-                </button>
-                {!isActive && (
-                  <button
-                    type="button"
-                    onClick={(e) => onToggleWatch(episode.id, e)}
-                    className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
-                    title={
-                      isWatched
-                        ? t("player.menus.episodes.markAsUnwatched")
-                        : t("player.menus.episodes.markAsWatched")
-                    }
-                  >
-                    <LucideIcon
-                      icon={isWatched ? EyeOff : Eye}
-                      className="h-4 w-4 text-white/80"
-                    />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Content */}
-        <div
-          className={classNames(
-            "p-3",
-            expandedEpisodes[`large-${episode.id}`] ? "h-full" : "h-[122px]",
           )}
-        >
-          <div className="flex items-start justify-between">
-            <h3 className="font-bold text-white line-clamp-1">
+
+          {/* Progress bar */}
+          {percentage > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+              <div
+                className="h-full bg-red-600"
+                style={{
+                  width: `${percentage}%`,
+                }}
+              />
+            </div>
+          )}
+
+          {/* Episode badge */}
+          <div className="absolute top-2 left-2">
+            <span className="px-2 py-0.5 rounded bg-black/70 text-white text-xs font-medium backdrop-blur-sm">
+              {seasonNumber
+                ? `S${seasonNumber}E${episode.number}`
+                : `E${episode.number}`}
+            </span>
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          {/* Title and metadata */}
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-semibold text-white line-clamp-1 flex-1">
               {episode.title}
-            </h3>
-            {expandedEpisodes[`large-${episode.id}`] && isAired && (
-              <div className="flex gap-1">
+            </h4>
+            {isAired && (
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   type="button"
-                  onClick={(e) => onToggleFavorite(episode.id, e)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(episode.id, e);
+                  }}
                   className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                   title={t("player.menus.episodes.markAsFavorite")}
                 >
                   <LucideIcon
                     icon={Bookmark}
                     fill={isFavorited ? "currentColor" : "none"}
-                    className="h-8 w-8 text-white/80"
+                    className="h-4 w-4 text-white/80"
                   />
                 </button>
                 {!isActive && (
                   <button
                     type="button"
-                    onClick={(e) => onToggleWatch(episode.id, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleWatch(episode.id, e);
+                    }}
                     className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
                     title={
                       isWatched
@@ -428,59 +396,22 @@ function EpisodeItem({
               </div>
             )}
           </div>
+
+          {/* Description */}
           {episode.overview && (
-            <div className="relative">
-              <p
-                ref={(el) => {
-                  if (descriptionRefs) {
-                    descriptionRefs.current[`large-${episode.id}`] = el;
-                  }
-                }}
-                className={classNames(
-                  "text-sm text-white/80 mt-1.5 transition-all duration-200",
-                  !expandedEpisodes[`large-${episode.id}`]
-                    ? "line-clamp-2"
-                    : "max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2",
-                )}
-              >
-                {episode.overview}
-              </p>
-              {!expandedEpisodes[`large-${episode.id}`] &&
-                truncatedEpisodes[`large-${episode.id}`] && (
-                  <button
-                    type="button"
-                    onClick={(e) =>
-                      onToggleExpansion?.(`large-${episode.id}`, e)
-                    }
-                    className="text-sm text-white/60 hover:text-white transition-opacity duration-200 opacity-0 animate-fade-in"
-                  >
-                    {t("player.menus.episodes.showMore")}
-                  </button>
-                )}
-              {expandedEpisodes[`large-${episode.id}`] && (
-                <button
-                  type="button"
-                  onClick={(e) => onToggleExpansion?.(`large-${episode.id}`, e)}
-                  className="mt-2 text-sm text-white/60 hover:text-white transition-opacity duration-200 opacity-0 animate-fade-in"
-                >
-                  {t("player.menus.episodes.showLess")}
-                </button>
-              )}
-            </div>
+            <p className="text-sm text-white/60 line-clamp-2">
+              {episode.overview}
+            </p>
+          )}
+
+          {/* Air date for unaired episodes */}
+          {!isAired && episode.air_date && (
+            <p className="text-xs text-white/50 mt-1">
+              {t("details.airs")} -{" "}
+              {new Date(episode.air_date).toLocaleDateString()}
+            </p>
           )}
         </div>
-
-        {/* Progress indicator */}
-        {percentage > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-progress-background/25">
-            <div
-              className="h-full bg-progress-filled"
-              style={{
-                width: `${percentage}%`,
-              }}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
@@ -521,7 +452,7 @@ function SeasonsView({
   let content: ReactNode = null;
   if (seasons) {
     content = (
-      <Menu.Section className="pb-6">
+      <Menu.Section>
         {/* Favorites section */}
         {favoriteEpisodes.length > 0 && (
           <Menu.ChevronLink
@@ -927,12 +858,7 @@ export function EpisodesView({
     content = (
       <div className="relative">
         {/* Horizontal scroll buttons */}
-        <div
-          className={classNames(
-            "absolute left-0 top-1/2 transform -translate-y-1/2 z-10 px-4",
-            forceCompactEpisodeView ? "hidden" : "hidden lg:block",
-          )}
-        >
+        <div className="hidden">
           <button
             type="button"
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
@@ -946,13 +872,9 @@ export function EpisodesView({
           ref={carouselRef}
           className={classNames(
             "flex pb-4 pt-2 scrollbar-hide",
-            {
-              "carousel-container":
-                window.innerWidth >= 1024 && !forceCompactEpisodeView,
-            },
             forceCompactEpisodeView
               ? "flex-col  space-y-3"
-              : "flex-col lg:flex-row lg:overflow-x-auto space-y-3 sm:space-y-4 lg:space-y-0 lg:space-x-4 lg:px-12 ",
+              : "flex-col space-y-2 lg:space-y-2 lg:overflow-y-auto lg:px-0",
           )}
           style={{
             scrollbarWidth: "none",
@@ -1007,12 +929,7 @@ export function EpisodesView({
         </div>
 
         {/* Right scroll button */}
-        <div
-          className={classNames(
-            "absolute right-0 top-1/2 transform -translate-y-1/2 z-10 px-4",
-            forceCompactEpisodeView ? "hidden" : "hidden lg:block",
-          )}
-        >
+        <div className="hidden">
           <button
             type="button"
             className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
@@ -1026,15 +943,22 @@ export function EpisodesView({
   }
 
   return (
-    <Menu.CardWithScrollable>
-      <Menu.BackLink onClick={goBack} side="right">
-        {selectedSeason === "favorites"
-          ? t("player.menus.episodes.favorites")
-          : loadingState?.value?.season.title ||
-            t("player.menus.episodes.loadingTitle")}
-      </Menu.BackLink>
-      {content}
-    </Menu.CardWithScrollable>
+    <div className="flex flex-col h-full">
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 border-b border-video-context-border">
+        <Menu.BackLink onClick={goBack} side="right">
+          {selectedSeason === "favorites"
+            ? t("player.menus.episodes.favorites")
+            : loadingState?.value?.season.title ||
+              t("player.menus.episodes.loadingTitle")}
+        </Menu.BackLink>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-2.5 py-2.5 scrollbar-hide">
+        {content}
+      </div>
+    </div>
   );
 }
 
@@ -1077,11 +1001,9 @@ function EpisodesOverlay({
         <OverlayPage
           id={id}
           path="/episodes"
-          width={343}
-          height={
-            forceCompactEpisodeView || window.innerWidth < 1024 ? 431 : 375
-          }
-          fullWidth={!forceCompactEpisodeView}
+          width={420}
+          height={600}
+          fullWidth={false}
         >
           {selectedSeason.length > 0 ? (
             <EpisodesView

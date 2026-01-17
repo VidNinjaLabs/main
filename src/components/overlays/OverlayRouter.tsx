@@ -47,11 +47,13 @@ function RouterBase(props: { id: string; children: ReactNode }) {
   // On desktop, use registered width or default
   const width = isMobile ? undefined : `${routeMeta?.width ?? 290}px`;
 
+  const styleHeight = `${height}px`;
+
   return (
     <div
       ref={ref}
       style={{
-        height: `${height}px`,
+        height: styleHeight,
         ...(width && { width }),
       }}
       className={classNames(
@@ -61,7 +63,7 @@ function RouterBase(props: { id: string; children: ReactNode }) {
     >
       <Flare.Base className="group w-full bg-video-context-border bg-opacity-30 backdrop-blur-md h-full rounded-xl text-video-context-type-main">
         <Flare.Light
-          flareSize={400}
+          flareSize={200}
           cssColorVar="--colors-video-context-light"
           backgroundClass="bg-video-context-background"
           className="rounded-xl opacity-60"

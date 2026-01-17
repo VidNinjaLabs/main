@@ -47,7 +47,33 @@ export function OverlayPage(props: Props) {
       }
 
       // Otherwise measure from content
-      const rawHeight = contentRef.current.scrollHeight;
+      // CRITICAL: Don't measure contentRef itself - it has h-full and will report container height
+      // We need to find the actual content div (Cards component) which has h-auto
+      // Skip past all the h-full wrappers (Flare.Base, Flare.Child, OverlayPage inner div)
+
+      let contentElement: HTMLElement | null = contentRef.current;
+
+      // Traverse down to find an element that doesn't have h-full
+      while (contentElement) {
+        const firstChild = contentElement.firstElementChild as HTMLElement;
+        if (!firstChild) break;
+
+        // Check if this child has h-full class
+        const hasFullHeight = firstChild.classList.contains("h-full");
+
+        if (!hasFullHeight) {
+          // Found an element without h-full, use it
+          contentElement = firstChild;
+          break;
+        }
+
+        // Continue traversing
+        contentElement = firstChild;
+      }
+
+      const rawHeight = contentElement
+        ? contentElement.scrollHeight
+        : contentRef.current.scrollHeight;
 
       // Apply constraints: use maxHeight if provided, also constrain to viewport
       const viewportMax = window.innerHeight - 160; // Leave margin for controls
@@ -63,7 +89,7 @@ export function OverlayPage(props: Props) {
       const registeredWidth = isMobile
         ? 290
         : props.fullWidth
-          ? window.innerWidth - 60
+          ? window.innerWidth - 80
           : props.width;
 
       registerRoute({
@@ -100,7 +126,7 @@ export function OverlayPage(props: Props) {
    */
   const width = !isMobile
     ? props.fullWidth
-      ? "calc(100vw - 60px)"
+      ? "calc(100vw - 80px)"
       : `${props.width}px`
     : "100%";
 
@@ -123,7 +149,7 @@ export function OverlayPage(props: Props) {
       <div
         ref={contentRef}
         className={classNames([
-          "max-h-full h-full", // Removed grid-rows-[auto] - it was overriding explicit height!
+          "max-h-full h-auto", // Removed h-full to allow auto-sizing
           props.className,
           props.fullWidth ? "max-w-none" : "",
         ])}
