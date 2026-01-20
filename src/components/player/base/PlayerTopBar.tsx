@@ -14,8 +14,8 @@ export function PlayerTopBar() {
   const isLoading = usePlayerStore((s) => s.mediaPlaying.isLoading);
   const hasPlayedOnce = usePlayerStore((s) => s.mediaPlaying.hasPlayedOnce);
 
-  // Show minimal UI during initial load/buffering/seeking
-  const showMinimalUI = isLoading || !hasPlayedOnce;
+  // Show minimal UI during initial load
+  const showMinimalUI = !hasPlayedOnce;
 
   return (
     <div className="absolute top-0 left-0 right-0 z-50 grid grid-cols-3 items-center px-4 md:px-6 lg:px-8 py-2 md:py-2.5 lg:py-3 bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none">
@@ -43,7 +43,7 @@ export function PlayerTopBar() {
       </div>
 
       {/* Right Side: Control Buttons */}
-      <div className="flex items-center gap-4 md:gap-5 lg:gap-6 pointer-events-auto justify-end">
+      <div className="flex items-center gap-2 md:gap-3 lg:gap-4 pointer-events-auto justify-end">
         {/* Episode List Button (TV Shows Only) - Hide during loading */}
         {!showMinimalUI && isShow && (
           <Player.Episodes
@@ -59,6 +59,7 @@ export function PlayerTopBar() {
             <SettingsButton />
             <VolumeButton />
             <Player.Chromecast iconSizeClass="w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" />
+            <Player.Fullscreen size="md" />
             <div className="w-px h-8 bg-white/20 mx-1" />
           </>
         )}

@@ -10,7 +10,7 @@ const sizeMap: Record<"sm" | "md" | "lg" | "xl", { base: number; lg: number }> =
     sm: { base: 24, lg: 28 },
     md: { base: 32, lg: 40 }, // Default for all controls
     lg: { base: 40, lg: 48 },
-    xl: { base: 56, lg: 64 },
+    xl: { base: 64, lg: 80 },
   };
 
 interface SkipIconProps {
@@ -26,7 +26,7 @@ function SkipForwardIcon({ baseSize, lgSize, isAnimating }: SkipIconProps) {
       <path
         d="M12 5L13.1039 3.45459C13.5149 2.87911 13.7205 2.59137 13.5907 2.32411C13.4609 2.05684 13.1311 2.04153 12.4714 2.01092C12.3152 2.00367 12.158 2 12 2C6.4772 2 2 6.47715 2 12C2 17.5228 6.4772 22 12 22C17.5229 22 22 17.5228 22 12C22 8.72836 20.4289 5.82368 18 3.99927"
         style={{
-          transformOrigin: "center",
+          transformOrigin: "12px 12px",
           transition: isAnimating
             ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
@@ -83,7 +83,7 @@ function SkipBackwardIcon({ baseSize, lgSize, isAnimating }: SkipIconProps) {
       <path
         d="M12 5L10.8961 3.45459C10.4851 2.87911 10.2795 2.59137 10.4093 2.32411C10.5391 2.05684 10.8689 2.04153 11.5286 2.01092C11.6848 2.00367 11.842 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 8.72836 3.57111 5.82368 6 3.99927"
         style={{
-          transformOrigin: "center",
+          transformOrigin: "12px 12px",
           transition: isAnimating
             ? "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
             : "none",
@@ -149,11 +149,12 @@ export function SkipForward(props: {
     props.onAction?.("forward");
 
     // Trigger circle+arrow rotation (full loop), "10" stays static
+    // Use timeout to ensure state reset propagates
     setIsAnimating(false);
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 500);
-    });
+    }, 50);
   }, [display, time, props]);
 
   if (enableDoubleClickToSeek) return null;
@@ -161,7 +162,11 @@ export function SkipForward(props: {
   const sizes = sizeMap[props.size || "lg"];
 
   return (
-    <VideoPlayerButton onClick={commit}>
+    <VideoPlayerButton
+      onClick={commit}
+      className="text-white/80 hover:text-white transition-colors duration-200"
+      activeClass="active:scale-100 active:text-white" // Disable scale zoom
+    >
       <SkipForwardIcon
         baseSize={sizes.base}
         lgSize={sizes.lg}
@@ -188,10 +193,10 @@ export function SkipBackward(props: {
 
     // Trigger circle+arrow rotation (full loop), "10" stays static
     setIsAnimating(false);
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 500);
-    });
+    }, 50);
   }, [display, time, props]);
 
   if (enableDoubleClickToSeek) return null;
@@ -199,7 +204,11 @@ export function SkipBackward(props: {
   const sizes = sizeMap[props.size || "lg"];
 
   return (
-    <VideoPlayerButton onClick={commit}>
+    <VideoPlayerButton
+      onClick={commit}
+      className="text-white/80 hover:text-white transition-colors duration-200"
+      activeClass="active:scale-100 active:text-white" // Disable scale zoom
+    >
       <SkipBackwardIcon
         baseSize={sizes.base}
         lgSize={sizes.lg}

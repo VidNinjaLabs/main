@@ -7,8 +7,8 @@ export type PauseAction = "play" | "pause";
 const sizeMap = {
   sm: 28,
   md: 34,
-  lg: 40,
-  xl: 48,
+  lg: 64, // Increased size directly to avoid scale-150 reliance
+  xl: 96, // Increased size directly (matches Spinner default 96px)
 };
 
 function PlayIcon({ size }: { size: number }) {
@@ -60,7 +60,11 @@ export function Pause(props: {
   const size = sizeMap[props.size || "lg"];
 
   return (
-    <VideoPlayerButton onClick={togglePause} className={props.className}>
+    <VideoPlayerButton
+      onClick={togglePause}
+      className={`text-white ${props.className || ""}`}
+      activeClass="active:scale-100 active:text-white"
+    >
       <div
         style={{
           position: "relative",
@@ -78,7 +82,7 @@ export function Pause(props: {
             transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             transform: isPaused
               ? "scale(1) rotate(0deg)"
-              : "scale(0) rotate(-90deg)",
+              : "scale(1) rotate(-90deg)", // No scale change
             opacity: isPaused ? 1 : 0,
           }}
         >
@@ -90,7 +94,7 @@ export function Pause(props: {
             position: "absolute",
             transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             transform: isPaused
-              ? "scale(0) rotate(90deg)"
+              ? "scale(1) rotate(90deg)" // No scale change
               : "scale(1) rotate(0deg)",
             opacity: isPaused ? 0 : 1,
           }}

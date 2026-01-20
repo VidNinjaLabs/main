@@ -441,7 +441,7 @@ export function CaptionSettingsView({
   };
 
   return (
-    <>
+    <div className="w-96">
       <Menu.BackLink
         onClick={() =>
           router.navigate(overlayBackLink ? "/captionsOverlay" : "/captions")
@@ -713,6 +713,6 @@ export function CaptionSettingsView({
           </>
         )}
       </Menu.Section>
-    </>
+    </div>
   );
 }
