@@ -4,6 +4,14 @@ import { usePlayerStore } from "@/stores/player/store";
 export function PlayerBottomBar() {
   const meta = usePlayerStore((s) => s.meta);
   const isShow = meta?.type === "show";
+  const isLoading = usePlayerStore((s) => s.mediaPlaying.isLoading);
+  const hasPlayedOnce = usePlayerStore((s) => s.mediaPlaying.hasPlayedOnce);
+
+  // Hide bottom bar during initial load/buffering
+  const showMinimalUI = isLoading || !hasPlayedOnce;
+
+  // Don't render anything during loading
+  if (showMinimalUI) return null;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-50 px-4 md:px-6 lg:px-8 py-2 md:py-2.5 lg:py-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none">

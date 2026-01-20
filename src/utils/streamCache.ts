@@ -7,7 +7,7 @@
 import { RunOutput } from "@/hooks/useProviderScrape";
 
 const CACHE_PREFIX = "stream-cache-v2:";
-const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // Kept for reference, but not enforced (cache is permanent)
 
 interface CachedStream {
   data: RunOutput;
@@ -49,15 +49,8 @@ export function getCachedStream(
     const parsed: CachedStream = JSON.parse(cached);
     const age = Date.now() - parsed.timestamp;
 
-    // Check if cache is expired
-    if (age > CACHE_TTL_MS) {
-      localStorage.removeItem(key);
-      console.log(`[StreamCache] Cache expired for ${key}`);
-      return null;
-    }
-
     console.log(
-      `[StreamCache] Cache HIT for ${key} (age: ${Math.round(age / 1000)}s)`,
+      `[StreamCache] Cache HIT for ${key} (age: ${Math.round(age / 1000 / 60 / 60)}h)`,
     );
     return parsed.data;
   } catch (err) {

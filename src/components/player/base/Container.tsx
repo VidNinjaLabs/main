@@ -8,6 +8,7 @@ import { KeyboardEvents } from "@/components/player/internals/KeyboardEvents";
 import { MediaSession } from "@/components/player/internals/MediaSession";
 import { MetaReporter } from "@/components/player/internals/MetaReporter";
 import { ProgressSaver } from "@/components/player/internals/ProgressSaver";
+import { useAutoResume } from "@/components/player/hooks/useAutoResume";
 import { ThumbnailScraper } from "@/components/player/internals/ThumbnailScraper";
 import { VideoClickTarget } from "@/components/player/internals/VideoClickTarget";
 import { VideoContainer } from "@/components/player/internals/VideoContainer";
@@ -95,6 +96,8 @@ export function Container(props: PlayerProps) {
         <CastingInternal />
         <VideoContainer />
         <ProgressSaver />
+        {/* Auto-resume DISABLED - causes segment loading issues */}
+        {/* {useAutoResume()} */}
         <KeyboardEvents />
         <MediaSession />
         {/* <WatchPartyReporter /> Removed */}

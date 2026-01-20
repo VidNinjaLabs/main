@@ -8,12 +8,14 @@ export interface PlayingSlice {
     isDragSeeking: boolean; // is seeking for our custom progress bar
     isLoading: boolean; // buffering or not
     hasPlayedOnce: boolean; // has the video played at all?
+    hasResumed: boolean; // has auto-resumed to saved progress?
     volume: number;
     playbackRate: number;
   };
   play(): void;
   pause(): void;
   setIsLoading(loading: boolean): void;
+  setHasResumed(resumed: boolean): void;
 }
 
 export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
@@ -24,6 +26,7 @@ export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
     isSeeking: false,
     isDragSeeking: false,
     hasPlayedOnce: false,
+    hasResumed: false,
     volume: 1,
     playbackRate: 1,
   },
@@ -42,6 +45,11 @@ export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
   setIsLoading(loading: boolean) {
     set((state) => {
       state.mediaPlaying.isLoading = loading;
+    });
+  },
+  setHasResumed(resumed: boolean) {
+    set((state) => {
+      state.mediaPlaying.hasResumed = resumed;
     });
   },
 });

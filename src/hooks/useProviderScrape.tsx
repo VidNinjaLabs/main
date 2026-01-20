@@ -343,6 +343,40 @@ export function useScrape() {
             availableProviders: response.availableProviders,
           };
         }
+
+        // Handle cloudflare-hls type with manifestUrl
+        if (response.type === "cloudflare-hls" && response.manifestUrl) {
+          // Capture provider from backend response
+          const providerFromBackend = response.provider || "session";
+
+          if (
+            response.selectedProvider !== undefined &&
+            response.availableProviders
+          ) {
+            const providerName =
+              response.availableProviders.find(
+                (p) => p.index === response.selectedProvider,
+              )?.name || "Unknown";
+            setCurrentSourceId(providerName);
+            updateSourceStatus(providerName, "success", 100);
+          } else {
+            // Use provider from backend if available
+            setCurrentSourceId(providerFromBackend);
+          }
+
+          return {
+            sourceId: providerFromBackend, // Use backend provider
+            provider: providerFromBackend,
+            streamType: "hls", // Convert to hls for player compatibility
+            selectedServer: "manifest",
+            url: response.manifestUrl, // Use manifestUrl as the URL
+            servers: { manifest: response.manifestUrl }, // Create servers object for compatibility
+            subtitles: response.subtitles || response.captions || [],
+            headers: response.headers,
+            session: response.session,
+            availableProviders: response.availableProviders,
+          };
+        }
       } catch (error: any) {
         console.error("Scraping failed:", error);
         // If error has session data (as returned by updated vidninja client)
@@ -421,6 +455,25 @@ export function useScrape() {
             selectedServer: bestServer.server,
             url: bestServer.url,
             servers: response.servers,
+            subtitles: response.subtitles || response.captions || [],
+            headers: response.headers,
+            session: response.session,
+            availableProviders: response.availableProviders,
+          };
+        }
+
+        // Handle cloudflare-hls type with manifestUrl
+        if (response.type === "cloudflare-hls" && response.manifestUrl) {
+          return {
+            sourceId: providerIndex,
+            provider:
+              response.availableProviders?.find(
+                (p) => p.index === parseInt(providerIndex),
+              )?.name || "Manual",
+            streamType: "hls", // Convert to hls for player compatibility
+            selectedServer: "manifest",
+            url: response.manifestUrl,
+            servers: { manifest: response.manifestUrl },
             subtitles: response.subtitles || response.captions || [],
             headers: response.headers,
             session: response.session,

@@ -1,13 +1,10 @@
-/* eslint-disable import/no-extraneous-dependencies */
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-
 interface SpinnerProps {
   className?: string;
-  /** Fixed size in pixels. If not provided, uses responsive default (48px) */
+  /** Fixed size in pixels. If not provided, uses responsive default (96px) */
   size?: number;
 }
 
-// Standard size: 72px everywhere for consistency
+// Standard size: 96px everywhere for consistency
 const DEFAULT_SIZE = 96;
 
 export function Spinner(props: SpinnerProps) {
@@ -21,7 +18,14 @@ export function Spinner(props: SpinnerProps) {
         height: size,
       }}
     >
-      <DotLottieReact src="/Loader.json" loop autoplay />
+      {/* Simple CSS spinner */}
+      <div
+        className="border-8 border-white/20 border-t-white rounded-full animate-spin"
+        style={{
+          width: size,
+          height: size,
+        }}
+      />
     </div>
   );
 }

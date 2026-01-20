@@ -105,14 +105,13 @@ export function convertProviderCaption(
 
   const result = subtitles.map((v, index) => ({
     // Generate truly unique ID by combining multiple properties
-    // This ensures no deduplication even if multiple tracks share the same language
     id: `${v.id}-${v.source || "unknown"}-${v.hearingImpaired ? "hi" : "normal"}-${index}`,
-    language: v.language,
+    language: v.language, // Use backend language code directly
     url: v.url,
     type: v.format === "srt" ? "srt" : "vtt",
     needsProxy: false,
     opensubtitles: undefined,
-    display: v.languageName,
+    display: v.languageName, // Native language name from wyzie
     media: undefined,
     isHearingImpaired: v.hearingImpaired,
     source: v.source,

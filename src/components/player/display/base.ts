@@ -2,6 +2,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
 import Hls, { Level } from "@rev9dev-netizen/vidply.js";
+
+import {
+  getResumeTime,
+  getSafeResumeTime,
+} from "@/components/player/utils/continueWatching";
+import { usePlayerStore } from "@/stores/player/store";
 import fscreen from "fscreen";
 
 // Extension imports removed
@@ -97,6 +103,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
   let lastValidDuration = 0; // Store the last valid duration to prevent reset during source switches
   let lastValidTime = 0; // Store the last valid time to prevent reset during source switches
   let shouldAutoplayAfterLoad = false; // Flag to track if we should autoplay after loading completes
+  let loadingTimeout: NodeJS.Timeout | null = null; // Timeout to auto-clear stuck loading states
 
   const languagePromises = new Map<
     string,
@@ -195,34 +202,59 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       if (!hls) {
         hls = new Hls({
           autoStartLoad: true,
-          // VidPly.js Prefetch Settings - Parallel fragment download
-          enableFragmentPrefetch: true, // Enable n+1 parallel prefetch
-          prefetchBufferThreshold: 2, // Start parallel loading after 2s of buffer
-          maxParallelFragmentLoads: 5, // Max concurrent fragment downloads (Aggr: 5)
-          // Buffering Settings
-          maxBufferLength: 60, // Target buffer length in seconds (1 minute ahead)
-          maxMaxBufferLength: 120, // Maximum buffer allowed (2 minutes)
-          backBufferLength: 90, // Keep 1.5 minutes of back buffer for rewinding
-          maxBufferHole: 2.0, // Tolerance for small gaps in stream
-          highBufferWatchdogPeriod: 1, // Check buffer every second
-          enableWorker: true, // Use web worker for HLS processing (smoother UI)
-          // Load Policy - Be patient with slow connections
+
+          // YouTube-Style Aggressive Buffering Strategy
+          // ============================================
+
+          // 1. FAST STARTUP - Start with LOWEST quality for instant playback
+          startLevel: 0, // Force lowest quality (360p/480p) for fast start
+          capLevelToPlayerSize: true, // Don't load 4K for small player
+          maxBufferLength: 90, // Buffer up to 90 seconds ahead (YouTube-like)
+          maxMaxBufferLength: 180, // Max 3 minutes buffer (aggressive)
+          backBufferLength: 30, // Keep 30s back buffer for seeking
+
+          // 2. AGGRESSIVE PREFETCHING - Load next segments in parallel
+          enableFragmentPrefetch: true, // Enable parallel fragment downloads
+          prefetchBufferThreshold: 1, // Start prefetch after just 1s (very aggressive)
+          maxParallelFragmentLoads: 4, // 4 parallel downloads (balanced - was 8, too aggressive)
+
+          // 3. SMART BUFFER MANAGEMENT
+          maxBufferHole: 0.5, // Tolerate 0.5s gaps (smooth playback)
+          highBufferWatchdogPeriod: 2, // Check buffer health every 2s
+          nudgeOffset: 0.1, // Fine-tune playback position
+          nudgeMaxRetry: 5, // Retry nudging if needed
+
+          // 4. FAST LOADING - Reduce timeouts for quicker failures
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 60 * 1000,
-              maxTimeToFirstByteMs: 60 * 1000,
+              maxLoadTimeMs: 20 * 1000, // 20s timeout (faster than before)
+              maxTimeToFirstByteMs: 10 * 1000, // 10s for first byte
               errorRetry: {
-                maxNumRetry: 5,
-                retryDelayMs: 1000,
-                maxRetryDelayMs: 8000,
+                maxNumRetry: 3, // Retry 3 times quickly
+                retryDelayMs: 500, // 500ms between retries
+                maxRetryDelayMs: 2000, // Max 2s delay
               },
               timeoutRetry: {
-                maxNumRetry: 5,
-                maxRetryDelayMs: 0,
+                maxNumRetry: 2,
                 retryDelayMs: 0,
+                maxRetryDelayMs: 0,
               },
             },
           },
+
+          // 5. PERFORMANCE OPTIMIZATIONS
+          enableWorker: true, // Use web worker (smoother UI)
+          lowLatencyMode: false, // Standard mode for VOD
+          progressive: true, // Progressive download
+
+          // 6. ADAPTIVE QUALITY SWITCHING (YouTube-style)
+          // Start conservative, upgrade aggressively when buffer is healthy
+          abrEwmaDefaultEstimate: 500000, // Start with 500kbps estimate (conservative)
+          abrBandWidthFactor: 0.7, // Use 70% of bandwidth (conservative, prevents buffering)
+          abrBandWidthUpFactor: 0.9, // Upgrade at 90% (aggressive quality increase when buffer is good)
+          abrEwmaFastLive: 3.0, // Fast adaptation for live (3 segments)
+          abrEwmaSlowLive: 9.0, // Slow adaptation for VOD (9 segments)
+
           renderTextTracksNatively: false,
         });
         const exceptions = [
@@ -285,6 +317,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 }, 5000);
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log("[HLS] Media error, attempting recovery...");
                 hls?.recoverMediaError();
                 break;
               default:
@@ -306,18 +339,27 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                 }
                 break;
             }
-          } else if (data.details === "manifestLoadError") {
-            // Handle manifest load errors specifically - skip to next source
-            emit("tryNextSource", {
-              reason: "Failed to load HLS manifest",
-            });
-            emit("error", {
-              message: "Failed to load HLS manifest",
-              stackTrace: data.error?.stack || "",
-              errorName: data.error?.name || "ManifestLoadError",
-              type: "hls",
-              hls: hlsErrorInfo,
-            });
+          } else {
+            // Non-fatal errors - handle gracefully
+            if (data.details === "manifestLoadError") {
+              // Handle manifest load errors specifically - skip to next source
+              emit("tryNextSource", {
+                reason: "Failed to load HLS manifest",
+              });
+              emit("error", {
+                message: "Failed to load HLS manifest",
+                stackTrace: data.error?.stack || "",
+                errorName: data.error?.name || "ManifestLoadError",
+                type: "hls",
+                hls: hlsErrorInfo,
+              });
+            } else if (data.details === "fragParsingError") {
+              // Fragment parsing errors - try to continue playback
+              console.warn(
+                "[HLS] Fragment parsing error, continuing playback...",
+              );
+              // Don't emit error, just log and continue
+            }
           }
         });
         hls.on(Hls.Events.MANIFEST_LOADED, () => {
@@ -328,6 +370,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
           // Extension event listeners removed
         });
+
         hls.on(Hls.Events.LEVEL_SWITCHED, () => {
           if (!hls) return;
           const quality = hlsLevelToQuality(hls.levels[hls.currentLevel]);
@@ -353,8 +396,97 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       }
 
       hls.attachMedia(vid);
+
+      // YouTube-Level Resume: Calculate safe resume position
+      const meta = usePlayerStore.getState().meta;
+      let resumePosition = startAt;
+      let hasResumeData = false;
+
+      if (meta) {
+        const mediaId =
+          meta.type === "show" && meta.episode
+            ? `${meta.tmdbId}-${meta.episode.tmdbId}`
+            : meta.tmdbId;
+
+        if (mediaId) {
+          const resumeTime = getResumeTime(mediaId);
+          if (resumeTime > 0) {
+            const safeTime = getSafeResumeTime(resumeTime);
+            console.log(
+              `[Resume] ${resumeTime}s → ${safeTime}s (segment-safe)`,
+            );
+            resumePosition = safeTime;
+            hasResumeData = true;
+          }
+        }
+      }
+
+      // Step 1: Load manifest first
       hls.loadSource(processCdnLink(src.url));
-      vid.currentTime = startAt;
+
+      // Step 2: Wait for MANIFEST_PARSED, then apply safe seek
+      let hasAppliedSeek = false;
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (hasAppliedSeek || !vid) return;
+        hasAppliedSeek = true;
+
+        if (resumePosition > 0) {
+          console.log(
+            `[Resume] Seeking to ${resumePosition}s after manifest parsed`,
+          );
+          vid.currentTime = resumePosition;
+        }
+      });
+
+      // Step 3: Auto-play when buffer is ready (YouTube model)
+      let hasAttemptedPlay = false;
+      hls.on(Hls.Events.BUFFER_APPENDED, () => {
+        if (hasAttemptedPlay || !vid) return;
+        if (vid.paused && vid.readyState >= 2) {
+          hasAttemptedPlay = true;
+
+          // Muted autoplay for mobile compatibility
+          const wasMuted = vid.muted;
+          vid.muted = true;
+          vid
+            .play()
+            .then(() => {
+              console.log("[Resume] Playback started");
+              setTimeout(() => {
+                vid.muted = wasMuted;
+              }, 100);
+            })
+            .catch((err) => {
+              console.warn("[Resume] Play failed:", err);
+              vid.muted = wasMuted;
+            });
+        }
+      });
+
+      // Step 4: Stall detection & silent recovery (YouTube model)
+      if (hasResumeData) {
+        setTimeout(() => {
+          if (!vid) return;
+
+          // Check if playback is stalled
+          if (vid.readyState < 3 && vid.paused) {
+            console.warn("[Resume] Stalled - retrying 4s earlier");
+
+            // Seek back 4s and retry
+            const fallbackTime = Math.max(resumePosition - 4, 0);
+            vid.currentTime = fallbackTime;
+
+            setTimeout(() => {
+              vid.play().catch(() => {
+                console.warn("[Resume] Retry failed - starting from beginning");
+                vid.currentTime = 0;
+                vid.play().catch(() => {});
+              });
+            }, 500);
+          }
+        }, 3000); // 3s stall detection window
+      }
+
       return;
     }
 
@@ -399,11 +531,13 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     });
     videoElement.addEventListener("playing", () => {
       emit("play", undefined);
-      emit("loading", false);
+      emit("loading", false); // Always clear loading when actually playing
+      if (loadingTimeout) clearTimeout(loadingTimeout); // Clear timeout
     });
     videoElement.addEventListener("pause", () => emit("pause", undefined));
     videoElement.addEventListener("canplay", () => {
       emit("loading", false);
+      if (loadingTimeout) clearTimeout(loadingTimeout); // Clear timeout
       // Attempt autoplay if this was an autoplay transition (startAt = 0)
       if (shouldAutoplayAfterLoad && startAt === 0 && videoElement) {
         shouldAutoplayAfterLoad = false; // Reset the flag
@@ -418,7 +552,25 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         }
       }
     });
-    videoElement.addEventListener("waiting", () => emit("loading", true));
+    // Clear loading as soon as we have enough data loaded
+    videoElement.addEventListener("loadeddata", () => {
+      if (videoElement && videoElement.readyState >= 2) {
+        emit("loading", false);
+        if (loadingTimeout) clearTimeout(loadingTimeout); // Clear timeout
+      }
+    });
+    videoElement.addEventListener("waiting", () => {
+      emit("loading", true);
+
+      // Auto-clear loading after 3 seconds if still waiting
+      // This prevents spinner from sticking when HLS.js is aggressively buffering
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      loadingTimeout = setTimeout(() => {
+        if (videoElement && videoElement.readyState >= 2) {
+          emit("loading", false);
+        }
+      }, 1000); // Reduced from 3s to 1s for faster clearing
+    });
     videoElement.addEventListener("volumechange", () =>
       emit(
         "volumechange",
@@ -459,11 +611,24 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       }
     });
     videoElement.addEventListener("progress", () => {
-      if (videoElement)
-        emit(
-          "buffered",
-          handleBuffered(videoElement.currentTime, videoElement.buffered),
+      if (videoElement) {
+        const buffered = handleBuffered(
+          videoElement.currentTime,
+          videoElement.buffered,
         );
+        emit("buffered", buffered);
+
+        // Aggressive loading clear: Hide spinner with minimal buffer
+        const currentTime = videoElement.currentTime;
+        const hasMinimalBuffer = buffered > currentTime + 0.5; // Just 0.5s
+        const isReadyToPlay = videoElement.readyState >= 3; // HAVE_FUTURE_DATA
+
+        // Clear loading if we have buffer OR video is ready
+        // Don't check paused state - we want to clear loading even if paused
+        if (hasMinimalBuffer || isReadyToPlay) {
+          emit("loading", false);
+        }
+      }
     });
     videoElement.addEventListener("webkitendfullscreen", () => {
       isFullscreen = false;
@@ -584,7 +749,12 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         pictureInPictureChange,
       );
     },
-    load(ops) {
+    load(ops: {
+      source: LoadableSource | null;
+      automaticQuality: boolean;
+      preferredQuality: string | null;
+      startAt: number;
+    }) {
       if (!ops.source) unloadSource();
       automaticQuality = ops.automaticQuality;
       preferenceQuality = ops.preferredQuality;
@@ -595,20 +765,23 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       shouldAutoplayAfterLoad = ops.startAt === 0;
       setSource();
     },
-    changeQuality(newAutomaticQuality, newPreferredQuality) {
+    changeQuality(
+      newAutomaticQuality: boolean,
+      newPreferredQuality: string | null,
+    ) {
       if (source?.type !== "hls") return;
       automaticQuality = newAutomaticQuality;
       preferenceQuality = newPreferredQuality;
       setupQualityForHls();
     },
 
-    processVideoElement(video) {
+    processVideoElement(video: HTMLVideoElement | null) {
       destroyVideoElement();
       videoElement = video;
       setSource();
       this.setVolume(lastVolume);
     },
-    processContainerElement(container) {
+    processContainerElement(container: HTMLElement | null) {
       containerElement = container;
     },
     setMeta() {},
@@ -620,7 +793,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     play() {
       videoElement?.play();
     },
-    setSeeking(active) {
+    setSeeking(active: boolean) {
       if (active === isSeeking) return;
       isSeeking = active;
 
@@ -633,7 +806,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       isPausedBeforeSeeking = videoElement?.paused ?? true;
       this.pause();
     },
-    setTime(t) {
+    setTime(t: number) {
       if (!videoElement) return;
       // clamp time between 0 and max duration
       let time = Math.min(t, videoElement.duration);
@@ -643,7 +816,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       emit("time", time);
       videoElement.currentTime = time;
     },
-    async setVolume(v) {
+    async setVolume(v: number) {
       // clamp time between 0 and 1
       let volume = Math.min(v, 1);
       volume = Math.max(0, volume);
@@ -779,7 +952,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         videoPlayer.webkitShowPlaybackTargetPicker();
       }
     },
-    setPlaybackRate(rate) {
+    setPlaybackRate(rate: number) {
       if (videoElement) videoElement.playbackRate = rate;
     },
     getCaptionList() {
@@ -799,7 +972,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     getSubtitleTracks() {
       return hls?.subtitleTracks ?? [];
     },
-    async setSubtitlePreference(lang) {
+    async setSubtitlePreference(lang: string | undefined) {
       // default subtitles are already loaded by hls.js
       const track = hls?.subtitleTracks.find((t) => t.lang === lang);
       if (track?.details !== undefined) return Promise.resolve();
@@ -818,7 +991,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       hls?.setSubtitleOption({ lang });
       return promise;
     },
-    changeAudioTrack(track) {
+    changeAudioTrack(track: { id: string }) {
       if (!hls) return;
       const audioTrack = hls?.audioTracks.find(
         (t) => t.id.toString() === track.id,

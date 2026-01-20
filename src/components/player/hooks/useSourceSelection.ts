@@ -163,12 +163,17 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
             // Legacy/Direct scraping
             response = await withTimeout(
               scrapeMedia.type === "movie"
-                ? backendClient.scrapeMovie(scrapeMedia.tmdbId, sourceId)
+                ? backendClient.scrapeMovie(
+                    scrapeMedia.tmdbId,
+                    sourceId,
+                    scrapeSessionId || undefined, // Pass session for Redis caching
+                  )
                 : backendClient.scrapeShow(
                     scrapeMedia.tmdbId,
                     scrapeMedia.season?.number ?? 1,
                     scrapeMedia.episode?.number ?? 1,
                     sourceId,
+                    scrapeSessionId || undefined, // Pass session for Redis caching
                   ),
               TIMEOUTS.PROVIDER_SCRAPE,
               `Provider ${sourceId} timed out`,

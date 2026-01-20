@@ -14,6 +14,7 @@ import type {
 const TOKEN_STORAGE_KEY = "jwt_token";
 
 class BackendClient {
+  [x: string]: any;
   private baseUrl: string = "";
 
   private configured: boolean = false;
@@ -132,7 +133,7 @@ class BackendClient {
   // ==========================================================================
 
   /**
-   * GET /scrape/movie/:tmdbId
+   * GET /stream/movie/:tmdbId
    * Get stream URLs for a movie
    */
   async scrapeMovie(
@@ -146,7 +147,7 @@ class BackendClient {
     // Ensure we have a valid token
     await this.ensureAuthenticated();
 
-    let url = `${this.baseUrl}/scrape/movie/${tmdbId}`;
+    let url = `${this.baseUrl}/stream/movie/${tmdbId}`;
     if (provider) {
       url += `?provider=${encodeURIComponent(provider)}`;
     }
@@ -190,7 +191,7 @@ class BackendClient {
   }
 
   /**
-   * GET /scrape/tv/:tmdbId/:season/:episode
+   * GET /stream/tv/:tmdbId/:season/:episode
    * Get stream URLs for a TV show episode
    */
   async scrapeShow(
@@ -206,7 +207,7 @@ class BackendClient {
     // Ensure we have a valid token
     await this.ensureAuthenticated();
 
-    let url = `${this.baseUrl}/scrape/tv/${tmdbId}/${season}/${episode}`;
+    let url = `${this.baseUrl}/stream/tv/${tmdbId}/${season}/${episode}`;
     if (provider) {
       url += `?provider=${encodeURIComponent(provider)}`;
     }

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Player } from "@/components/player";
+import { ContinueWatchingPrompt } from "@/components/player/atoms/ContinueWatchingPrompt";
 import { UnreleasedEpisodeOverlay } from "@/components/player/atoms/UnreleasedEpisodeOverlay";
 import { useShouldShowControls } from "@/components/player/hooks/useShouldShowControls";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -44,6 +45,10 @@ export function PlayerPart(props: PlayerPartProps) {
 
   // Track if video has ever started playing to distinguish initial load from mid-playback buffering
   const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+
+  // Continue watching prompt state
+  const [showContinuePrompt, setShowContinuePrompt] = useState(true);
+  const [startFromBeginning, setStartFromBeginning] = useState(false);
 
   // Once video starts playing (not loading), mark it
   useEffect(() => {
@@ -147,6 +152,26 @@ export function PlayerPart(props: PlayerPartProps) {
           onChange={props.onMetaChange}
           inControl={inControl}
         />
+
+        {/* Continue Watching Prompt - DISABLED: Auto-resume handles this now */}
+        {/* {showContinuePrompt && (
+          <ContinueWatchingPrompt
+            onContinue={() => {
+              setShowContinuePrompt(false);
+              // Video will continue from saved position automatically
+            }}
+            onStartOver={() => {
+              setShowContinuePrompt(false);
+              setStartFromBeginning(true);
+              // Reset progress to 0
+              const display = usePlayerStore.getState().display;
+              if (display) {
+                display.setTime(0);
+              }
+            }}
+            percentage={savedProgress}
+          />
+        )} */}
       </Player.Container>
     </div>
   );

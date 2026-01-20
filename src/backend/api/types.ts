@@ -55,8 +55,11 @@ export interface VidNinjaStream {
 }
 
 export interface StreamResponse {
-  type: "hls" | "file";
+  type: "hls" | "file" | "cloudflare-hls";
   servers: Record<string, string>;
+  manifestUrl?: string; // New: for cloudflare-hls type
+  sessionId?: string; // New: session ID for manifest
+  provider?: string; // New: selected provider from backend
   subtitles: SubtitleTrack[];
   captions?: SubtitleTrack[];
   headers?: Record<string, string>;
@@ -67,7 +70,6 @@ export interface StreamResponse {
     name: string;
     status: string;
   }[];
-  error?: string;
 }
 
 // =============================================================================

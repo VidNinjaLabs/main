@@ -76,10 +76,17 @@ export function Popover({
   };
 
   const getArrowClasses = () => {
+    // Position arrow based on alignment
+    const arrowAlign =
+      align === "start"
+        ? "left-6" // Position arrow on left when aligned to start
+        : align === "end"
+          ? "right-6"
+          : "left-1/2 -translate-x-1/2"; // Center by default
+
     const arrowPositions = {
-      top: "top-full left-1/2 -translate-x-1/2 -mt-px border-l-[6px] border-r-[6px] border-b-0 border-t-[6px] border-l-transparent border-r-transparent border-t-zinc-900",
-      bottom:
-        "bottom-full left-1/2 -translate-x-1/2 -mb-px border-l-[6px] border-r-[6px] border-t-0 border-b-[6px] border-l-transparent border-r-transparent border-b-zinc-900",
+      top: `top-full ${arrowAlign} -mt-px border-l-[6px] border-r-[6px] border-b-0 border-t-[6px] border-l-transparent border-r-transparent border-t-zinc-900`,
+      bottom: `bottom-full ${arrowAlign} -mb-px border-l-[6px] border-r-[6px] border-t-0 border-b-[6px] border-l-transparent border-r-transparent border-b-zinc-900`,
       left: "left-full top-1/2 -translate-y-1/2 -ml-px border-t-[6px] border-b-[6px] border-r-0 border-l-[6px] border-t-transparent border-b-transparent border-l-zinc-900",
       right:
         "right-full top-1/2 -translate-y-1/2 -mr-px border-t-[6px] border-b-[6px] border-l-0 border-r-[6px] border-t-transparent border-b-transparent border-r-zinc-900",
