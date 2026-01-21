@@ -57,6 +57,50 @@ export function PlayerPart(props: PlayerPartProps) {
     }
   }, [status, isLoading]);
 
+  // Check for playback verification (cache hit)
+  const time = usePlayerStore((s) => s.progress.time);
+  const source = usePlayerStore((s) => s.source);
+  const verifiedSessions = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (
+      time > 5 &&
+      source &&
+      (source.type === "hls" || source.type === "file")
+    ) {
+      // Extract session ID from manifest URL
+      // URL format: .../manifest/:sessionId or .../manifest/:sessionId?quality=...
+      let url = "";
+      if (source.type === "hls") url = source.url || "";
+      else if (source.type === "file") {
+        const qualities = Object.values(source.qualities);
+        // For file type, we might not have a session ID in the URL if it's direct
+        // But if it's proxied/manifest wrapped, we might.
+        // Actually, for VidLink we wrap mp4 in a manifest now, so it has a session ID.
+        url = qualities[0]?.url || "";
+      }
+
+      const match = url.match(/\/manifest\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        const sessionId = match[1];
+        if (!verifiedSessions.current.has(sessionId)) {
+          verifiedSessions.current.add(sessionId);
+          // Fire and forget verification
+          const backendUrl =
+            localStorage.getItem("backend_url") || "https://api.vidninja.pro";
+          fetch(`${backendUrl}/stream/verify/${sessionId}`, {
+            method: "POST",
+          }).catch(() => {
+            // Ignore errors, non-critical
+          });
+          console.log(
+            `[Player] Verified session ${sessionId} after 5s playback`,
+          );
+        }
+      }
+    }
+  }, [time, source]);
+
   // Reset when status goes back to non-playing states (new media)
   useEffect(() => {
     if (status !== playerStatus.PLAYING) {
