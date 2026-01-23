@@ -23,9 +23,11 @@ export interface ValidateResponse {
 // =============================================================================
 
 export interface Provider {
-  codename: string;
-  rank: number;
-  type: "source" | "embed";
+  id: string; // Now the Alias
+  name: string; // Now the Alias
+  codename?: string; // Legacy
+  rank?: number; // Removed in obfuscation
+  type?: "source" | "embed"; // Removed in obfuscation
 }
 
 export interface ProvidersResponse {
@@ -60,8 +62,10 @@ export interface StreamResponse {
   manifestUrl?: string; // New: for cloudflare-hls type
   sessionId?: string; // New: session ID for manifest
   provider?: string; // New: selected provider from backend
-  subtitles: SubtitleTrack[];
-  captions?: SubtitleTrack[];
+  subtitles?: SubtitleTrack[]; // Legacy
+  captions?: any[]; // Allow any for now, or match backend Caption type
+  streamUrl: string; // The signed manifest URL
+  success: boolean;
   headers?: Record<string, string>;
   session?: string;
   selectedProvider?: number;

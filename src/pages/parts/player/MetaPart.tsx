@@ -51,8 +51,10 @@ export function MetaPart(props: MetaPartProps) {
     episode: props.episode ?? routeParams.episode,
   };
   const navigate = useNavigate();
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // Optimize: If backdrop provided via props, assume loaded/cached to avoid flash/fade-in
+  const [imageLoaded, setImageLoaded] = useState(!!props.backdropUrl);
   const backdropRef = useRef<HTMLImageElement>(null);
+  const inflightRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (backdropRef.current?.complete) {
@@ -78,6 +80,15 @@ export function MetaPart(props: MetaPartProps) {
       // error dont matter, itll just be a 404
     }
     if (!data) return null;
+
+    // Deduplication: If we are already fetching this ID, skip
+    // This handles double-mount in Strict Mode or re-renders
+    const requestId = `${data.type}:${data.id}:${params.season || ""}:${params.episode || ""}`;
+    if (inflightRef.current === requestId) {
+      // console.log("Skipping duplicate metadata fetch:", requestId);
+      return null;
+    }
+    inflightRef.current = requestId;
 
     // Optimization: Use passed metadata if available (Movies only or complete Shows)
     if (
@@ -299,6 +310,7 @@ export function MetaPart(props: MetaPartProps) {
                 ? "opacity-30"
                 : "opacity-0 transition-opacity duration-500",
             )}
+            // Ensure we handle verify loading state ref if provided prop changes
             onLoad={() => setImageLoaded(true)}
             alt=""
             key="backdrop"

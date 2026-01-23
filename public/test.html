@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VidNinja Provider Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+      body {
+        background-color: #0f172a;
+        color: #f8fafc;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body class="p-8">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6 text-purple-400">
+        Provider Test Dashboard
+      </h1>
+
+      <!-- Controls -->
+      <div
+        class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 flex flex-wrap gap-4 items-end"
+      >
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Backend URL</label>
+          <input
+            type="text"
+            id="backendUrl"
+            value="http://localhost:3000"
+            class="bg-gray-700 text-white p-2 rounded w-48 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">Type</label>
+          <select
+            id="type"
+            class="bg-gray-700 text-white p-2 rounded w-32 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            onchange="toggleTvFields()"
+          >
+            <option value="movie">Movie</option>
+            <option value="show" selected>TV Show</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-gray-400 text-sm mb-1">TMDB ID</label>
+          <input
+            type="text"
+            id="tmdbId"
+            value="66732"
+            class="bg-gray-700 text-white p-2 rounded w-32 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+
+        <div id="seasonField">
+          <label class="block text-gray-400 text-sm mb-1">Season</label>
+          <input
+            type="number"
+            id="season"
+            value="1"
+            class="bg-gray-700 text-white p-2 rounded w-20 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+        <div id="episodeField">
+          <label class="block text-gray-400 text-sm mb-1">Episode</label>
+          <input
+            type="number"
+            id="episode"
+            value="1"
+            class="bg-gray-700 text-white p-2 rounded w-20 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+
+        <button
+          onclick="runTest()"
+          id="testBtn"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-bold transition-colors"
+        >
+          Run Test
+        </button>
+      </div>
+
+      <!-- Video Player Modal -->
+      <div
+        id="playerModal"
+        class="fixed inset-0 z-50 bg-black/90 hidden items-center justify-center p-8"
+      >
+        <div
+          class="relative w-full max-w-5xl aspect-video bg-black rounded border border-gray-700 overflow-hidden flex flex-col"
+        >
+          <div class="absolute top-4 right-4 z-10 flex gap-2">
+            <button
+              onclick="closePlayer()"
+              class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 font-bold"
+            >
+              Close
+            </button>
+          </div>
+          <video
+            id="videoPlayer"
+            class="w-full h-full"
+            controls
+            autoplay
+          ></video>
+          <div
+            id="playerInfo"
+            class="p-2 bg-gray-900 text-xs text-gray-400 font-mono"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div id="resultsArea" class="space-y-2 hidden">
+        <div
+          class="grid grid-cols-12 gap-4 text-gray-400 border-b border-gray-700 pb-2 px-4 uppercase text-xs font-bold"
+        >
+          <div class="col-span-1">Rank</div>
+          <div class="col-span-2">Provider</div>
+          <div class="col-span-2">Status</div>
+          <div class="col-span-6">Stream Info</div>
+          <div class="col-span-1 text-right">Action</div>
+        </div>
+        <div id="resultsList" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <script>
+      function toggleTvFields() {
+        const type = document.getElementById("type").value;
+        const display = type === "show" ? "block" : "none";
+        document.getElementById("seasonField").style.display = display;
+        document.getElementById("episodeField").style.display = display;
+      }
+
+      async function runTest() {
+        const btn = document.getElementById("testBtn");
+        const resultsList = document.getElementById("resultsList");
+        const resultsArea = document.getElementById("resultsArea");
+
+        btn.disabled = true;
+        btn.innerText = "Testing...";
+        resultsList.innerHTML =
+          '<div class="text-center text-gray-500 py-8">Running scrapers... please wait (10-30s)...</div>';
+        resultsArea.classList.remove("hidden");
+
+        const backendUrl = document
+          .getElementById("backendUrl")
+          .value.replace(/\/$/, "");
+        const type = document.getElementById("type").value;
+        const tmdbId = document.getElementById("tmdbId").value;
+        const season = document.getElementById("season").value;
+        const episode = document.getElementById("episode").value;
+
+        try {
+          let url = `${backendUrl}/stream/test/${type}/${tmdbId}`;
+          if (type === "show") {
+            url += `?season=${season}&episode=${episode}`;
+          }
+
+          const res = await fetch(url);
+          const data = await res.json();
+
+          renderResults(data);
+        } catch (err) {
+          console.error(err);
+          resultsList.innerHTML = `<div class="text-red-500 p-4">Error: ${err.message}. Make sure Backend is running.</div>`;
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Run Test";
+        }
+      }
+
+      function renderResults(data) {
+        const list = document.getElementById("resultsList");
+        list.innerHTML = "";
+
+        if (data.length === 0) {
+          list.innerHTML =
+            '<div class="p-4 text-gray-500">No providers returned results.</div>';
+          return;
+        }
+
+        data.forEach((r) => {
+          const isSuccess = r.status === "success";
+          const statusColor = isSuccess ? "bg-green-600" : "bg-red-600";
+          const rowColor = isSuccess
+            ? "bg-green-900/10 border-green-800"
+            : "bg-red-900/10 border-red-800 opacity-75";
+
+          const streamUrl = r.stream ? r.stream.url : "";
+          const qualities =
+            r.stream && r.stream.qualities
+              ? Object.keys(r.stream.qualities).join(", ")
+              : "";
+
+          const html = `
+                    <div class="grid grid-cols-12 gap-4 items-center p-4 rounded border ${rowColor}">
+                        <div class="col-span-1 font-mono text-gray-500">${r.rank}</div>
+                        <div class="col-span-2 font-bold text-white">${r.name}</div>
+                        <div class="col-span-2">
+                            <span class="px-2 py-1 rounded text-xs uppercase font-bold text-white ${statusColor}">${r.status}</span>
+                            ${r.error ? `<div class="text-xs text-red-400 mt-1 truncate" title="${r.error}">${r.error}</div>` : ""}
+                        </div>
+                        <div class="col-span-6 text-xs text-gray-400 truncate font-mono">
+                            ${streamUrl ? `<div class="text-blue-400 truncate" title="${streamUrl}">${streamUrl}</div>` : "-"}
+                            ${qualities ? `<div class="text-gray-500 mt-1">Q: ${qualities}</div>` : ""}
+                        </div>
+                        <div class="col-span-1 text-right">
+                            ${
+                              isSuccess && streamUrl
+                                ? `
+                                <button onclick="playStream('${streamUrl}')" class="bg-white text-black px-4 py-1 rounded text-sm font-bold hover:bg-gray-200">
+                                    Play
+                                </button>
+                            `
+                                : ""
+                            }
+                        </div>
+                    </div>
+                `;
+          list.insertAdjacentHTML("beforeend", html);
+        });
+      }
+
+      let hlsObj = null;
+
+      function playStream(url) {
+        const modal = document.getElementById("playerModal");
+        const video = document.getElementById("videoPlayer");
+        const info = document.getElementById("playerInfo");
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        info.innerText = `Source: ${url}`;
+
+        if (Hls.isSupported()) {
+          if (hlsObj) hlsObj.destroy();
+          hlsObj = new Hls();
+          hlsObj.loadSource(url);
+          hlsObj.attachMedia(video);
+          hlsObj.on(Hls.Events.MANIFEST_PARSED, function () {
+            video.play();
+          });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = url;
+          video.addEventListener("loadedmetadata", function () {
+            video.play();
+          });
+        }
+      }
+
+      function closePlayer() {
+        const modal = document.getElementById("playerModal");
+        const video = document.getElementById("videoPlayer");
+
+        video.pause();
+        video.src = "";
+        if (hlsObj) {
+          hlsObj.destroy();
+          hlsObj = null;
+        }
+
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    </script>
+  </body>
+</html>

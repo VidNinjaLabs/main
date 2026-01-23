@@ -147,15 +147,16 @@ class BackendClient {
     // Ensure we have a valid token
     await this.ensureAuthenticated();
 
-    let url = `${this.baseUrl}/stream/movie/${tmdbId}`;
+    // URL for new backend structure: /media/movie/:id
+    let url = `${this.baseUrl}/media/movie/${tmdbId}`;
     if (provider) {
-      url += `?provider=${encodeURIComponent(provider)}`;
+      // Backend expects 'server' parameter for the provider ALIAS
+      url += `?server=${encodeURIComponent(provider)}`;
     }
+    // session/select are legacy/unused in current backend
     if (session) {
-      url += `${url.includes("?") ? "&" : "?"}session=${encodeURIComponent(session)}`;
-    }
-    if (select) {
-      url += `${url.includes("?") ? "&" : "?"}select=${encodeURIComponent(select)}`;
+      // Keep for legacy compat if needed, but backend ignores it
+      // url += ...
     }
 
     try {
@@ -207,15 +208,11 @@ class BackendClient {
     // Ensure we have a valid token
     await this.ensureAuthenticated();
 
-    let url = `${this.baseUrl}/stream/tv/${tmdbId}/${season}/${episode}`;
+    // URL for new backend structure: /media/show/:id/:season/:episode
+    let url = `${this.baseUrl}/media/show/${tmdbId}/${season}/${episode}`;
     if (provider) {
-      url += `?provider=${encodeURIComponent(provider)}`;
-    }
-    if (session) {
-      url += `${url.includes("?") ? "&" : "?"}session=${encodeURIComponent(session)}`;
-    }
-    if (select) {
-      url += `${url.includes("?") ? "&" : "?"}select=${encodeURIComponent(select)}`;
+      // Backend expects 'server' parameter
+      url += `?server=${encodeURIComponent(provider)}`;
     }
 
     try {
@@ -272,7 +269,18 @@ class BackendClient {
         throw new Error(`Providers error: ${response.status} - ${errorText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // Backend now returns array of providers directly: [{id, name}, ...]
+      // Frontend expects: { sources: [...], embeds: [...] }
+      if (Array.isArray(data)) {
+        return {
+          sources: data,
+          embeds: [],
+        };
+      }
+
+      return data;
     } catch (error) {
       throw error;
     }

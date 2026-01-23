@@ -109,7 +109,9 @@ export function PlayerPart(props: PlayerPartProps) {
   }, [status]);
 
   // Show backdrop only during initial loading, not mid-playback buffering
-  const showBackdrop = !hasStartedPlaying;
+  // Extended logic: Keep backdrop until we actually have progress on the video to avoid black frame
+  const currentTime = usePlayerStore((s) => s.progress.time);
+  const showBackdrop = !hasStartedPlaying || currentTime === 0;
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Shift") {
