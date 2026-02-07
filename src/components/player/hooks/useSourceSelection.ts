@@ -9,6 +9,7 @@ import {
 } from "@/backend/helpers/report";
 import { convertProviderCaption } from "@/components/player/utils/captions";
 import { convertRunoutputToSource } from "@/components/player/utils/convertRunoutputToSource";
+import { fetchWyzieSubtitles } from "@/components/player/utils/wyzie";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { RunOutput } from "@/hooks/useProviderScrape";
 import { metaToScrapeMedia } from "@/stores/player/slices/source";
@@ -90,6 +91,7 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
 
     const requestPromise = (async () => {
       const scrapeMedia = metaToScrapeMedia(meta);
+      const wyziePromise = fetchWyzieSubtitles(meta);
       const startTime = performance.now();
 
       // Pause current playback while we fetch the new provider
@@ -231,9 +233,10 @@ export function useSourceScraping(sourceId: string | null, routerId: string) {
 
           setEmbedId(null);
           setCaption(null);
+          const wyzieCaptions = await wyziePromise;
           setSource(
             convertRunoutputToSource(runOutput),
-            convertProviderCaption(runOutput.subtitles),
+            [...convertProviderCaption(runOutput.subtitles), ...wyzieCaptions],
             getSavedProgress(progressItems, meta),
             [],
           );

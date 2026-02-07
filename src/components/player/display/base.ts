@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
-import Hls, { Level } from "@rev9dev-netizen/vidply.js";
+import Hls, { Level } from "hls.js";
 
 import {
   getResumeTime,
@@ -104,6 +104,22 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
   let lastValidTime = 0; // Store the last valid time to prevent reset during source switches
   let shouldAutoplayAfterLoad = false; // Flag to track if we should autoplay after loading completes
   let loadingTimeout: NodeJS.Timeout | null = null; // Timeout to auto-clear stuck loading states
+  let bufferMonitorInterval: NodeJS.Timeout | null = null; // YouTube-style buffer monitor
+
+  // Helper: Get seconds of buffer ahead of current playhead
+  function getBufferAhead(vid: HTMLVideoElement): number {
+    if (!vid || vid.buffered.length === 0) return 0;
+    const currentTime = vid.currentTime;
+    for (let i = 0; i < vid.buffered.length; i++) {
+      if (
+        vid.buffered.start(i) <= currentTime &&
+        currentTime <= vid.buffered.end(i)
+      ) {
+        return vid.buffered.end(i) - currentTime;
+      }
+    }
+    return 0;
+  }
 
   const languagePromises = new Map<
     string,
@@ -199,61 +215,82 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
       if (!Hls.isSupported())
         throw new Error("HLS not supported. Update your browser. 🤦‍♂️");
+      // YouTube-Level Resume: Calculate safe resume position
+      const meta = usePlayerStore.getState().meta;
+      let resumePosition = startAt;
+      let hasResumeData = false;
+
+      if (meta) {
+        const mediaId =
+          meta.type === "show" && meta.episode
+            ? `${meta.tmdbId}-${meta.episode.tmdbId}`
+            : meta.tmdbId;
+
+        if (mediaId) {
+          const resumeTime = getResumeTime(mediaId);
+          if (resumeTime > 0) {
+            const safeTime = getSafeResumeTime(resumeTime);
+            resumePosition = safeTime;
+            hasResumeData = true;
+          }
+        }
+      }
+
       if (!hls) {
         hls = new Hls({
           autoStartLoad: true,
+          startPosition: resumePosition > 0 ? resumePosition : -1,
 
           // YouTube-Style Aggressive Buffering Strategy
           // ============================================
 
-          // 1. FAST STARTUP - Start with LOWEST quality for instant playback
-          startLevel: 0, // Force lowest quality (360p/480p) for fast start
+          // 1. FAST STARTUP
+          startLevel: 0,
           capLevelToPlayerSize: true, // Don't load 4K for small player
-          maxBufferLength: 90, // Buffer up to 90 seconds ahead (YouTube-like)
-          maxMaxBufferLength: 180, // Max 3 minutes buffer (aggressive)
-          backBufferLength: 30, // Keep 30s back buffer for seeking
+          maxBufferLength: 60, // Buffer 1 minutes ahead (Simpler)
+          maxMaxBufferLength: 300, // Max 5 minutes buffer
+          maxBufferSize: 200 * 1000 * 1000, // 200MB Buffer Size (Reduced from 500MB)
+          maxBufferHole: 0.5, // Standard 0.5s hole tolerance (was 2.0s which causes stalls)
+          backBufferLength: 30, // Keep 30s back buffer
 
-          // 2. AGGRESSIVE PREFETCHING - Load next segments in parallel
-          enableFragmentPrefetch: true, // Enable parallel fragment downloads
-          prefetchBufferThreshold: 1, // Start prefetch after just 1s (very aggressive)
-          maxParallelFragmentLoads: 4, // 4 parallel downloads (balanced - was 8, too aggressive)
+          // 2. LOADING OPTIMIZATION
+          // (Standard hls.js doesn't have prefetch options like VidPly)
 
           // 3. SMART BUFFER MANAGEMENT
-          maxBufferHole: 0.5, // Tolerate 0.5s gaps (smooth playback)
-          highBufferWatchdogPeriod: 2, // Check buffer health every 2s
-          nudgeOffset: 0.1, // Fine-tune playback position
-          nudgeMaxRetry: 5, // Retry nudging if needed
+          highBufferWatchdogPeriod: 3, // Relaxed check
+          nudgeOffset: 0.1,
+          nudgeMaxRetry: 5,
 
-          // 4. FAST LOADING - Reduce timeouts for quicker failures
+          // 4. FAST LOADING
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 20 * 1000, // 20s timeout (faster than before)
-              maxTimeToFirstByteMs: 10 * 1000, // 10s for first byte
+              maxLoadTimeMs: 30 * 1000,
+              maxTimeToFirstByteMs: 15 * 1000,
               errorRetry: {
-                maxNumRetry: 3, // Retry 3 times quickly
-                retryDelayMs: 500, // 500ms between retries
-                maxRetryDelayMs: 2000, // Max 2s delay
+                maxNumRetry: 4,
+                retryDelayMs: 1000,
+                maxRetryDelayMs: 5000,
               },
               timeoutRetry: {
-                maxNumRetry: 2,
+                maxNumRetry: 3,
                 retryDelayMs: 0,
                 maxRetryDelayMs: 0,
               },
             },
           },
 
-          // 5. PERFORMANCE OPTIMIZATIONS
-          enableWorker: true, // Use web worker (smoother UI)
-          lowLatencyMode: false, // Standard mode for VOD
-          progressive: true, // Progressive download
+          // 5. PERFORMANCE
+          enableWorker: true,
+          lowLatencyMode: false,
+          progressive: true,
 
-          // 6. ADAPTIVE QUALITY SWITCHING (YouTube-style)
-          // Start conservative, upgrade aggressively when buffer is healthy
-          abrEwmaDefaultEstimate: 500000, // Start with 500kbps estimate (conservative)
-          abrBandWidthFactor: 0.7, // Use 70% of bandwidth (conservative, prevents buffering)
-          abrBandWidthUpFactor: 0.9, // Upgrade at 90% (aggressive quality increase when buffer is good)
-          abrEwmaFastLive: 3.0, // Fast adaptation for live (3 segments)
-          abrEwmaSlowLive: 9.0, // Slow adaptation for VOD (9 segments)
+          // 6. ADAPTIVE QUALITY (YouTube-style)
+          abrEwmaDefaultEstimate: 500000, // Conservative 500kbps start (was 1Mbps)
+          abrBandWidthFactor: 0.8, // Conservative bandwidth estimation
+          abrBandWidthUpFactor: 0.7, // Slower quality upgrades
+          abrEwmaFastLive: 1.0,
+          abrEwmaSlowLive: 3.0,
+          abrMaxWithRealBitrate: true, // Use real bitrate for ABR decisions
 
           renderTextTracksNatively: false,
         });
@@ -300,21 +337,23 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                     reason: `Stream returned ${errorStatus}`,
                   });
                   return;
+                  // For other network errors, try to recover
+                  hls?.startLoad();
+                  // Set a timeout - if still failing after 5s, skip to next source
+                  setTimeout(() => {
+                    if (
+                      hls &&
+                      !videoElement?.paused &&
+                      videoElement?.readyState === 0
+                    ) {
+                      emit("tryNextSource", {
+                        reason: "Network recovery failed",
+                      });
+                    }
+                  }, 5000);
+                } else {
+                  hls?.startLoad();
                 }
-                // For other network errors, try to recover
-                hls?.startLoad();
-                // Set a timeout - if still failing after 5s, skip to next source
-                setTimeout(() => {
-                  if (
-                    hls &&
-                    !videoElement?.paused &&
-                    videoElement?.readyState === 0
-                  ) {
-                    emit("tryNextSource", {
-                      reason: "Network recovery failed",
-                    });
-                  }
-                }, 5000);
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.log("[HLS] Media error, attempting recovery...");
@@ -376,6 +415,38 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           const quality = hlsLevelToQuality(hls.levels[hls.currentLevel]);
           emit("changedquality", quality);
         });
+
+        // Buffer-aware quality switching: Block upgrades if buffer is low
+        hls.on(Hls.Events.LEVEL_SWITCHING, (_, data) => {
+          if (!hls || !vid) return;
+          const bufferAhead = getBufferAhead(vid);
+          // Block quality UP if buffer < 15s
+          if (data.level > hls.currentLevel && bufferAhead < 15) {
+            hls.nextLevel = hls.currentLevel;
+          }
+        });
+
+        // YouTube-style playhead-aware buffer monitor
+        if (bufferMonitorInterval) clearInterval(bufferMonitorInterval);
+        bufferMonitorInterval = setInterval(() => {
+          if (!hls || !vid || vid.paused) return;
+          const bufferAhead = getBufferAhead(vid);
+
+          if (bufferAhead > 30) {
+            // LAZY MODE: Plenty of buffer, let ABR work normally
+            // Could reduce maxBufferLength to throttle downloads
+          } else if (bufferAhead < 10) {
+            // CHASE MODE: Buffer getting low, ensure loading
+            hls.startLoad();
+          } else if (bufferAhead < 5) {
+            // EMERGENCY MODE: Critical buffer, drop quality
+            if (hls.currentLevel > 0) {
+              hls.nextLevel = Math.max(0, hls.currentLevel - 1);
+            }
+            hls.startLoad();
+          }
+        }, 2000);
+
         hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, () => {
           for (const [lang, resolve] of languagePromises) {
             const track = hls?.subtitleTracks.find((t) => t.lang === lang);
@@ -397,30 +468,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
       hls.attachMedia(vid);
 
-      // YouTube-Level Resume: Calculate safe resume position
-      const meta = usePlayerStore.getState().meta;
-      let resumePosition = startAt;
-      let hasResumeData = false;
-
-      if (meta) {
-        const mediaId =
-          meta.type === "show" && meta.episode
-            ? `${meta.tmdbId}-${meta.episode.tmdbId}`
-            : meta.tmdbId;
-
-        if (mediaId) {
-          const resumeTime = getResumeTime(mediaId);
-          if (resumeTime > 0) {
-            const safeTime = getSafeResumeTime(resumeTime);
-            console.log(
-              `[Resume] ${resumeTime}s → ${safeTime}s (segment-safe)`,
-            );
-            resumePosition = safeTime;
-            hasResumeData = true;
-          }
-        }
-      }
-
       // Step 1: Load manifest first
       hls.loadSource(processCdnLink(src.url));
 
@@ -431,9 +478,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         hasAppliedSeek = true;
 
         if (resumePosition > 0) {
-          console.log(
-            `[Resume] Seeking to ${resumePosition}s after manifest parsed`,
-          );
           vid.currentTime = resumePosition;
         }
       });
@@ -451,13 +495,11 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           vid
             .play()
             .then(() => {
-              console.log("[Resume] Playback started");
               setTimeout(() => {
                 vid.muted = wasMuted;
               }, 100);
             })
             .catch((err) => {
-              console.warn("[Resume] Play failed:", err);
               vid.muted = wasMuted;
             });
         }
@@ -470,15 +512,12 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
           // Check if playback is stalled
           if (vid.readyState < 3 && vid.paused) {
-            console.warn("[Resume] Stalled - retrying 4s earlier");
-
             // Seek back 4s and retry
             const fallbackTime = Math.max(resumePosition - 4, 0);
             vid.currentTime = fallbackTime;
 
             setTimeout(() => {
               vid.play().catch(() => {
-                console.warn("[Resume] Retry failed - starting from beginning");
                 vid.currentTime = 0;
                 vid.play().catch(() => {});
               });
@@ -559,18 +598,37 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         if (loadingTimeout) clearTimeout(loadingTimeout); // Clear timeout
       }
     });
-    videoElement.addEventListener("waiting", () => {
-      emit("loading", true);
 
-      // Auto-clear loading after 3 seconds if still waiting
-      // This prevents spinner from sticking when HLS.js is aggressively buffering
-      if (loadingTimeout) clearTimeout(loadingTimeout);
-      loadingTimeout = setTimeout(() => {
-        if (videoElement && videoElement.readyState >= 2) {
-          emit("loading", false);
-        }
-      }, 1000); // Reduced from 3s to 1s for faster clearing
+    let showSpinnerTimeout: NodeJS.Timeout | null = null;
+
+    videoElement.addEventListener("waiting", () => {
+      // Debounce showing the spinner to avoid flickering on micro-stalls
+      if (showSpinnerTimeout) clearTimeout(showSpinnerTimeout);
+
+      showSpinnerTimeout = setTimeout(() => {
+        emit("loading", true);
+
+        // Auto-clear loading after 2 seconds if still stuck
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(() => {
+          if (videoElement && videoElement.readyState >= 2) {
+            console.log("[Player] Auto-clearing spinner (stuck state)");
+            emit("loading", false);
+          }
+        }, 2000);
+      }, 500); // 500ms debounce
     });
+
+    // Clear debounce timer on progress/playing events
+    const clearSpinnerDebounce = () => {
+      if (showSpinnerTimeout) {
+        clearTimeout(showSpinnerTimeout);
+        showSpinnerTimeout = null;
+      }
+    };
+
+    videoElement.addEventListener("playing", clearSpinnerDebounce);
+    videoElement.addEventListener("canplay", clearSpinnerDebounce);
     videoElement.addEventListener("volumechange", () =>
       emit(
         "volumechange",
@@ -611,6 +669,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       }
     });
     videoElement.addEventListener("progress", () => {
+      clearSpinnerDebounce(); // Clear pending spinner if we are making progress
       if (videoElement) {
         const buffered = handleBuffered(
           videoElement.currentTime,
@@ -620,7 +679,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
         // Aggressive loading clear: Hide spinner with minimal buffer
         const currentTime = videoElement.currentTime;
-        const hasMinimalBuffer = buffered > currentTime + 0.5; // Just 0.5s
+        const hasMinimalBuffer = buffered > currentTime + 0.3; // Just 0.3s (Reduced from 0.5s)
         const isReadyToPlay = videoElement.readyState >= 3; // HAVE_FUTURE_DATA
 
         // Clear loading if we have buffer OR video is ready
@@ -672,6 +731,11 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     if (hls) {
       hls.destroy();
       hls = null;
+    }
+    // Cleanup buffer monitor
+    if (bufferMonitorInterval) {
+      clearInterval(bufferMonitorInterval);
+      bufferMonitorInterval = null;
     }
     // Reset the last valid duration and time when unloading source
     lastValidDuration = 0;

@@ -141,6 +141,7 @@ class BackendClient {
     provider?: string,
     session?: string,
     select?: string,
+    signal?: AbortSignal,
   ): Promise<StreamResponse> {
     this.checkConfigured();
 
@@ -163,6 +164,7 @@ class BackendClient {
       const response = await fetch(url, {
         method: "GET",
         headers: this.getAuthHeaders(),
+        signal,
       });
 
       if (!response.ok) {
@@ -202,6 +204,7 @@ class BackendClient {
     provider?: string,
     session?: string,
     select?: string,
+    signal?: AbortSignal,
   ): Promise<StreamResponse> {
     this.checkConfigured();
 
@@ -219,6 +222,7 @@ class BackendClient {
       const response = await fetch(url, {
         method: "GET",
         headers: this.getAuthHeaders(),
+        signal,
       });
 
       if (!response.ok) {
@@ -241,6 +245,56 @@ class BackendClient {
       return await response.json();
     } catch (error) {
       throw error;
+    }
+  }
+
+  // ==========================================================================
+  // Subtitle Endpoints
+  // ==========================================================================
+
+  /**
+   * GET /subtitles
+   * Fetch subtitles via backend
+   */
+  async getSubtitles(params: {
+    tmdbId: string;
+    season?: number;
+    episode?: number;
+    format?: string;
+    language?: string;
+  }): Promise<any[]> {
+    this.checkConfigured();
+
+    const query = new URLSearchParams({
+      tmdb_id: params.tmdbId,
+    });
+    if (params.season) query.set("season", params.season.toString());
+    if (params.episode) query.set("episode", params.episode.toString());
+    if (params.format) query.set("format", params.format);
+    if (params.language) query.set("language", params.language);
+
+    // Default fallback
+    if (!params.format) query.set("format", "srt");
+    if (!params.language) query.set("language", "en");
+
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/subtitles?${query.toString()}`,
+        {
+          method: "GET",
+          headers: this.getAuthHeaders(),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Subtitle fetch error: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
+      return [];
     }
   }
 

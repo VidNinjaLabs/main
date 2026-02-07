@@ -62,7 +62,7 @@ export function Fullscreen(props: { size?: "sm" | "md" | "lg" | "xl" }) {
 
   // Size mapping for the custom SVG
   const sizeMap = {
-    sm: { base: 24, lg: 28 },
+    sm: { base: 20, lg: 25 },
     md: { base: 32, lg: 40 },
     lg: { base: 40, lg: 48 },
     xl: { base: 56, lg: 64 },
@@ -70,7 +70,10 @@ export function Fullscreen(props: { size?: "sm" | "md" | "lg" | "xl" }) {
   const sizes = sizeMap[props.size || "md"];
 
   return (
-    <VideoPlayerButton onClick={() => display?.toggleFullscreen()}>
+    <VideoPlayerButton
+      onClick={() => display?.toggleFullscreen()}
+      className="text-white/70 hover:text-white transition-colors"
+    >
       {isFullscreen ? (
         <>
           <ExitFullscreenSVG size={sizes.base} className="lg:hidden" />

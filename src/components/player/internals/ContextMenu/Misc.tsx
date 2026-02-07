@@ -9,7 +9,7 @@ export function Title(props: {
 }) {
   return (
     <div>
-      <h3 className="font-bold text-video-context-type-main px-2.5 py-2 pb-2 border-b border-video-context-border flex justify-between items-center">
+      <h3 className="font-medium text-white/70 text-xs uppercase tracking-wider px-4 py-2.5 border-b border-white/10 flex justify-between items-center">
         <div className="flex items-center space-x-3">{props.children}</div>
         <div>{props.rightSide}</div>
       </h3>

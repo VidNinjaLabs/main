@@ -217,6 +217,9 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       s.embedId = null;
       s.sourceId = null;
       s.interface.hideNextEpisodeBtn = false;
+      s.failedProviders = []; // Reset failed providers
+      s.scrapeSessionId = null; // Reset session
+      s.sessionProviders = []; // Reset session providers
       if (newStatus) s.status = newStatus;
     });
   },

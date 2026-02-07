@@ -49,7 +49,7 @@ function ThumbnailDisplay(props: { at: number; show: boolean }) {
 
   return (
     <div className="flex flex-col items-center -translate-x-1/2 pointer-events-none">
-      <div className="w-screen flex justify-center">
+      <div className="w-full flex justify-center">
         <div ref={ref}>
           <div
             style={{
@@ -62,7 +62,7 @@ function ThumbnailDisplay(props: { at: number; show: boolean }) {
                 className="h-24 border rounded-xl border-gray-800 no-fade"
               />
             )}
-            <p className="mt-1 mx-auto text-center rounded-xl px-3 py-1 backdrop-blur-lg bg-black bg-opacity-20 w-max">
+            <p className="mt-1 mx-auto text-center rounded-xl px-3 py-1 bg-black/60 w-max">
               {formattedTime}
             </p>
           </div>
@@ -123,7 +123,7 @@ export function ProgressBar() {
   }, [setDraggingTime, duration, dragPercentage]);
 
   return (
-    <div className="w-full relative" dir="ltr">
+    <div className="w-full relative isolate" dir="ltr">
       <div className="top-0 absolute inset-x-0">
         <div
           className="absolute bottom-0"
@@ -148,13 +148,13 @@ export function ProgressBar() {
         >
           <div
             className={[
-              "relative w-full h-1.5 bg-progress-background bg-opacity-25 rounded-full transition-[height] duration-100 group-hover:h-2",
-              dragging ? "!h-2" : "",
+              "relative w-full h-1.5 bg-white/20 rounded-full",
+              dragging ? "!h-1.5" : "",
             ].join(" ")}
           >
             {/* Pre-loaded content bar */}
             <div
-              className="absolute top-0 left-0 h-full rounded-full bg-progress-preloaded bg-opacity-50 flex justify-end items-center"
+              className="absolute top-0 left-0 h-full rounded-full bg-white/20 flex justify-end items-center"
               style={{
                 width: `${(buffered / duration) * 100}%`,
               }}

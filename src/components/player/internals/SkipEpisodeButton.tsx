@@ -55,16 +55,27 @@ export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
     setLastSuccessfulSource,
   ]);
 
+  const time = usePlayerStore((s) => s.progress.time);
+  const duration = usePlayerStore((s) => s.progress.duration);
+
   // Don't show button if not in control, not a show, or no next episode
   if (!props.inControl) return null;
   if (!meta?.episode || !nextEp) return null;
   if (meta.type !== "show") return null;
+
+  // Only show in last 10 seconds (ensure duration is valid)
+  if (!duration || duration - time > 10) return null;
 
   return (
     <VideoPlayerButton
       onClick={() => loadNextEpisode()}
       icon={Icons.SKIP_EPISODE}
       iconSizeClass={props.iconSizeClass || "text-xl"}
-    />
+      className="text-white/70 hover:text-white transition-colors font-medium"
+    >
+      <span className={props.iconSizeClass ? "text-sm md:text-base" : ""}>
+        Next Episode
+      </span>
+    </VideoPlayerButton>
   );
 }

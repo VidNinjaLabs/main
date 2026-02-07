@@ -289,7 +289,7 @@ export const defaultTheme = {
 
       progress: {
         background: tokens.ash.c50,
-        preloaded: tokens.ash.c50,
+        preloaded: tokens.white,
         filled: tokens.purple.c200,
       },
 

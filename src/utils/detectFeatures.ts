@@ -1,4 +1,4 @@
-import Hls from "@rev9dev-netizen/vidply.js";
+import Hls from "hls.js";
 import { detect } from "detect-browser";
 import fscreen from "fscreen";
 

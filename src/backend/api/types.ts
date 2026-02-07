@@ -57,8 +57,10 @@ export interface VidNinjaStream {
 }
 
 export interface StreamResponse {
+  stream?: VidNinjaStream | VidNinjaStream[]; // Add this line
   type: "hls" | "file" | "cloudflare-hls";
   servers: Record<string, string>;
+  sourceId?: string; // Add this line
   manifestUrl?: string; // New: for cloudflare-hls type
   sessionId?: string; // New: session ID for manifest
   provider?: string; // New: selected provider from backend

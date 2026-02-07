@@ -81,8 +81,8 @@ function normalizeProvider(
     return {
       id: provider.id,
       name: provider.name,
-      rank: provider.rank,
-      type: provider.type,
+      rank: provider.rank || 0,
+      type: provider.type || "source",
       isFebbox: true,
     };
   }
@@ -90,10 +90,10 @@ function normalizeProvider(
   // It's a backend Provider (uses 'codename')
   const p = provider as Provider;
   return {
-    id: p.codename,
-    name: p.codename, // Use codename as display name
-    rank: p.rank,
-    type: p.type,
+    id: p.codename || "unknown",
+    name: p.codename || "unknown", // Use codename as display name
+    rank: p.rank || 0,
+    type: p.type || "source",
     isFebbox: false,
   };
 }
@@ -259,8 +259,24 @@ export function useScrape() {
   const setScrapeSessionId = usePlayerStore((s) => s.setScrapeSessionId);
   const setSessionProviders = usePlayerStore((s) => s.setSessionProviders);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cancel on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   const startScraping = useCallback(
     async (media: ScrapeMedia): Promise<RunOutput | null> => {
+      // Allow re-scraping, but cancel previous request if active
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       // Clear previous sources/status
       initSources([]);
       setCurrentSourceId("scraper");
@@ -272,7 +288,13 @@ export function useScrape() {
 
         // Call backend (Auto Mode) - single request handles parallel scraping
         if (media.type === "movie") {
-          response = await backendClient.scrapeMovie(media.tmdbId, undefined);
+          response = await backendClient.scrapeMovie(
+            media.tmdbId,
+            undefined,
+            undefined,
+            undefined,
+            controller.signal,
+          );
         } else {
           const season = media.season?.number ?? 1;
           const episode = media.episode?.number ?? 1;
@@ -281,6 +303,9 @@ export function useScrape() {
             season,
             episode,
             undefined,
+            undefined,
+            undefined,
+            controller.signal,
           );
         }
 
@@ -310,7 +335,53 @@ export function useScrape() {
           });
         }
 
-        // Check for success
+        // Check for success via stream array (New format)
+        if (response.stream) {
+          const streams = Array.isArray(response.stream)
+            ? response.stream
+            : [response.stream];
+
+          if (streams.length > 0) {
+            const firstStream: any = streams[0];
+            const providerName = response.sourceId || "Auto";
+
+            if (
+              response.selectedProvider !== undefined &&
+              response.availableProviders
+            ) {
+              const pName =
+                response.availableProviders.find(
+                  (p) => p.index === response.selectedProvider,
+                )?.name || "Unknown";
+              setCurrentSourceId(pName);
+              updateSourceStatus(pName, "success", 100);
+            } else {
+              setCurrentSourceId(providerName);
+              updateSourceStatus(providerName, "success", 100);
+            }
+
+            return {
+              sourceId: providerName,
+              provider: providerName,
+              streamType:
+                firstStream.type === "hls" || firstStream.type === "file"
+                  ? firstStream.type
+                  : "hls",
+              selectedServer: firstStream.displayName || "Default",
+              url: firstStream.playlist || "",
+              servers: {
+                [firstStream.displayName || "Default"]:
+                  firstStream.playlist || "",
+              },
+              subtitles: response.subtitles || response.captions || [],
+              headers: firstStream.headers,
+              session: response.session,
+              availableProviders: response.availableProviders,
+            };
+          }
+        }
+
+        // Check for success via servers (Legacy format)
         if (response.servers && Object.keys(response.servers).length > 0) {
           const bestServer = await selectBestServer(response.servers);
 
@@ -378,6 +449,10 @@ export function useScrape() {
           };
         }
       } catch (error: any) {
+        if (error.name === "AbortError") {
+          // console.log("Scrape aborted");
+          return null;
+        }
         console.error("Scraping failed:", error);
         // If error has session data (as returned by updated vidninja client)
         if (error.session && error.availableProviders) {
@@ -397,6 +472,10 @@ export function useScrape() {
               100,
             );
           });
+        }
+      } finally {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
         }
       }
 

@@ -74,13 +74,19 @@ function BaseContainer(props: { children?: ReactNode }) {
   }, [display, containerEl]);
 
   return (
-    <div ref={containerEl}>
+    <div
+      ref={containerEl}
+      id="vidninja-player-container"
+      className="overflow-hidden bg-black"
+    >
       <OverlayDisplay>
         <div className="h-screen select-none">{props.children}</div>
       </OverlayDisplay>
     </div>
   );
 }
+
+import { SwitchingProviderOverlay } from "@/components/player/base/SwitchingProviderOverlay";
 
 export function Container(props: PlayerProps) {
   const propRef = useRef(props.onLoad);
@@ -91,10 +97,10 @@ export function Container(props: PlayerProps) {
   return (
     <div className="relative">
       <BaseContainer>
+        <VideoContainer />
         <MetaReporter />
         <ThumbnailScraper />
         <CastingInternal />
-        <VideoContainer />
         <ProgressSaver />
         {/* Auto-resume DISABLED - causes segment loading issues */}
         {/* {useAutoResume()} */}
@@ -103,11 +109,16 @@ export function Container(props: PlayerProps) {
         {/* <WatchPartyReporter /> Removed */}
         <SkipTracker />
         {/* <WatchPartyResetter /> Removed */}
-        <div className="relative h-screen overflow-hidden">
+        <div className="relative h-screen overflow-hidden z-10 isolate">
           <VideoClickTarget showingControls={props.showingControls} />
           <HeadUpdater />
           {props.children}
+          <SwitchingProviderOverlay />
         </div>
+        <div
+          id="vidninja-portal-mount"
+          className="absolute top-0 left-0 w-full h-full pointer-events-none z-[9999]"
+        />
       </BaseContainer>
     </div>
   );

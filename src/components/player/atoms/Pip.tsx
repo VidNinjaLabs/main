@@ -19,7 +19,10 @@ export function Pip(props: { size?: "sm" | "md" | "lg" | "xl" }) {
   if (!canPictureInPicture() && !canWebkitPictureInPicture()) return null;
 
   return (
-    <VideoPlayerButton onClick={() => display?.togglePictureInPicture()}>
+    <VideoPlayerButton
+      onClick={() => display?.togglePictureInPicture()}
+      className="text-white transition-colors"
+    >
       <HugeiconsIcon
         icon={PictureInPictureOnIcon}
         size={props.size || "md"}
@@ -28,4 +31,3 @@ export function Pip(props: { size?: "sm" | "md" | "lg" | "xl" }) {
     </VideoPlayerButton>
   );
 }
-

@@ -85,17 +85,8 @@ export function PlayerPart(props: PlayerPartProps) {
         const sessionId = match[1];
         if (!verifiedSessions.current.has(sessionId)) {
           verifiedSessions.current.add(sessionId);
-          // Fire and forget verification
-          const backendUrl =
-            localStorage.getItem("backend_url") || "https://api.vidninja.pro";
-          fetch(`${backendUrl}/stream/verify/${sessionId}`, {
-            method: "POST",
-          }).catch(() => {
-            // Ignore errors, non-critical
-          });
-          console.log(
-            `[Player] Verified session ${sessionId} after 5s playback`,
-          );
+          // Verification logic removed as backend endpoint is deprecated
+          console.log(`[Player] Session ${sessionId} active (playback > 5s)`);
         }
       }
     }

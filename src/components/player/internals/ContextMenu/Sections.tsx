@@ -8,8 +8,8 @@ export function SectionTitle(props: {
   return (
     <h3
       className={classNames(
-        "uppercase font-bold text-type-secondary text-xs pl-1 pb-2.5 border-b border-type-secondary/40",
-        props.children ? "pt-2.5 pb-2.5" : "pt-1 pb-2",
+        "uppercase font-medium text-white/70 text-xs tracking-wider px-4 pb-2 border-b border-white/10",
+        props.children ? "pt-3 pb-2" : "pt-1 pb-2",
         props.className,
       )}
     >
@@ -26,7 +26,7 @@ export function Section(props: {
   return (
     <div
       className={classNames(
-        props.grid ? "grid grid-cols-2 gap-3 pt-6" : "space-y-1",
+        props.grid ? "grid grid-cols-2 gap-3 pt-6" : "",
         props.className,
       )}
     >

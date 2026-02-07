@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Hls from "@rev9dev-netizen/vidply.js";
+import Hls from "hls.js";
 import { Spinner } from "@/components/layout/Spinner";
 import { Navigation } from "@/components/layout/Navigation";
 

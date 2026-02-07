@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import Hls from "@rev9dev-netizen/vidply.js";
+import Hls from "hls.js";
 
 import {
   getSafeResumeTime,

@@ -158,7 +158,7 @@ export function OverlayPortal(props: {
                       onClick={close}
                       className={classNames({
                         "absolute inset-0": true,
-                        "bg-black opacity-90": props.darken,
+                        "": props.darken,
                       })}
                     />
                   </Transition>

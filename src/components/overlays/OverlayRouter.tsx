@@ -61,7 +61,7 @@ function RouterBase(props: { id: string; children: ReactNode }) {
         "transition-all duration-200 ease-out", // Always animate
       )}
     >
-      <Flare.Base className="group w-full bg-video-context-border bg-opacity-30 backdrop-blur-md h-full rounded-xl text-video-context-type-main">
+      <Flare.Base className="group w-full bg-video-context-background/95 backdrop-blur-md h-full rounded-xl text-video-context-type-main border border-white/10">
         <Flare.Light
           flareSize={200}
           cssColorVar="--colors-video-context-light"

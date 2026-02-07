@@ -17,7 +17,7 @@ export interface HugeiconsIconProps {
 
 // Responsive size mappings (mobile -> desktop) in pixels
 const sizeMap: Record<IconSize, { base: number; lg: number }> = {
-  sm: { base: 24, lg: 28 }, // 24px mobile, 28px desktop
+  sm: { base: 20, lg: 25 }, // 20px mobile, 25px desktop (matches top bar request)
   md: { base: 32, lg: 40 }, // 32px mobile, 40px desktop (default for all controls)
   lg: { base: 40, lg: 48 }, // 40px mobile, 48px desktop
   xl: { base: 56, lg: 64 }, // 56px mobile, 64px desktop (play button)

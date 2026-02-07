@@ -109,8 +109,9 @@ export function VideoClickTarget(props: { showingControls: boolean }) {
       // pause on mouse click
       if (e.pointerType === "mouse") {
         if (e.button !== 0) return;
-        if (isPaused) display?.play();
-        else display?.pause();
+        // DISABLED: User requested to only use center buttons for play/pause
+        // if (isPaused) display?.play();
+        // else display?.pause();
         return;
       }
 

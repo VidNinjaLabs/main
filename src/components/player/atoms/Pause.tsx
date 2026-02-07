@@ -7,7 +7,7 @@ export type PauseAction = "play" | "pause";
 const sizeMap = {
   sm: 28,
   md: 34,
-  lg: 64, // Increased size directly to avoid scale-150 reliance
+  lg: 70, // Matches user request for 70px
   xl: 96, // Increased size directly (matches Spinner default 96px)
 };
 

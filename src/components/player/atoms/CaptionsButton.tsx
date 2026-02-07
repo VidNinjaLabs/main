@@ -1,7 +1,7 @@
 import { ClosedCaptionIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { Check, Settings, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Popover } from "../base/Popover";
+import { Popover } from "@/components/ui/Popover";
 import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { usePlayerStore } from "@/stores/player/store";
 import { useCaptions } from "@/components/player/hooks/useCaptions";
@@ -45,7 +45,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
                 className="flex-1 py-2 px-4 bg-zinc-700 hover:bg-zinc-600 rounded text-white transition-colors flex items-center justify-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span className="text-sm">Late</span>
+                <span className="text-xs">Late</span>
               </button>
               <div className="w-24 text-center py-2 bg-zinc-900 rounded text-white font-mono">
                 {delay.toFixed(1)}s
@@ -54,7 +54,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
                 onClick={() => setDelay(delay + 0.1)}
                 className="flex-1 py-2 px-4 bg-zinc-700 hover:bg-zinc-600 rounded text-white transition-colors flex items-center justify-center gap-2"
               >
-                <span className="text-sm">Early</span>
+                <span className="text-xs">Early</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -97,7 +97,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
               }
               className="w-full"
             />
-            <div className="text-gray-400 text-sm text-center mt-1">
+            <div className="text-gray-400 text-xs text-center mt-1">
               {Math.round(styling.backgroundOpacity * 100)}%
             </div>
           </div>
@@ -141,7 +141,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
                 }
                 className="w-full"
               />
-              <div className="text-gray-400 text-sm text-center mt-1">
+              <div className="text-gray-400 text-xs text-center mt-1">
                 {Math.round(styling.backgroundBlur * 100)}%
               </div>
             </div>
@@ -163,7 +163,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
               }
               className="w-full"
             />
-            <div className="text-gray-400 text-sm text-center mt-1">
+            <div className="text-gray-400 text-xs text-center mt-1">
               {Math.round(styling.size * 100)}%
             </div>
           </div>
@@ -206,7 +206,7 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
                 }
                 className="w-full"
               />
-              <div className="text-gray-400 text-sm text-center mt-1">
+              <div className="text-gray-400 text-xs text-center mt-1">
                 {styling.borderThickness.toFixed(1)}px
               </div>
             </div>
@@ -318,108 +318,121 @@ function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
 
 export function CaptionsButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [view, setView] = useState<"main" | "settings">("main");
 
   const captionList = usePlayerStore((s) => s.captionList);
   const selectedCaption = usePlayerStore((s) => s.caption.selected);
   const setCaption = usePlayerStore((s) => s.setCaption);
+  const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
   const { selectCaptionById } = useCaptions();
+
+  // Audio tracks
+  const audioTracks = usePlayerStore((s) => s.audioTracks);
+  const currentAudioTrack = usePlayerStore((s) => s.currentAudioTrack);
+  const display = usePlayerStore((s) => s.display);
+
+  // Subtitle settings
+  const styling = useSubtitleStore((s) => s.styling);
+  const delay = useSubtitleStore((s) => s.delay);
+  const updateStyling = useSubtitleStore((s) => s.updateStyling);
+  const setDelay = useSubtitleStore((s) => s.setDelay);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    setHasOpenOverlay(open);
+    if (!open) setView("main");
+  };
 
   const handleCaptionSelect = async (captionId: string | null) => {
     if (!captionId) {
-      // Turn off captions
       setCaption(null);
-      setIsOpen(false);
       return;
     }
-
-    // Select caption by ID
     try {
       await selectCaptionById(captionId);
-      setIsOpen(false);
     } catch (error) {
       console.error("Failed to load caption:", error);
     }
   };
 
-  const handleSettingsClick = () => {
-    setIsOpen(false);
-    setShowSettings(true);
+  const handleAudioSelect = (trackId: string) => {
+    if (display) {
+      display.setAudioTrack(trackId);
+    }
   };
 
+  const colors = ["#ffffff", "#80b1fa", "#e2e535", "#10B239"];
+
   return (
-    <>
-      <Popover
-        trigger={
-          <button
-            className="p-2 md:p-2.5 transition-colors group"
-            title="Captions & Audio"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            <HugeiconsIcon
-              icon={ClosedCaptionIcon}
-              size="md"
-              className="text-white/70 group-hover:text-white transition-colors"
-              strokeWidth={2}
-            />
-          </button>
-        }
-        content={
-          <div className="w-[600px] flex">
+    <Popover.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+      <Popover.Trigger asChild>
+        <button
+          className="p-1 md:p-2 transition-colors group outline-none rounded-md focus-visible:ring-2 focus-visible:ring-white/20"
+          title="Captions & Audio"
+        >
+          <HugeiconsIcon
+            icon={ClosedCaptionIcon}
+            size="md"
+            className="w-5 h-5 md:w-[25px] md:h-[25px] text-white transition-colors"
+          />
+        </button>
+      </Popover.Trigger>
+      <Popover.Content
+        className="w-[420px] p-0"
+        align="center"
+        side="top"
+        sideOffset={10}
+        showArrow={true}
+      >
+        {view === "main" ? (
+          <div className="flex">
             {/* Subtitles Column */}
-            <div className="flex-1 border-r border-zinc-700">
-              <div className="p-4 border-b border-zinc-700">
-                <h3 className="text-white font-semibold text-base">
+            <div className="flex-1 border-r border-white/10">
+              <div className="px-4 py-2.5 border-b border-white/10">
+                <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
                   Subtitles
                 </h3>
               </div>
-              <div className="max-h-80 overflow-y-auto">
+              <div className="py-1.5">
                 {/* Off Option */}
                 <button
                   onClick={() => handleCaptionSelect(null)}
-                  className="w-full px-5 py-3.5 text-left hover:bg-white/5 transition-colors flex items-center gap-4"
+                  className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
                 >
-                  {!selectedCaption && (
-                    <Check className="w-6 h-6 text-white flex-shrink-0" />
+                  {!selectedCaption ? (
+                    <Check className="w-4 h-4 text-white flex-shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 flex-shrink-0" />
                   )}
-                  {!selectedCaption || (
-                    <div className="w-6 h-6 flex-shrink-0" />
-                  )}
-                  <span className="text-white text-lg">Off</span>
+                  <span className="text-white text-sm">Off</span>
                 </button>
 
-                {/* Caption List */}
                 {captionList.length === 0 ? (
-                  <div className="px-5 py-3.5 text-gray-400 text-base">
-                    No subtitles available
+                  <div className="px-4 py-2 text-white/40 text-sm pl-11">
+                    No subtitles
                   </div>
                 ) : (
-                  captionList.map((caption, index) => {
-                    // Use display name if available, otherwise use getLanguageName
+                  captionList.slice(0, 5).map((caption, index) => {
                     let displayName =
                       caption.display || getLanguageName(caption.language);
-
-                    // If language is unknown or just "EN", show subtitle number
                     if (
                       !caption.display &&
                       (!caption.language || caption.language === "en")
                     ) {
-                      displayName = `Subtitle #${index + 1}`;
+                      displayName = `Subtitle ${index + 1}`;
                     }
-
                     return (
                       <button
                         key={caption.id}
                         onClick={() => handleCaptionSelect(caption.id)}
-                        className="w-full px-5 py-3.5 text-left hover:bg-white/5 transition-colors flex items-center gap-4"
+                        className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
                       >
-                        {selectedCaption?.id === caption.id && (
-                          <Check className="w-6 h-6 text-white flex-shrink-0" />
+                        {selectedCaption?.id === caption.id ? (
+                          <Check className="w-4 h-4 text-white flex-shrink-0" />
+                        ) : (
+                          <div className="w-4 h-4 flex-shrink-0" />
                         )}
-                        {selectedCaption?.id !== caption.id && (
-                          <div className="w-6 h-6 flex-shrink-0" />
-                        )}
-                        <span className="text-gray-300 text-lg">
+                        <span className="text-white/90 text-sm truncate">
                           {displayName}
                           {caption.isHearingImpaired && " (CC)"}
                         </span>
@@ -427,43 +440,180 @@ export function CaptionsButton() {
                     );
                   })
                 )}
+                {captionList.length > 5 && (
+                  <div className="px-4 py-1.5 text-white/40 text-sm pl-11">
+                    +{captionList.length - 5} more
+                  </div>
+                )}
               </div>
 
-              {/* Subtitles Settings Link */}
-              <div className="p-4 border-t border-zinc-700">
+              {/* Settings Link */}
+              <div className="px-4 py-2.5 border-t border-white/10">
                 <button
-                  onClick={handleSettingsClick}
-                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-2"
+                  onClick={() => setView("settings")}
+                  className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2"
                 >
                   <Settings className="w-4 h-4" />
-                  Subtitles Settings
+                  Settings
                 </button>
               </div>
             </div>
 
             {/* Audio Column */}
             <div className="flex-1">
-              <div className="p-4 border-b border-zinc-700">
-                <h3 className="text-white font-semibold text-base">Audio</h3>
+              <div className="px-4 py-2.5 border-b border-white/10">
+                <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
+                  Audio
+                </h3>
               </div>
-              <div className="max-h-80 overflow-y-auto">
-                <div className="px-5 py-3.5 text-gray-400 text-base">
-                  No audio tracks available
-                </div>
+              <div className="py-1.5">
+                {audioTracks.length === 0 ? (
+                  <div className="px-4 py-2 text-white/40 text-sm">
+                    No audio tracks
+                  </div>
+                ) : (
+                  audioTracks.slice(0, 5).map((track) => (
+                    <button
+                      key={track.id}
+                      onClick={() => handleAudioSelect(track.id)}
+                      className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
+                    >
+                      {currentAudioTrack?.id === track.id ? (
+                        <Check className="w-4 h-4 text-white flex-shrink-0" />
+                      ) : (
+                        <div className="w-4 h-4 flex-shrink-0" />
+                      )}
+                      <span className="text-white/90 text-sm truncate">
+                        {track.label ||
+                          getLanguageName(track.language) ||
+                          `Track ${track.id}`}
+                      </span>
+                    </button>
+                  ))
+                )}
+                {audioTracks.length > 5 && (
+                  <div className="px-4 py-1.5 text-white/40 text-sm pl-11">
+                    +{audioTracks.length - 5} more
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        }
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        position="bottom"
-        align="center"
-      />
+        ) : (
+          <>
+            {/* Settings View */}
+            <div className="px-4 py-2.5 border-b border-white/10 flex items-center gap-2">
+              <button
+                onClick={() => setView("main")}
+                className="text-white/70 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
+                Settings
+              </h3>
+            </div>
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <SubtitleSettingsModal onClose={() => setShowSettings(false)} />
-      )}
-    </>
+            <div className="p-4 space-y-4">
+              {/* Delay */}
+              <div>
+                <div className="text-white/70 text-sm mb-2">Delay</div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setDelay(delay - 0.1)}
+                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-sm"
+                  >
+                    -0.1s
+                  </button>
+                  <div className="flex-1 text-center text-white text-sm font-mono">
+                    {delay.toFixed(1)}s
+                  </div>
+                  <button
+                    onClick={() => setDelay(delay + 0.1)}
+                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-sm"
+                  >
+                    +0.1s
+                  </button>
+                </div>
+              </div>
+
+              {/* Size */}
+              <div>
+                <div className="text-white/70 text-sm mb-2">
+                  Size: {Math.round(styling.size * 100)}%
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={styling.size * 100}
+                  onChange={(e) =>
+                    updateStyling({
+                      ...styling,
+                      size: parseInt(e.target.value) / 100,
+                    })
+                  }
+                  className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Background */}
+              <div>
+                <div className="text-white/70 text-sm mb-2">
+                  Background: {Math.round(styling.backgroundOpacity * 100)}%
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={styling.backgroundOpacity * 100}
+                  onChange={(e) =>
+                    updateStyling({
+                      ...styling,
+                      backgroundOpacity: parseInt(e.target.value) / 100,
+                    })
+                  }
+                  className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Color */}
+              <div>
+                <div className="text-white/70 text-sm mb-2">Color</div>
+                <div className="flex items-center gap-2">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => updateStyling({ ...styling, color })}
+                      className={`w-6 h-6 rounded-full transition-all ${
+                        styling.color === color
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black"
+                          : ""
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Bold Toggle */}
+              <div className="flex items-center justify-between">
+                <span className="text-white/70 text-sm">Bold</span>
+                <button
+                  onClick={() =>
+                    updateStyling({ ...styling, bold: !styling.bold })
+                  }
+                  className={`w-9 h-5 rounded-full transition-colors ${styling.bold ? "bg-blue-500" : "bg-white/20"}`}
+                >
+                  <div
+                    className={`w-4 h-4 bg-white rounded-full transition-transform ${styling.bold ? "translate-x-4" : "translate-x-0.5"}`}
+                  />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </Popover.Content>
+    </Popover.Root>
   );
 }

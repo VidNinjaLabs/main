@@ -13,20 +13,20 @@ export function PlayerCenterControls() {
   if (!hasPlayedOnce) return null;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center gap-16 md:gap-24 lg:gap-32 z-40 pointer-events-none">
+    <div className="absolute inset-0 flex items-center justify-center gap-8 md:gap-16 lg:gap-24 z-40 pointer-events-none">
       {/* Rewind 10s */}
       <div className="pointer-events-auto">
-        <SkipBackward size="xl" />
+        <SkipBackward size="lg" />
       </div>
 
       {/* Play/Pause - Hide during buffering/seeking so spinner can show */}
       <div className="pointer-events-auto w-24 h-24 flex items-center justify-center">
-        {!isLoading && <Player.Pause size="xl" className="" />}
+        {!isLoading && <Player.Pause size="lg" className="" />}
       </div>
 
       {/* Forward 10s */}
       <div className="pointer-events-auto">
-        <SkipForward size="xl" />
+        <SkipForward size="lg" />
       </div>
     </div>
   );

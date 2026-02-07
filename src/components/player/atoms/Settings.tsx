@@ -43,16 +43,6 @@ function SettingsOverlay({ id }: { id: string }) {
         <OverlayPage id={id} path="/" width={290} maxHeight={400}>
           <SettingsMenu id={id} />
         </OverlayPage>
-        <OverlayPage id={id} path="/quality" width={280} maxHeight={400}>
-          <Menu.Card>
-            <QualityView id={id} />
-          </Menu.Card>
-        </OverlayPage>
-        <OverlayPage id={id} path="/audio" width={280} maxHeight={500}>
-          <Menu.CardWithScrollable>
-            <AudioView id={id} />
-          </Menu.CardWithScrollable>
-        </OverlayPage>
         <OverlayPage id={id} path="/captions" width={280} maxHeight={500}>
           <Menu.CardWithScrollable>
             <CaptionsView id={id} backLink />
@@ -69,13 +59,23 @@ function SettingsOverlay({ id }: { id: string }) {
             <CaptionsView id={id} />
           </Menu.CardWithScrollable>
         </OverlayPage>
-        <OverlayPage id={id} path="/captions/settings" width={300} maxHeight={600}>
+        <OverlayPage
+          id={id}
+          path="/captions/settings"
+          width={300}
+          maxHeight={600}
+        >
           <Menu.CardWithScrollable>
             <CaptionSettingsView id={id} />
           </Menu.CardWithScrollable>
         </OverlayPage>
         {/* This is used by the captions shortcut in bottomControls of player */}
-        <OverlayPage id={id} path="/captions/settingsOverlay" width={300} maxHeight={600}>
+        <OverlayPage
+          id={id}
+          path="/captions/settingsOverlay"
+          width={300}
+          maxHeight={600}
+        >
           <Menu.CardWithScrollable>
             <CaptionSettingsView id={id} overlayBackLink />
           </Menu.CardWithScrollable>
@@ -89,11 +89,6 @@ function SettingsOverlay({ id }: { id: string }) {
           <Menu.CardWithScrollable>
             <EmbedSelectionView id={id} sourceId={chosenSourceId} />
           </Menu.CardWithScrollable>
-        </OverlayPage>
-        <OverlayPage id={id} path="/playback" width={280}>
-          <Menu.Card>
-            <PlaybackSettingsView id={id} />
-          </Menu.Card>
         </OverlayPage>
         <DownloadRoutes id={id} />
       </OverlayRouter>

@@ -14,9 +14,9 @@ import { Title } from "@/components/player/internals/ContextMenu/Misc";
 
 export function Chevron(props: { children?: React.ReactNode }) {
   return (
-    <span className="text-white flex items-center font-medium">
+    <span className="text-white/70 flex items-center text-sm">
       {props.children}
-      <LucideIcon className="text-xl ml-1 -mr-1.5" icon={ChevronRight} />
+      <LucideIcon className="w-4 h-4 ml-1 -mr-1" icon={ChevronRight} />
     </span>
   );
 }
@@ -29,11 +29,11 @@ export function LinkTitle(props: {
   return (
     <span
       className={classNames([
-        "font-medium text-left",
+        "text-sm text-left",
         props.box
           ? "flex flex-col items-center justify-center h-full gap-1 text-center"
           : "",
-        props.textClass || "text-video-context-type-main",
+        props.textClass || "text-white/90",
       ])}
     >
       {props.children}
@@ -55,10 +55,10 @@ export function BackLink(props: {
         rightSide={
           <button
             type="button"
-            className="p-2 rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
+            className="p-1.5 rounded tabbable hover:bg-white/10 transition-colors"
             onClick={props.onClick}
           >
-            <LucideIcon className="text-xl" icon={ArrowRight} />
+            <LucideIcon className="w-4 h-4 text-white/70" icon={ArrowRight} />
           </button>
         }
       >
@@ -72,10 +72,10 @@ export function BackLink(props: {
     <Title rightSide={props.rightSide}>
       <button
         type="button"
-        className="-ml-2 p-2 rounded tabbable hover:bg-video-context-light hover:bg-opacity-10"
+        className="-ml-2 p-1.5 rounded tabbable hover:bg-white/10 transition-colors"
         onClick={props.onClick}
       >
-        <LucideIcon className="text-xl" icon={ArrowLeft} />
+        <LucideIcon className="w-4 h-4 text-white/70" icon={ArrowLeft} />
       </button>
       <span className="line-clamp-1 break-all">{props.children}</span>
     </Title>
@@ -94,13 +94,12 @@ export function Link(props: {
   disabled?: boolean;
 }) {
   const classes = classNames(
-    "flex items-center px-3 rounded-lg transition-colors duration-150", // Smooth hover transition
-    props.box ? "bg-video-context-light/10 h-20" : "h-11", // Slightly taller (44px)
+    "flex items-center px-4 py-2 rounded-lg transition-colors duration-150", // Smooth hover transition
+    props.box ? "bg-white/5 h-20" : "", // Box mode styling
     {
       "cursor-default": !props.clickable,
-      "hover:bg-video-context-light hover:bg-opacity-20 cursor-pointer tabbable":
-        props.clickable,
-      "bg-video-context-light bg-opacity-20": props.active,
+      "hover:bg-white/10 cursor-pointer tabbable": props.clickable,
+      "bg-white/10": props.active,
       "w-full": !props.box,
       "opacity-50 pointer-events-none": props.disabled,
     },
@@ -180,19 +179,16 @@ export function SelectableLink(props: {
   let rightContent;
   if (props.selected) {
     rightContent = (
-      <LucideIcon
-        icon={CheckCircle}
-        className="text-xl text-video-context-type-accent"
-      />
+      <LucideIcon icon={CheckCircle} className="w-4 h-4 text-white" />
     );
   }
   if (props.error)
     rightContent = (
-      <span className="flex items-center text-video-context-error">
-        <LucideIcon className="ml-2" icon={AlertTriangle} />
+      <span className="flex items-center text-red-400">
+        <LucideIcon className="w-4 h-4 ml-2" icon={AlertTriangle} />
       </span>
     );
-  if (props.loading) rightContent = <Spinner className="text-lg" size={24} />; // should override selected and error
+  if (props.loading) rightContent = <Spinner className="text-lg" size={20} />; // should override selected and error
 
   return (
     <Link
@@ -205,7 +201,7 @@ export function SelectableLink(props: {
       <LinkTitle
         textClass={classNames({
           "text-white": props.selected,
-          "text-video-context-type-main text-opacity-40": props.disabled,
+          "text-white/40": props.disabled,
         })}
       >
         {props.children}

@@ -204,33 +204,37 @@ export function Volume(props: Props) {
             onMouseLeave={handleMouseLeave}
           >
             {/* Bridge/spacer div */}
-            <div className="w-10 h-4" />
+            <div className="w-8 h-3" />
 
             {/* Popup slider */}
             <div
-              className="flex w-10 h-28 items-center justify-center rounded-lg backdrop-blur-sm pointer-events-auto"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
+              className="flex flex-col w-8 py-3 items-center justify-center rounded-lg pointer-events-auto"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.85)" }}
             >
               <div
                 ref={refVertical}
-                className="relative w-1 h-20 rounded-full bg-gray-500 bg-opacity-50 cursor-pointer"
+                className="relative w-0.5 h-24 rounded-full bg-white/30 cursor-pointer"
                 onMouseDown={dragMouseDownVertical}
                 onTouchStart={dragMouseDownVertical}
               >
                 {/* Filled portion */}
                 <div
-                  className="absolute inset-x-0 bottom-0 rounded-full bg-video-audio-set"
+                  className="absolute inset-x-0 bottom-0 rounded-full bg-white"
                   style={{
                     height: percentageString,
                   }}
                 />
                 {/* White knob */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white shadow-lg"
+                  className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md"
                   style={{
-                    bottom: `calc(${percentageString} - 6px)`,
+                    bottom: `calc(${percentageString} - 5px)`,
                   }}
                 />
+              </div>
+              {/* Percentage text */}
+              <div className="text-white/80 text-[10px] mt-2 font-medium tabular-nums">
+                {Math.round(percentage)}%
               </div>
             </div>
           </div>

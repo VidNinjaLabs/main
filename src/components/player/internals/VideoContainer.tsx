@@ -113,7 +113,8 @@ function VideoElement() {
   return (
     <video
       id="video-element"
-      className="absolute inset-0 w-full h-screen bg-black"
+      className="fixed inset-0 w-full h-full bg-black z-0"
+      style={{ willChange: "transform" }}
       autoPlay
       playsInline
       ref={videoEl}

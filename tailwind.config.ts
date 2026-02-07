@@ -51,6 +51,7 @@ const config: Config = {
     },
   },
   plugins: [
+    require("tailwindcss-animate"),
     require("tailwind-scrollbar"),
     themer({
       defaultTheme: defaultTheme,

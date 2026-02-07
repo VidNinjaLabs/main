@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   Film,
+  Layers,
 } from "lucide-react";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -487,9 +488,9 @@ function SeasonsView({
 
   return (
     <Menu.CardWithScrollable>
-      <Menu.Title>
+      {/* <Menu.Title>
         {meta?.title ?? t("player.menus.episodes.loadingTitle")}
-      </Menu.Title>
+      </Menu.Title> */}
       {content}
     </Menu.CardWithScrollable>
   );
@@ -945,7 +946,7 @@ export function EpisodesView({
   return (
     <div className="flex flex-col h-full">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 border-b border-video-context-border">
+      <div className="flex-shrink-0">
         <Menu.BackLink onClick={goBack} side="right">
           {selectedSeason === "favorites"
             ? t("player.menus.episodes.favorites")
@@ -955,7 +956,7 @@ export function EpisodesView({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-2.5 py-2.5 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-hide">
         {content}
       </div>
     </div>
@@ -1045,8 +1046,9 @@ export function Episodes(props: {
     <OverlayAnchor id={router.id}>
       <VideoPlayerButton
         onClick={() => router.open("/episodes")}
-        icon={Icons.EPISODES}
+        icon={Layers}
         iconSizeClass={props.iconSizeClass}
+        className="text-white transition-colors"
       >
         {t("player.menus.episodes.button")}
       </VideoPlayerButton>

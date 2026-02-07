@@ -1,37 +1,29 @@
 import { CloudIcon } from "@hugeicons/react";
 import { useState, useEffect, useRef } from "react";
-import { Check, Loader2 } from "lucide-react";
-import { Popover } from "../base/Popover";
+import { Check, Loader2, Server } from "lucide-react";
+import { DropdownMenu } from "@/components/ui";
 import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { usePlayerStore } from "@/stores/player/store";
 import { backendClient } from "@/backend/api/vidninja";
-import { useSourceScraping } from "@/components/player/hooks/useSourceSelection";
-
-interface Provider {
-  codename: string;
-  rank: number;
-  type: string;
-}
+import { Provider } from "@/backend/api/types";
 
 export function ServerSelector() {
-  const [isOpen, setIsOpen] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProviderId, setLoadingProviderId] = useState<string | null>(
     null,
   );
   const [errorProviderId, setErrorProviderId] = useState<string | null>(null);
-  const lastFetchedProviderId = useRef<string | null>(null);
 
   // Get current provider, player controls, and media info
   const currentProvider = usePlayerStore((s) => s.sourceId);
   const meta = usePlayerStore((s) => s.meta);
-  const setSource = usePlayerStore((s) => s.setSource);
   const setSourceId = usePlayerStore((s) => s.setSourceId);
   const performPause = usePlayerStore((s) => s.pause);
   const performPlay = usePlayerStore((s) => s.play);
   const setIsLoading = usePlayerStore((s) => s.setIsLoading);
   const display = usePlayerStore((s) => s.display);
+  const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
 
   // Fetch all providers from backend on mount
   useEffect(() => {
@@ -39,19 +31,12 @@ export function ServerSelector() {
       try {
         setLoading(true);
         const response = await backendClient.getProviders();
-        console.log("[ServerSelector] Fetched providers:", response);
 
-        // Backend now returns array of provider names (codenames)
-        // Convert to Provider objects for display
-        const providerList = Array.isArray(response)
-          ? response.map((name: string, index: number) => ({
-              codename: name,
-              rank: index, // Use index as rank since backend doesn't return it
-              type: "source",
-            }))
-          : [];
-
-        setProviders(providerList);
+        if (response && Array.isArray(response.sources)) {
+          setProviders(response.sources);
+        } else {
+          setProviders([]);
+        }
       } catch (error) {
         console.error("[ServerSelector] Failed to fetch providers:", error);
       } finally {
@@ -62,9 +47,8 @@ export function ServerSelector() {
     fetchProviders();
   }, []);
 
-  const handleProviderSelect = async (codename: string) => {
-    if (loadingProviderId === codename || codename === currentProvider) {
-      setIsOpen(false);
+  const handleProviderSelect = async (providerId: string) => {
+    if (loadingProviderId === providerId || providerId === currentProvider) {
       return;
     }
 
@@ -73,70 +57,103 @@ export function ServerSelector() {
       return;
     }
 
-    console.log("[ServerSelector] Switching to provider:", codename);
-    setIsOpen(false);
+    console.log("[ServerSelector] Switching to provider:", providerId);
 
-    // Show loading states
-    performPause();
-    setIsLoading(true);
-    setLoadingProviderId(codename);
+    // Show loading states & Unmount video visually
+    // This sets isSwitchingProvider=true in store, triggering the overlay
+    usePlayerStore.getState().pauseCurrentPlayback();
+
+    setLoadingProviderId(providerId);
     setErrorProviderId(null);
 
     try {
       // Fetch new stream with specific provider - WAIT for 200 response
       console.log(
-        `[ServerSelector] Fetching: /stream/${meta.type}/${meta.tmdbId}?provider=${codename}`,
+        `[ServerSelector] Fetching: /stream/${meta.type}/${meta.tmdbId}?provider=${providerId}`,
       );
 
       const streamResponse =
         meta.type === "movie"
-          ? await backendClient.scrapeMovie(meta.tmdbId, codename)
+          ? await backendClient.scrapeMovie(meta.tmdbId, providerId)
           : await backendClient.scrapeShow(
               meta.tmdbId,
               meta.season?.number || 1,
               meta.episode?.number || 1,
-              codename,
+              providerId,
             );
 
-      if (!streamResponse || !streamResponse.manifestUrl) {
+      // Check if we have a valid stream in the new sanitized format
+      if (
+        !streamResponse ||
+        (!streamResponse.stream && !streamResponse.manifestUrl)
+      ) {
         throw new Error("No stream found for this provider");
       }
 
       // Update sourceId to show tick mark on active server
-      setSourceId(streamResponse.provider || codename);
+      // With sanitized response, 'provider' field might be missing, so we use the requested providerId
+      setSourceId(streamResponse.provider || providerId);
 
-      // Load new stream and START FROM BEGINNING
-      if (display) {
-        await display.load(streamResponse.manifestUrl);
-        display.setTime(0); // Start from beginning, not resume
+      // Extract stream data, prioritizing the 'stream' array which contains the PROXIED URL from Edge
+      let streamUrl = streamResponse.manifestUrl;
+      let streamHeaders = streamResponse.headers;
+
+      if (streamResponse.stream) {
+        const streams = Array.isArray(streamResponse.stream)
+          ? streamResponse.stream
+          : [streamResponse.stream];
+
+        if (streams.length > 0) {
+          streamUrl = streams[0].playlist; // This is the rewriting Proxy URL
+          streamHeaders = streams[0].headers; // Should be empty/safe if proxied
+        }
       }
 
-      console.log("[ServerSelector] Successfully switched to:", codename);
+      const newSource = {
+        type: "hls",
+        url: streamUrl,
+        headers: streamHeaders,
+      };
+
+      // Update store source - this triggers internal redisplaySource logic
+      usePlayerStore.getState().setSource(newSource as any, [], 0);
+
+      // Reset switching state (hides overlay)
+      usePlayerStore.getState().resumeCurrentPlayback();
+
+      console.log("[ServerSelector] Successfully switched to:", providerId);
       setLoadingProviderId(null);
-      setIsLoading(false);
       performPlay(); // Start playback from beginning
     } catch (error) {
       console.error("[ServerSelector] Failed to switch provider:", error);
-      setErrorProviderId(codename);
+      setErrorProviderId(providerId);
       setLoadingProviderId(null);
-      setIsLoading(false);
-      performPlay(); // Resume playback on error
+
+      // Revert switching state (hides overlay, potentially resumes old stream)
+      usePlayerStore.getState().resumeCurrentPlayback();
+
+      // Note: resumeCurrentPlayback already handles resuming if it was playing.
+      // We don't need to call performPlay() explicitly if we want to revert state exactly.
     }
   };
 
+  const getProviderName = (id: string) => {
+    const p = providers.find((pr) => pr.id === id);
+    return p ? p.name : id;
+  };
+
   return (
-    <Popover
-      trigger={
+    <DropdownMenu.Root onOpenChange={setHasOpenOverlay} modal={false}>
+      <DropdownMenu.Trigger asChild>
         <button
-          className="p-2 md:p-2.5 transition-colors group relative"
-          title={`Server: ${currentProvider || "Auto"}`}
-          onClick={() => setIsOpen(!isOpen)}
+          className="p-1 md:p-2 transition-colors group relative outline-none"
+          title={`Server: ${currentProvider ? getProviderName(currentProvider) : "Auto"}`}
           disabled={!!loadingProviderId}
         >
           <HugeiconsIcon
             icon={CloudIcon}
-            size="md"
-            className={`text-white/70 group-hover:text-white transition-colors ${
+            size="sm"
+            className={`text-white transition-colors ${
               loadingProviderId ? "animate-pulse" : ""
             }`}
             strokeWidth={2}
@@ -147,81 +164,61 @@ export function ServerSelector() {
             </div>
           )}
         </button>
-      }
-      content={
-        <div className="w-56 backdrop-blur-xl bg-black/40 rounded-xl shadow-2xl overflow-hidden">
-          <div className="px-3 py-2 border-b border-white/5">
-            <h3 className="text-white font-medium text-sm">Select Server</h3>
-            <p className="text-zinc-400 text-xs mt-0.5">
-              {loadingProviderId ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Switching...
-                </span>
-              ) : (
-                `Current: ${currentProvider || "session"}`
-              )}
-            </p>
-          </div>
-          <div className="max-h-64 overflow-y-auto py-1">
-            {loading ? (
-              <div className="px-3 py-2 text-gray-400 text-sm flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Loading...
-              </div>
-            ) : providers.length === 0 ? (
-              <div className="px-3 py-2 text-gray-400 text-sm">
-                No servers available
-              </div>
-            ) : (
-              providers.map((provider) => {
-                const isActive = currentProvider === provider.codename;
-                const isLoading = loadingProviderId === provider.codename;
-                const hasError = errorProviderId === provider.codename;
+      </DropdownMenu.Trigger>
 
-                return (
-                  <button
-                    key={provider.codename}
-                    onClick={() => handleProviderSelect(provider.codename)}
-                    disabled={!!loadingProviderId}
-                    className={`w-full px-3 py-2 text-left transition-all duration-200 flex items-center justify-between group ${
-                      loadingProviderId
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-white/10 active:scale-[0.98]"
-                    } ${
-                      isActive
-                        ? "bg-white/15 border-l-2 border-blue-400"
-                        : "border-l-2 border-transparent"
-                    } ${hasError ? "bg-red-500/10 border-l-2 border-red-400" : ""}`}
-                  >
-                    <span
-                      className={`text-sm font-medium transition-colors ${
-                        isActive ? "text-white" : "text-gray-300"
-                      } ${hasError ? "text-red-400" : ""} ${
-                        !loadingProviderId && !isActive
-                          ? "group-hover:text-white"
-                          : ""
-                      }`}
-                    >
-                      {provider.codename}
-                    </span>
-                    {isActive && (
-                      <Check className="w-4 h-4 text-blue-400 animate-in fade-in zoom-in duration-200" />
-                    )}
-                    {isLoading && (
-                      <Loader2 className="w-4 h-4 text-white animate-spin" />
-                    )}
-                  </button>
-                );
-              })
+      <DropdownMenu.Content align="center" sideOffset={10} className="w-56">
+        <DropdownMenu.Arrow className="fill-video-context-background/95" />
+        <DropdownMenu.Label>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-white font-medium">Select Server</span>
+            {loadingProviderId && (
+              <span className="text-blue-200 text-xs flex items-center gap-1.5 font-normal">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Switching...
+              </span>
             )}
           </div>
-        </div>
-      }
-      isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
-      position="bottom"
-      align="start"
-    />
+        </DropdownMenu.Label>
+
+        <DropdownMenu.Separator />
+
+        {loading ? (
+          <div className="px-3 py-2 text-gray-400 text-sm flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading servers...
+          </div>
+        ) : providers.length === 0 ? (
+          <div className="px-3 py-2 text-gray-400 text-sm">
+            No servers available
+          </div>
+        ) : (
+          <DropdownMenu.RadioGroup
+            value={currentProvider || ""}
+            onValueChange={handleProviderSelect}
+          >
+            {providers.map((provider) => {
+              const hasError = errorProviderId === provider.id;
+              const isLoading = loadingProviderId === provider.id;
+
+              return (
+                <DropdownMenu.RadioItem
+                  key={provider.id}
+                  value={provider.id}
+                  disabled={!!loadingProviderId}
+                  className={
+                    hasError ? "!text-red-400 hover:!bg-red-500/10" : ""
+                  }
+                >
+                  <span className="flex-1">{provider.name}</span>
+                  {isLoading && (
+                    <Loader2 className="w-3 h-3 ml-2 animate-spin" />
+                  )}
+                </DropdownMenu.RadioItem>
+              );
+            })}
+          </DropdownMenu.RadioGroup>
+        )}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   );
 }
