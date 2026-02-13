@@ -365,7 +365,45 @@ export function getMediaBackdrop(
 
   // Use wsrv.nl as a reliable image proxy with optimization
   const tmdbUrl = `https://image.tmdb.org/t/p/w780${backdropPath}`;
-  return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&w=1280`;
+  return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&w=1280&output=webp&q=80`;
+}
+
+/**
+ * Specifically for getting a horizontal card image with a merged logo
+ * @deprecated THIS FUNCTION IS BROKEN. The worker now returns JSON, not an image. Use getMediaBackdropEn instead.
+ */
+export function getMergedMediaImage(
+  id: string,
+  type: "movie" | "show",
+): string {
+  const mergeUrl = `${tmdbBaseUrl1}/image-merge?id=${id}&type=${type === "show" ? "tv" : "movie"}`;
+  // Proxy through wsrv.nl for CDN caching and output optimization (WebP)
+  return `https://wsrv.nl/?url=${encodeURIComponent(mergeUrl)}&output=webp&q=80`;
+}
+
+/**
+ * Fetches higher quality backdrops (en-US) that usually contain logos.
+ * Returns the URL optimized via wsrv.nl.
+ */
+export async function getMediaBackdropEn(
+  id: string,
+  type: "movie" | "show",
+): Promise<string | undefined> {
+  const url = `${tmdbBaseUrl1}/backdrop?id=${id}&type=${type === "show" ? "tv" : "movie"}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch backdrop");
+    const data = await res.json();
+
+    if (!data.backdrop_url) return undefined;
+
+    // Optimize the original image using wsrv.nl
+    // we use the original from tmdb but resize/compress with wsrv
+    return `https://wsrv.nl/?url=${encodeURIComponent(data.backdrop_url)}&output=webp&q=80`;
+  } catch (e) {
+    console.error("Failed to fetch en-US backdrop:", e);
+    return undefined;
+  }
 }
 
 export function getMediaPoster(posterPath: string | null): string | undefined {
@@ -449,15 +487,12 @@ export function formatTMDBSearchResult(
  */
 export async function getMediaLogo(
   id: string,
-  type: TMDBContentTypes,
+  type: "movie" | "show",
   language?: string,
 ): Promise<string | undefined> {
   const userLanguage = language || useLanguageStore.getState().language;
   const formattedLanguage = getTmdbLanguageCode(userLanguage);
-  const url =
-    type === TMDBContentTypes.MOVIE
-      ? `/movie/${id}/images`
-      : `/tv/${id}/images`;
+  const url = type === "movie" ? `/movie/${id}/images` : `/tv/${id}/images`;
   try {
     const data = await get<any>(url, {
       include_image_language: `${formattedLanguage},en,null`,
@@ -468,7 +503,9 @@ export async function getMediaLogo(
       data.logos?.find((l: any) => l.iso_639_1 === "en") ||
       data.logos?.[0];
     if (logo && logo.file_path) {
-      return `https://image.tmdb.org/t/p/w500${logo.file_path}`;
+      const tmdbUrl = `https://image.tmdb.org/t/p/w500${logo.file_path}`;
+      // Optimize logo with wsrv.nl
+      return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&output=webp&q=80`;
     }
     return undefined;
   } catch (err) {

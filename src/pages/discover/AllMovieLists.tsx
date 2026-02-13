@@ -147,7 +147,7 @@ export function DiscoverMore() {
                 }}
                 onWheel={handleWheel}
               >
-                <div className="md:w-12" />
+                <div className="md:w-6" />
                 {movieDetails[list.listSlug]?.map((movie: TMDBMovieData) => (
                   <div
                     key={movie.id}
@@ -170,7 +170,7 @@ export function DiscoverMore() {
                     />
                   </div>
                 ))}
-                <div className="md:w-12" />
+                <div className="md:w-6" />
               </div>
               {!isMobile && (
                 <CarouselNavButtons

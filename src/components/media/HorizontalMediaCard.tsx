@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { Edit, Ellipsis, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { mediaItemToId } from "@/backend/metadata/tmdb";
@@ -10,12 +11,11 @@ import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { usePreferencesStore } from "@/stores/preferences";
 import { MediaItem } from "@/utils/mediaTypes";
-import { getMergedMediaImage } from "@/backend/metadata/tmdb";
-import { useTranslation } from "react-i18next";
+import { getMediaBackdrop, getMediaBackdropEn } from "@/backend/metadata/tmdb";
 
-import { MediaBookmarkButton } from "./MediaBookmark";
 import { IconPatch } from "../buttons/IconPatch";
 import { LucideIcon } from "../LucideIcon";
+import { MediaBookmarkButton } from "./MediaBookmark";
 
 // Intersection Observer Hook
 function useIntersectionObserver(options: IntersectionObserverInit = {}) {
@@ -52,27 +52,19 @@ function useIntersectionObserver(options: IntersectionObserverInit = {}) {
   return { targetRef, isIntersecting, hasIntersected };
 }
 
-// Skeleton Component
-function MediaCardSkeleton() {
+// Skeleton Component for Horizontal Card
+function HorizontalMediaCardSkeleton() {
   return (
     <div className="group -m-[0.705em] rounded-xl bg-background-main transition-colors duration-300">
       <div className="pointer-events-auto relative mb-2 p-[0.4em] transition-transform duration-300">
         <div className="animate-pulse">
-          {/* Poster skeleton - matches MediaCard poster dimensions exactly */}
-          <div className="relative mb-4 pb-[150%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground" />
+          {/* Backdrop skeleton - 16:9 aspect ratio */}
+          <div className="relative mb-2 pb-[56.25%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground" />
 
-          {/* Title skeleton - matches MediaCard title dimensions */}
+          {/* Title skeleton */}
           <div className="mb-1">
-            <div className="h-4 bg-mediaCard-hoverBackground rounded w-full mb-1" />
             <div className="h-4 bg-mediaCard-hoverBackground rounded w-3/4 mb-1" />
-            <div className="h-4 bg-mediaCard-hoverBackground rounded w-1/2" />
-          </div>
-
-          {/* Dot list skeleton - matches MediaCard dot list */}
-          <div className="flex items-center gap-1">
-            <div className="h-3 bg-mediaCard-hoverBackground rounded w-12" />
-            <div className="h-1 w-1 bg-mediaCard-hoverBackground rounded-full" />
-            <div className="h-3 bg-mediaCard-hoverBackground rounded w-8" />
+            <div className="h-3 bg-mediaCard-hoverBackground rounded w-1/2" />
           </div>
         </div>
       </div>
@@ -80,7 +72,7 @@ function MediaCardSkeleton() {
   );
 }
 
-export interface MediaCardProps {
+export interface HorizontalMediaCardProps {
   media: MediaItem;
   linkable?: boolean;
   series?: {
@@ -112,7 +104,7 @@ function checkReleased(media: MediaItem): boolean {
   return isReleased;
 }
 
-function MediaCardContent({
+function HorizontalMediaCardContent({
   media,
   linkable,
   series,
@@ -123,16 +115,14 @@ function MediaCardContent({
   forceSkeleton,
   editable,
   onEdit,
-}: MediaCardProps) {
+}: HorizontalMediaCardProps) {
   const { t } = useTranslation();
   const percentageString = `${Math.round(percentage ?? 0).toFixed(0)}%`;
 
   const isReleased = useCallback(() => checkReleased(media), [media]);
-
   const canLink = linkable && !closable && isReleased();
 
   const dotListContent = [t(`media.types.${media.type}`)];
-
   const [searchQuery] = useSearchQuery();
 
   // Intersection observer for lazy loading
@@ -140,25 +130,44 @@ function MediaCardContent({
     rootMargin: "300px",
   });
 
-  // No longer fetching logo on-demand in the client.
-  // Standard MediaCard uses posters by default, which don't have merged counterparts.
-  // We remove the overlays to avoid redundant fetches and maintain consistency.
+  // State for the backdrop image URL
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
 
-  // Prefetch backdrop image to ensure instant loading on details page
+  // Fetch high-quality backdrop on mount
   useEffect(() => {
-    if (media.backdrop) {
-      const img = new Image();
-      img.src = media.backdrop;
-    }
-  }, [media.backdrop]);
+    let isMounted = true;
 
-  // Show skeleton if forced or if media hasn't loaded yet (empty title/poster)
-  const shouldShowSkeleton = forceSkeleton || (!media.title && !media.poster);
+    // Start with a fallback/placeholder or the basic cached merged image if needed immediately (optional)
+    // But we prefer waiting for the high-quality one or falling back gracefully
+    const fetchImage = async () => {
+      const url = await getMediaBackdropEn(media.id, media.type);
+      if (isMounted) {
+        // If we got a URL, use it. If not, fall back to the standard backdrop
+        setImageUrl(url || getMediaBackdrop(media.backdrop || null));
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [media.id, media.type]);
+
+  // Prefetch backdrop image once we have a URL
+  useEffect(() => {
+    if (imageUrl) {
+      const img = new Image();
+      img.src = imageUrl;
+    }
+  }, [imageUrl]);
+
+  const shouldShowSkeleton = forceSkeleton || (!media.title && !media.backdrop);
 
   if (shouldShowSkeleton) {
     return (
       <div ref={targetRef as React.RefObject<HTMLDivElement>}>
-        <MediaCardSkeleton />
+        <HorizontalMediaCardSkeleton />
       </div>
     );
   }
@@ -194,23 +203,21 @@ function MediaCardContent({
       >
         <div
           className={classNames(
-            "relative mb-4 pb-[150%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground bg-cover bg-center transition-[border-radius] duration-300",
+            "relative mb-2 pb-[56.25%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground bg-cover bg-center transition-[border-radius] duration-300",
             {
               "group-hover:rounded-lg": canLink,
             },
           )}
           style={{
-            backgroundImage: media.poster
-              ? `url(${media.poster})`
-              : "url(/placeholder.png)",
+            backgroundImage: `url(${imageUrl})`,
           }}
         >
           {/* Play button overlay - Desktop only */}
           {canLink && (
             <div className="absolute inset-0 hidden md:flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110">
+              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110">
                 <svg
-                  className="w-8 h-8 text-black ml-1"
+                  className="w-6 h-6 text-black ml-1"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -245,16 +252,11 @@ function MediaCardContent({
           {percentage !== undefined ? (
             <>
               <div
-                className={`absolute inset-x-0 -bottom-px pb-1 h-12 bg-gradient-to-t from-mediaCard-shadow to-transparent transition-colors ${
+                className={`absolute inset-x-0 -bottom-px pb-1 h-8 bg-gradient-to-t from-mediaCard-shadow to-transparent transition-colors ${
                   canLink ? "group-hover:from-mediaCard-hoverShadow" : ""
                 }`}
               />
-              <div
-                className={`absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-mediaCard-shadow to-transparent transition-colors ${
-                  canLink ? "group-hover:from-mediaCard-hoverShadow" : ""
-                }`}
-              />
-              <div className="absolute inset-x-0 bottom-0 p-3">
+              <div className="absolute inset-x-0 bottom-0 p-2">
                 <div className="relative h-1 overflow-hidden rounded-full bg-mediaCard-barColor">
                   <div
                     className="absolute inset-y-0 left-0 rounded-full bg-mediaCard-barFillColor"
@@ -269,18 +271,12 @@ function MediaCardContent({
 
           {!closable && (
             <div
-              className="absolute bookmark-button"
+              className="absolute top-2 left-2 bookmark-button"
               onClick={(e) => e.preventDefault()}
             >
               <MediaBookmarkButton media={media} />
             </div>
           )}
-
-          {searchQuery.length > 0 && !closable ? (
-            <div className="absolute" onClick={(e) => e.preventDefault()}>
-              <MediaBookmarkButton media={media} />
-            </div>
-          ) : null}
 
           <div
             className={`absolute inset-0 flex items-center justify-center bg-mediaCard-badge bg-opacity-80 transition-opacity duration-500 ${
@@ -296,20 +292,18 @@ function MediaCardContent({
           </div>
         </div>
 
-        <h1 className="mb-1 line-clamp-3 max-h-[4.5rem] text-ellipsis break-words font-bold text-white text-sm md:text-base">
-          <span>{media.title}</span>
-        </h1>
-        <div className="media-info-container justify-content-center flex flex-wrap">
+        {/* Title hidden for horizontal cards as it's merged into the image */}
+        <div className="media-info-container mt-1 justify-start flex flex-wrap">
           <DotList
-            className="text-[10px] md:text-xs"
+            className="text-[10px] md:text-xs text-type-secondary"
             content={dotListContent}
           />
         </div>
 
         {!closable && (
-          <div className="absolute bottom-0 translate-y-1 right-1">
+          <div className="absolute bottom-2 right-2">
             <button
-              className="media-more-button p-2"
+              className="media-more-button p-1.5 hover:bg-white/10 rounded-full transition-colors"
               type="button"
               onClick={(e) => {
                 e.preventDefault();
@@ -324,30 +318,12 @@ function MediaCardContent({
             </button>
           </div>
         )}
-        {editable && closable && (
-          <div className="absolute bottom-0 translate-y-1 right-1">
-            <button
-              className="media-more-button p-2"
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onEdit?.();
-              }}
-            >
-              <LucideIcon
-                className="text-xs font-semibold text-type-secondary"
-                icon={Edit}
-              />
-            </button>
-          </div>
-        )}
       </Flare.Child>
     </Flare.Base>
   );
 }
 
-export function MediaCard(props: MediaCardProps) {
+export function HorizontalMediaCard(props: HorizontalMediaCardProps) {
   const { media, onShowDetails, forceSkeleton } = props;
   const { showModal } = useOverlayStack();
   const enableDetailsModal = usePreferencesStore(
@@ -380,7 +356,6 @@ export function MediaCard(props: MediaCardProps) {
       return;
     }
 
-    // Show modal with data through overlayStack
     showModal("details", {
       id: Number(media.id),
       type: media.type === "movie" ? "movie" : "show",
@@ -400,7 +375,7 @@ export function MediaCard(props: MediaCardProps) {
   };
 
   const content = (
-    <MediaCardContent
+    <HorizontalMediaCardContent
       {...props}
       onShowDetails={handleShowDetails}
       forceSkeleton={forceSkeleton}
@@ -410,7 +385,7 @@ export function MediaCard(props: MediaCardProps) {
   if (!canLink) {
     return (
       <span
-        className="relative"
+        className="relative block"
         onClick={(e) => {
           if (e.defaultPrevented) {
             e.preventDefault();
@@ -429,7 +404,7 @@ export function MediaCard(props: MediaCardProps) {
       state={{ backdrop: media.backdrop, poster: media.poster, meta: media }}
       tabIndex={-1}
       className={classNames(
-        "tabbable",
+        "tabbable block",
         props.closable ? "hover:cursor-default" : "",
       )}
       onClick={handleCardClick}

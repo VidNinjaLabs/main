@@ -7,6 +7,7 @@ import million from "million/compiler";
 import { handlebars } from "./plugins/handlebars";
 import { PluginOption, loadEnv, splitVendorChunkPlugin } from "vite";
 import { visualizer } from "rollup-plugin-visualizer";
+import { VitePWA } from "vite-plugin-pwa";
 
 import tailwind from "tailwindcss";
 import rtl from "postcss-rtlcss";
@@ -71,6 +72,54 @@ export default defineConfig(({ mode }) => {
       // }),
       splitVendorChunkPlugin(),
       visualizer() as PluginOption,
+      VitePWA({
+        registerType: "autoUpdate",
+        devOptions: {
+          enabled: true, // Enable PWA in dev mode for testing
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          maximumFileSizeToCacheInBytes: 5000000,
+        },
+        manifest: {
+          name: "VidNinja",
+          short_name: "VidNinja",
+          start_url: "/",
+          display: "standalone",
+          background_color: "#120f1d",
+          lang: "en",
+          scope: "/",
+          description:
+            "Watch your favorite shows and movies for free with no ads ever!",
+          theme_color: "#120f1d",
+          icons: [
+            {
+              src: "/android-chrome-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/android-chrome-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/android-chrome-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "maskable",
+            },
+            {
+              src: "/android-chrome-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+      }),
     ],
 
     build: {
@@ -84,7 +133,11 @@ export default defineConfig(({ mode }) => {
             ) {
               return "language-db";
             }
-            if (id.includes("hls.js") || id.includes("@rev9dev-netizen/vidply.js") || id.includes("vidply.js")) {
+            if (
+              id.includes("hls.js") ||
+              id.includes("@rev9dev-netizen/vidply.js") ||
+              id.includes("vidply.js")
+            ) {
               return "hls";
             }
             if (id.includes("node-forge") || id.includes("crypto-js")) {
@@ -127,7 +180,7 @@ export default defineConfig(({ mode }) => {
           "./node_modules/@sozialhelden/ietf-language-tags/dist/cjs",
         ),
         "react-i18next": path.resolve(__dirname, "./src/i18nShim.tsx"),
-        "i18next": path.resolve(__dirname, "./src/i18nShim.tsx"),
+        i18next: path.resolve(__dirname, "./src/i18nShim.tsx"),
       },
     },
 

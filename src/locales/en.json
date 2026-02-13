@@ -323,7 +323,10 @@
       },
       "sectionTitle": "Search results",
       "discoverMore": "Discover more",
-      "discover": "Discover"
+      "discover": "Discover",
+      "badges": {
+        "trending": "TRENDING"
+      }
     },
     "mediaCard": {
       "moreInfo": "More Info",

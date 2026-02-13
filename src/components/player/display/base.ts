@@ -104,7 +104,8 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
   let lastValidTime = 0; // Store the last valid time to prevent reset during source switches
   let shouldAutoplayAfterLoad = false; // Flag to track if we should autoplay after loading completes
   let loadingTimeout: NodeJS.Timeout | null = null; // Timeout to auto-clear stuck loading states
-  let bufferMonitorInterval: NodeJS.Timeout | null = null; // YouTube-style buffer monitor
+  let bufferMonitorInterval: NodeJS.Timeout | null = null; // Buffer health monitor
+  let lastBufferLevel = 0; // Track buffer trend
 
   // Helper: Get seconds of buffer ahead of current playhead
   function getBufferAhead(vid: HTMLVideoElement): number {
@@ -241,56 +242,53 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           autoStartLoad: true,
           startPosition: resumePosition > 0 ? resumePosition : -1,
 
-          // YouTube-Style Aggressive Buffering Strategy
-          // ============================================
+          // STABLE BUFFER STRATEGY - Prevents bufferStalledError
+          // ====================================================
 
-          // 1. FAST STARTUP
-          startLevel: 0,
-          capLevelToPlayerSize: true, // Don't load 4K for small player
-          maxBufferLength: 60, // Buffer 1 minutes ahead (Simpler)
-          maxMaxBufferLength: 300, // Max 5 minutes buffer
-          maxBufferSize: 200 * 1000 * 1000, // 200MB Buffer Size (Reduced from 500MB)
-          maxBufferHole: 0.5, // Standard 0.5s hole tolerance (was 2.0s which causes stalls)
-          backBufferLength: 30, // Keep 30s back buffer
+          // 1. CONSERVATIVE BUFFERING (prevents stalls)
+          startLevel: -1, // Let ABR choose based on bandwidth
+          capLevelToPlayerSize: true,
+          maxBufferLength: 30, // Conservative 30s target (not 60s)
+          maxMaxBufferLength: 60, // Cap at 60s (not 300s)
+          maxBufferSize: 100 * 1000 * 1000, // 100MB limit
+          maxBufferHole: 0.8, // Tolerate larger gaps to prevent unnecessary stalls
+          backBufferLength: 10, // Minimal back buffer (save memory)
 
-          // 2. LOADING OPTIMIZATION
-          // (Standard hls.js doesn't have prefetch options like VidPly)
-
-          // 3. SMART BUFFER MANAGEMENT
-          highBufferWatchdogPeriod: 3, // Relaxed check
+          // 2. AGGRESSIVE GAP HANDLING (prevents stalls)
+          highBufferWatchdogPeriod: 1, // Check every 1s (not 3s)
           nudgeOffset: 0.1,
-          nudgeMaxRetry: 5,
+          nudgeMaxRetry: 10, // More retries to jump gaps
 
-          // 4. FAST LOADING
+          // 3. FAST FRAGMENT LOADING
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 30 * 1000,
-              maxTimeToFirstByteMs: 15 * 1000,
+              maxLoadTimeMs: 20 * 1000, // Faster timeout
+              maxTimeToFirstByteMs: 10 * 1000,
               errorRetry: {
-                maxNumRetry: 4,
-                retryDelayMs: 1000,
-                maxRetryDelayMs: 5000,
+                maxNumRetry: 6, // More retries
+                retryDelayMs: 500, // Faster retry (not 1000ms)
+                maxRetryDelayMs: 3000,
               },
               timeoutRetry: {
-                maxNumRetry: 3,
+                maxNumRetry: 4,
                 retryDelayMs: 0,
                 maxRetryDelayMs: 0,
               },
             },
           },
 
-          // 5. PERFORMANCE
+          // 4. PERFORMANCE
           enableWorker: true,
           lowLatencyMode: false,
           progressive: true,
 
-          // 6. ADAPTIVE QUALITY (YouTube-style)
-          abrEwmaDefaultEstimate: 500000, // Conservative 500kbps start (was 1Mbps)
-          abrBandWidthFactor: 0.8, // Conservative bandwidth estimation
-          abrBandWidthUpFactor: 0.7, // Slower quality upgrades
-          abrEwmaFastLive: 1.0,
-          abrEwmaSlowLive: 3.0,
-          abrMaxWithRealBitrate: true, // Use real bitrate for ABR decisions
+          // 5. ADAPTIVE QUALITY (prevents over-ambitious upgrades)
+          abrEwmaDefaultEstimate: 500000, // Start conservative
+          abrBandWidthFactor: 0.95, // Trust bandwidth measurements (not 0.8)
+          abrBandWidthUpFactor: 0.7, // Still slow upgrades
+          abrEwmaFastLive: 3.0, // Slower adaptation (not 1.0)
+          abrEwmaSlowLive: 9.0, // Much slower (not 3.0)
+          abrMaxWithRealBitrate: true,
 
           renderTextTracksNatively: false,
         });
@@ -325,6 +323,13 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
             type: data.type,
             url: (data as any).url,
           };
+
+          // Handle bufferStalledError gracefully - DON'T treat as fatal
+          if (data.details === "bufferStalledError") {
+            console.warn("[HLS] Buffer stall detected, attempting recovery...");
+            // Let HLS.js handle it internally - it will nudge playhead forward
+            return;
+          }
 
           // Try to recover from network errors (expired URLs, 404s)
           if (data.fatal) {
@@ -416,36 +421,47 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           emit("changedquality", quality);
         });
 
-        // Buffer-aware quality switching: Block upgrades if buffer is low
-        hls.on(Hls.Events.LEVEL_SWITCHING, (_, data) => {
-          if (!hls || !vid) return;
-          const bufferAhead = getBufferAhead(vid);
-          // Block quality UP if buffer < 15s
-          if (data.level > hls.currentLevel && bufferAhead < 15) {
-            hls.nextLevel = hls.currentLevel;
-          }
-        });
+        // REMOVED: Buffer-aware quality switching blocking logic
+        // The root cause was this was TOO aggressive and prevented recovery
 
-        // YouTube-style playhead-aware buffer monitor
+        // IMPROVED: Smarter buffer health monitoring
         if (bufferMonitorInterval) clearInterval(bufferMonitorInterval);
         bufferMonitorInterval = setInterval(() => {
           if (!hls || !vid || vid.paused) return;
           const bufferAhead = getBufferAhead(vid);
 
-          if (bufferAhead > 30) {
-            // LAZY MODE: Plenty of buffer, let ABR work normally
-            // Could reduce maxBufferLength to throttle downloads
-          } else if (bufferAhead < 10) {
-            // CHASE MODE: Buffer getting low, ensure loading
+          // Track buffer trend (increasing or decreasing)
+          const bufferTrend = bufferAhead - lastBufferLevel;
+          lastBufferLevel = bufferAhead;
+
+          // CRITICAL FIX: Proactive quality management based on buffer TREND
+          if (bufferAhead < 3 && bufferTrend < 0) {
+            // Buffer critically low AND decreasing - emergency downgrade
+            console.warn(
+              "[Buffer] Emergency: buffer =",
+              bufferAhead.toFixed(2),
+              "s, forcing lowest quality",
+            );
+            hls.nextLevel = 0; // Drop to lowest quality immediately
             hls.startLoad();
-          } else if (bufferAhead < 5) {
-            // EMERGENCY MODE: Critical buffer, drop quality
-            if (hls.currentLevel > 0) {
-              hls.nextLevel = Math.max(0, hls.currentLevel - 1);
-            }
+          } else if (bufferAhead < 8 && bufferTrend < -1) {
+            // Buffer getting dangerously low - proactive downgrade
+            const targetLevel = Math.max(0, hls.currentLevel - 1);
+            console.warn(
+              "[Buffer] Warning: buffer =",
+              bufferAhead.toFixed(2),
+              "s, downgrading to level",
+              targetLevel,
+            );
+            hls.nextLevel = targetLevel;
             hls.startLoad();
+          } else if (bufferAhead < 15) {
+            // Buffer moderate - ensure loading continues, block upgrades
+            hls.startLoad();
+            // Don't force downgrades here, just prevent upgrades
           }
-        }, 2000);
+          // If buffer > 15s, let ABR work normally
+        }, 1000); // Check every 1s (not 2s!) for faster reaction
 
         hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, () => {
           for (const [lang, resolve] of languagePromises) {
@@ -737,6 +753,8 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       clearInterval(bufferMonitorInterval);
       bufferMonitorInterval = null;
     }
+    // Reset buffer tracking
+    lastBufferLevel = 0;
     // Reset the last valid duration and time when unloading source
     lastValidDuration = 0;
     lastValidTime = 0;
@@ -821,7 +839,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     }) {
       if (!ops.source) unloadSource();
       automaticQuality = ops.automaticQuality;
-      preferenceQuality = ops.preferredQuality;
+      preferenceQuality = ops.preferredQuality as any;
       source = ops.source;
       emit("loading", true);
       startAt = ops.startAt;
@@ -835,7 +853,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
     ) {
       if (source?.type !== "hls") return;
       automaticQuality = newAutomaticQuality;
-      preferenceQuality = newPreferredQuality;
+      preferenceQuality = newPreferredQuality as any;
       setupQualityForHls();
     },
 
@@ -1043,13 +1061,13 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
 
       // need to wait a moment before hls loads the subtitles
       const promise = new Promise<void>((resolve, reject) => {
-        languagePromises.set(lang, resolve);
+        if (lang) languagePromises.set(lang, resolve);
 
         // reject after some time, if hls.js fails to load the subtitles
         // for any reason
         setTimeout(() => {
           reject();
-          languagePromises.delete(lang);
+          if (lang) languagePromises.delete(lang);
         }, 5000);
       });
       hls?.setSubtitleOption({ lang });

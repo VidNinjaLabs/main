@@ -6,8 +6,8 @@ import { useIntersection, useWindowSize } from "react-use";
 import { Dropdown, OptionItem } from "@/components/form/Dropdown";
 import { Icon, Icons } from "@/components/Icon";
 import { WideContainer } from "@/components/layout/WideContainer";
-import { MediaCard } from "@/components/media/MediaCard";
-import { MediaGrid } from "@/components/media/MediaGrid";
+import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
+import { HorizontalMediaGrid } from "@/components/media/HorizontalMediaGrid";
 import { Heading1 } from "@/components/utils/Text";
 import {
   DiscoverContentType,
@@ -22,6 +22,7 @@ import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { useProgressStore } from "@/stores/progress";
 import { MediaItem } from "@/utils/mediaTypes";
 import { useTranslation } from "react-i18next";
+import { MediaGrid } from "@/components/media/MediaGrid";
 
 interface MoreContentProps {
   onShowDetails?: (media: MediaItem) => void;
@@ -205,7 +206,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
         <WideContainer>
           <div className="animate-pulse">
             <div className="h-8 bg-mediaCard-hoverBackground rounded w-1/4 mb-8" />
-            <MediaGrid>
+            <HorizontalMediaGrid>
               {Array(20)
                 .fill(null)
                 .map(() => (
@@ -214,12 +215,12 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
                     className="relative group cursor-default user-select-none rounded-xl p-2 bg-transparent"
                   >
                     <div className="animate-pulse">
-                      <div className="w-full aspect-[2/3] bg-mediaCard-hoverBackground rounded-lg" />
+                      <div className="w-full aspect-video bg-mediaCard-hoverBackground rounded-lg" />
                       <div className="mt-2 h-4 bg-mediaCard-hoverBackground rounded w-3/4" />
                     </div>
                   </div>
                 ))}
-            </MediaGrid>
+            </HorizontalMediaGrid>
           </div>
         </WideContainer>
       </SubPageLayout>
@@ -472,7 +473,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
             isContentVisible ? "opacity-100" : "opacity-0"
           }`}
         >
-          <MediaGrid>
+          <HorizontalMediaGrid>
             {mediaItems.map((item) => {
               const isTVShow = Boolean(item.first_air_date);
               const releaseDate = isTVShow
@@ -488,6 +489,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
                 poster: item.poster_path
                   ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
                   : "/placeholder.png",
+                backdrop: item.backdrop_path || undefined,
                 type: isTVShow ? "show" : "movie",
                 year,
                 release_date: releaseDate ? new Date(releaseDate) : undefined,
@@ -501,7 +503,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
                     e.preventDefault()
                   }
                 >
-                  <MediaCard
+                  <HorizontalMediaCard
                     media={mediaItem}
                     onShowDetails={handleShowDetails}
                     linkable
@@ -509,7 +511,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
                 </div>
               );
             })}
-          </MediaGrid>
+          </HorizontalMediaGrid>
 
           {hasMore && (
             <div

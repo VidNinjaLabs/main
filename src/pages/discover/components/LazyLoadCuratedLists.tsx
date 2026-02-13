@@ -9,7 +9,7 @@ import {
 } from "@/backend/metadata/traktApi";
 import { TMDBMovieData } from "@/backend/metadata/types/tmdb";
 import type { CuratedMovieList } from "@/backend/metadata/types/trakt";
-import { MediaCard } from "@/components/media/MediaCard";
+import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { CarouselNavButtons } from "@/pages/discover/components/CarouselNavButtons";
 import { MediaItem } from "@/utils/mediaTypes";
@@ -96,11 +96,8 @@ export function LazyLoadCuratedLists({
               <div className="h-8 bg-mediaCard-hoverBackground rounded w-1/4 ml-8 mb-4" />
               <div className="flex gap-4 overflow-hidden px-8">
                 {[1, 2, 3, 4, 5, 6].map((j) => (
-                  <div
-                    key={j}
-                    className="w-[10rem] md:w-[11.5rem] flex-shrink-0"
-                  >
-                    <div className="aspect-[2/3] bg-mediaCard-hoverBackground rounded-lg" />
+                  <div key={j} className="w-[16rem] md:w-[20rem] flex-shrink-0">
+                    <div className="aspect-video bg-mediaCard-hoverBackground rounded-lg" />
                   </div>
                 ))}
               </div>
@@ -129,13 +126,13 @@ export function LazyLoadCuratedLists({
               }}
               onWheel={handleWheel}
             >
-              <div className="md:w-12" />
+              <div className="md:w-6" />
               {movieDetails[list.listSlug]?.map((movie: TMDBMovieData) => (
                 <div
                   key={movie.id}
-                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto"
+                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
                 >
-                  <MediaCard
+                  <HorizontalMediaCard
                     linkable
                     media={{
                       id: movie.id.toString(),
@@ -143,6 +140,9 @@ export function LazyLoadCuratedLists({
                       poster: movie.poster_path
                         ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
                         : "/placeholder.png",
+                      backdrop: movie.backdrop_path
+                        ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
+                        : undefined,
                       type: "movie",
                       year: movie.release_date
                         ? parseInt(movie.release_date.split("-")[0], 10)
@@ -152,7 +152,7 @@ export function LazyLoadCuratedLists({
                   />
                 </div>
               ))}
-              <div className="md:w-12" />
+              <div className="md:w-6" />
             </div>
             {!isMobile && (
               <CarouselNavButtons

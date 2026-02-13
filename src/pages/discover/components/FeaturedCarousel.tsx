@@ -1,11 +1,14 @@
 import classNames from "classnames";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayIcon } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
+import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
+import { useDiscoverStore } from "@/stores/discover";
 // Extension and scrapers removed
-import { get, getMediaLogo } from "@/backend/metadata/tmdb";
+import { get, getMediaBackdrop, getMediaLogo } from "@/backend/metadata/tmdb";
+
 import {
   getDiscoverContent,
   getReleaseDetails,
@@ -16,7 +19,6 @@ import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
 import { Movie, TVShow } from "@/pages/discover/common";
 import { conf } from "@/setup/config";
-import { useDiscoverStore } from "@/stores/discover";
 import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { getTmdbLanguageCode } from "@/utils/language";
@@ -27,6 +29,7 @@ import {
   EDITOR_PICKS_MOVIES,
   EDITOR_PICKS_TV_SHOWS,
 } from "../hooks/useDiscoverMedia";
+import { InformationCircleIcon } from "@hugeicons/react";
 
 const t = i18n.t;
 
@@ -45,6 +48,7 @@ export interface FeaturedMedia extends Partial<Movie & TVShow> {
   external_ids?: {
     imdb_id?: string;
   };
+  logo?: string;
 }
 
 interface FeaturedCarouselProps {
@@ -125,20 +129,18 @@ export function FeaturedCarousel({
   shorter,
   forcedCategory,
 }: FeaturedCarouselProps) {
-  const { selectedCategory } = useDiscoverStore();
+  const { selectedCategory, setSelectedCategory } = useDiscoverStore();
   const effectiveCategory = forcedCategory || selectedCategory;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [media, setMedia] = useState<FeaturedMedia[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [imdbRatings, setImdbRatings] = useState<
     Record<string, IMDbRatingData>
   >({});
   const hasExtension = useRef<boolean>(false);
-  const logoFetchController = useRef<AbortController | null>(null);
   const autoPlayInterval = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const enableImageLogos = usePreferencesStore(
@@ -174,14 +176,10 @@ export function FeaturedCarousel({
     const fetchFeaturedMedia = async () => {
       setIsLoading(true);
       // Clear all previous data when transitioning
-      setLogoUrl(undefined);
       setImdbRatings({});
       setReleaseInfo(null);
       setCurrentIndex(0);
       setContentOpacity(1);
-      if (logoFetchController.current) {
-        logoFetchController.current.abort(); // Cancel any in-progress logo fetches
-      }
       try {
         if (effectiveCategory === "movies" || effectiveCategory === "tvshows") {
           // First try to get IDs from Trakt discover endpoint
@@ -213,7 +211,6 @@ export function FeaturedCarousel({
               get<any>(
                 `/${effectiveCategory === "movies" ? "movie" : "tv"}/${id}`,
                 {
-
                   language: formattedLanguage,
                   append_to_response: "external_ids",
                 },
@@ -227,8 +224,22 @@ export function FeaturedCarousel({
                 effectiveCategory === "movies" ? "movie" : ("show" as const),
             }));
 
-            // Take the first SLIDE_QUANTITY items
-            setMedia(mediaItems.slice(0, SLIDE_QUANTITY));
+            // Fetch logos for the selected items
+            const mediaWithLogosPromises = mediaItems
+              .slice(0, SLIDE_QUANTITY)
+              .map(async (item) => {
+                const logo = await getMediaLogo(
+                  item.id.toString(),
+                  effectiveCategory === "movies" ? "movie" : "show",
+                );
+                return {
+                  ...item,
+                  logo,
+                };
+              });
+
+            const mediaWithLogos = await Promise.all(mediaWithLogosPromises);
+            setMedia(mediaWithLogos);
           } catch (traktError) {
             console.error(
               "Falling back to TMDB method",
@@ -240,7 +251,6 @@ export function FeaturedCarousel({
             if (effectiveCategory === "movies") {
               // First get the list of popular movies
               const listData = await get<any>("/movie/popular", {
-
                 language: formattedLanguage,
               });
 
@@ -249,17 +259,26 @@ export function FeaturedCarousel({
                 .slice(0, FETCH_QUANTITY)
                 .map((movie: any) =>
                   get<any>(`/movie/${movie.id}`, {
-
                     language: formattedLanguage,
                     append_to_response: "external_ids",
                   }),
                 );
 
               const movieDetails = await Promise.all(moviePromises);
-              const allMovies = movieDetails.map((movie) => ({
-                ...movie,
-                type: "movie" as const,
-              }));
+
+              // Fetch logos
+              const moviesWithLogosPromises = movieDetails.map(
+                async (movie) => {
+                  const logo = await getMediaLogo(movie.id.toString(), "movie");
+                  return {
+                    ...movie,
+                    type: "movie" as const,
+                    logo,
+                  };
+                },
+              );
+
+              const allMovies = await Promise.all(moviesWithLogosPromises);
 
               // Shuffle
               const shuffledMovies = [...allMovies].sort(
@@ -269,7 +288,6 @@ export function FeaturedCarousel({
             } else if (effectiveCategory === "tvshows") {
               // First get the list of popular shows
               const listData = await get<any>("/tv/popular", {
-
                 language: formattedLanguage,
               });
 
@@ -278,17 +296,24 @@ export function FeaturedCarousel({
                 .slice(0, FETCH_QUANTITY)
                 .map((show: any) =>
                   get<any>(`/tv/${show.id}`, {
-
                     language: formattedLanguage,
                     append_to_response: "external_ids",
                   }),
                 );
 
               const showDetails = await Promise.all(showPromises);
-              const allShows = showDetails.map((show) => ({
-                ...show,
-                type: "show" as const,
-              }));
+
+              // Fetch logos
+              const showsWithLogosPromises = showDetails.map(async (show) => {
+                const logo = await getMediaLogo(show.id.toString(), "show");
+                return {
+                  ...show,
+                  type: "show" as const,
+                  logo,
+                };
+              });
+
+              const allShows = await Promise.all(showsWithLogosPromises);
 
               // Shuffle
               const shuffledShows = [...allShows].sort(
@@ -324,7 +349,6 @@ export function FeaturedCarousel({
           // Fetch items
           const moviePromises = selectedMovieIds.map(({ id }) =>
             get<any>(`/movie/${id}`, {
-
               language: formattedLanguage,
               append_to_response: "external_ids",
             }),
@@ -332,7 +356,6 @@ export function FeaturedCarousel({
 
           const showPromises = selectedShowIds.map(({ id }) =>
             get<any>(`/tv/${id}`, {
-
               language: formattedLanguage,
               append_to_response: "external_ids",
             }),
@@ -343,14 +366,28 @@ export function FeaturedCarousel({
             Promise.all(showPromises),
           ]);
 
-          const movies = movieResults.map((movie) => ({
-            ...movie,
-            type: "movie" as const,
-          }));
-          const shows = showResults.map((show) => ({
-            ...show,
-            type: "show" as const,
-          }));
+          // Process movies
+          const moviesWithLogosPromises = movieResults.map(async (movie) => {
+            const logo = await getMediaLogo(movie.id.toString(), "movie");
+            return {
+              ...movie,
+              type: "movie" as const,
+              logo,
+            };
+          });
+
+          // Process shows
+          const showsWithLogosPromises = showResults.map(async (show) => {
+            const logo = await getMediaLogo(show.id.toString(), "show");
+            return {
+              ...show,
+              type: "show" as const,
+              logo,
+            };
+          });
+
+          const movies = await Promise.all(moviesWithLogosPromises);
+          const shows = await Promise.all(showsWithLogosPromises);
 
           setMedia([...movies, ...shows]);
         }
@@ -372,8 +409,6 @@ export function FeaturedCarousel({
     // Wait for fade out, then change index and fade in
     setTimeout(() => {
       setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
-      // Clear logo after index change so new logo can load
-      setLogoUrl(undefined);
       setTimeout(() => setContentOpacity(1), 100);
     }, 150);
 
@@ -396,8 +431,6 @@ export function FeaturedCarousel({
     // Wait for fade out, then change index and fade in
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % media.length);
-      // Clear logo after index change so new logo can load
-      setLogoUrl(undefined);
       setTimeout(() => setContentOpacity(1), 100);
     }, 150);
 
@@ -438,62 +471,6 @@ export function FeaturedCarousel({
     setTouchEnd(null);
   };
 
-  // Fetch clear logo when current media changes
-  useEffect(() => {
-    const fetchLogo = async () => {
-      // Cancel any in-progress logo fetch
-      if (logoFetchController.current) {
-        logoFetchController.current.abort();
-      }
-
-      // Create new abort controller for this fetch
-      logoFetchController.current = new AbortController();
-
-      const currentMediaId = media[currentIndex]?.id;
-      if (!currentMediaId) {
-        setLogoUrl(undefined);
-        return;
-      }
-
-      try {
-        const logo = await getMediaLogo(
-          currentMediaId.toString(),
-          media[currentIndex].type === "movie"
-            ? TMDBContentTypes.MOVIE
-            : TMDBContentTypes.TV,
-        );
-        // Only update if this is still the current media
-        if (media[currentIndex]?.id === currentMediaId) {
-          setLogoUrl(logo);
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          // Ignore abort errors
-          return;
-        }
-        console.error("Error fetching logo:", error);
-        setLogoUrl(undefined);
-      }
-    };
-
-    fetchLogo();
-
-    return () => {
-      if (logoFetchController.current) {
-        logoFetchController.current.abort();
-      }
-    };
-  }, [currentIndex, media]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (logoFetchController.current) {
-        logoFetchController.current.abort();
-      }
-    };
-  }, []);
-
   useEffect(() => {
     if (isAutoPlaying && media.length > 0) {
       autoPlayInterval.current = setInterval(() => {
@@ -504,8 +481,6 @@ export function FeaturedCarousel({
         // Wait for fade out, then change index and fade in
         setTimeout(() => {
           setCurrentIndex((prev) => (prev + 1) % media.length);
-          // Clear logo after index change so new logo can load
-          setLogoUrl(undefined);
           setTimeout(() => setContentOpacity(1), 100);
         }, 150);
       }, SLIDE_DURATION);
@@ -592,8 +567,8 @@ export function FeaturedCarousel({
           : shorter
             ? windowHeight > 600
               ? "h-[40rem] md:h-[85vh]"
-              : "h-[100vh]"
-            : "h-[40rem] md:h-[100vh]",
+              : "portrait:h-[100vh] landscape:h-[100vh]"
+            : "portrait:h-[40rem] landscape:h-[calc(100vh-4rem)] md:h-[100vh]",
       )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -605,23 +580,37 @@ export function FeaturedCarousel({
           searchClasses,
         )}
       >
-        {media.map((item, index) => (
-          <div
-            key={item.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-            style={{
-              backgroundImage: `url(https://image.tmdb.org/t/p/w1280${item.backdrop_path})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center top",
-              maskImage:
-                "linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 700px)",
-              WebkitMaskImage:
-                "linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 700px)",
-            }}
-          />
-        ))}
+        {media.map((item, index) => {
+          const imageUrl = getMediaBackdrop(item.backdrop_path);
+
+          return (
+            <div
+              key={item.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ${
+                index === currentIndex ? "opacity-100" : "opacity-0"
+              }`}
+              style={{
+                backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center top",
+              }}
+            />
+          );
+        })}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 50%)",
+          }}
+        />
+      </div>
+
+      {/* Preload Logos */}
+      <div className="hidden">
+        {media.map((item) =>
+          item.logo ? <img key={item.id} src={item.logo} alt="" /> : null,
+        )}
       </div>
 
       {/* Navigation Buttons */}
@@ -667,8 +656,6 @@ export function FeaturedCarousel({
               // Wait for fade out, then change index and fade in
               setTimeout(() => {
                 setCurrentIndex(index);
-                // Clear logo after index change so new logo can load
-                setLogoUrl(undefined);
                 setTimeout(() => setContentOpacity(1), 100);
               }, 150);
 
@@ -695,19 +682,19 @@ export function FeaturedCarousel({
       {/* Content Overlay */}
       <div
         className={classNames(
-          "absolute inset-0 flex items-end pb-20 z-10 transition-opacity duration-150",
+          "absolute inset-0 flex items-end pb-16 landscape:pb-8 z-10 transition-opacity duration-150",
           searchClasses,
         )}
         style={{ opacity: contentOpacity }}
       >
-        <div className="container mx-auto px-1.5 md:px-8 lg:px-4 flex justify-between items-end w-full">
+        <div className="container mx-auto mb-10 px-1.5 md:px-4 lg:px-4 flex justify-start items-end w-full">
           <div className="max-w-3xl w-full">
-            {logoUrl && enableImageLogos ? (
+            {currentMedia.logo ? (
               <img
-                src={logoUrl}
+                src={currentMedia.logo}
                 alt={mediaTitle}
-                className="max-w-[14rem] md:max-w-[22rem] max-h-[20vh] object-contain drop-shadow-lg bg-transparent mb-6"
-                style={{ background: "none" }}
+                className="max-w-[80%] max-h-32 md:max-h-52 object-contain mb-6 select-none"
+                draggable={false}
               />
             ) : (
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -777,37 +764,40 @@ export function FeaturedCarousel({
               {currentMedia.overview}
             </p>
             <div
-              className="flex gap-4 justify-center items-center sm:justify-start"
+              className="flex gap-4 justify-start items-center"
               onMouseEnter={() => setIsAutoPlaying(false)}
               onMouseLeave={() => setIsAutoPlaying(true)}
             >
-              <Button
-                onClick={() =>
-                  navigate(
-                    `/media/tmdb-${currentMedia.type}-${currentMedia.id}-${mediaTitle?.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-                  )
-                }
-                theme="secondary"
-                className="w-full sm:w-auto text-base"
-              >
-                <Icon icon={Icons.PLAY} className="text-white" />
-                <span className="text-white">
-                  {t("discover.featured.playNow")}
-                </span>
-              </Button>
-              <Button
-                onClick={() => onShowDetails(currentMedia)}
-                theme="secondary"
-                className="w-full sm:w-auto text-base"
-              >
-                <Icon
-                  icon={Icons.CIRCLE_QUESTION}
-                  className="text-white scale-100"
-                />
-                <span className="text-white">
-                  {t("discover.featured.moreInfo")}
-                </span>
-              </Button>
+              <div className="flex flex-row items-center gap-3 w-full sm:w-auto px-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/media/tmdb-${currentMedia.type}-${currentMedia.id}-${(
+                        mediaTitle || ""
+                      )
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")}`,
+                    )
+                  }
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 bg-white hover:bg-gray-200 text-black rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg whitespace-nowrap"
+                >
+                  <PlayIcon className="w-5 h-5 md:w-6 md:h-6 fill-current" />
+                  <span>
+                    {currentMedia.type === "movie"
+                      ? "Watch Movie"
+                      : "Watch Show"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onShowDetails(currentMedia)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg whitespace-nowrap"
+                >
+                  <span>{t("discover.featured.moreInfo")}</span>
+                  <InformationCircleIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+              </div>
             </div>
           </div>
           <div className="hidden lg:block">

@@ -110,7 +110,7 @@ export function WatchingCarousel({
           }}
           onWheel={handleWheel}
         >
-          <div className="md:w-12" />
+          <div className="md:w-6" />
 
           {items.length > 0
             ? items.map((media) => (
@@ -136,7 +136,7 @@ export function WatchingCarousel({
                 />
               ))}
 
-          <div className="md:w-12" />
+          <div className="md:w-6" />
         </div>
 
         {!isMobile && (

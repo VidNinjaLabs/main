@@ -51,7 +51,7 @@ function SimpleCarousel({
           scrollBehavior: "smooth",
         }}
       >
-        <div className="md:w-12" />
+        <div className="md:w-6" />
 
         {mediaItems.map((media) => (
           <div
@@ -63,7 +63,7 @@ function SimpleCarousel({
           </div>
         ))}
 
-        <div className="md:w-12" />
+        <div className="md:w-6" />
       </div>
 
       {/* Navigation Buttons */}
@@ -312,7 +312,7 @@ export function CollectionOverlay({
                 <div className="overflow-y-auto max-h-[65vh] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
                   {loading && (
                     <div className="grid grid-flow-col auto-cols-max gap-4 pt-0 overflow-x-scroll scrollbar-none rounded-xl overflow-y-hidden md:pl-8 md:pr-8">
-                      <div className="md:w-12" />
+                      <div className="md:w-6" />
                       {Array(8)
                         .fill(null)
                         .map((_, index) => (
@@ -331,7 +331,7 @@ export function CollectionOverlay({
                             />
                           </div>
                         ))}
-                      <div className="md:w-12" />
+                      <div className="md:w-6" />
                     </div>
                   )}
 

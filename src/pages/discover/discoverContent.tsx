@@ -8,7 +8,6 @@ import { useProgressStore } from "@/stores/progress";
 import { MediaItem } from "@/utils/mediaTypes";
 import i18n from "i18next";
 
-import { DiscoverNavigation } from "./components/DiscoverNavigation";
 import type { FeaturedMedia } from "./components/FeaturedCarousel";
 import { LazyLoadCuratedLists } from "./components/LazyLoadCuratedLists";
 import { MediaCarousel } from "./components/MediaCarousel";
@@ -25,10 +24,9 @@ export function DiscoverContent() {
   // Only load data for the active tab
   const isMoviesTab = selectedCategory === "movies";
   const isTVShowsTab = selectedCategory === "tvshows";
-  const isEditorPicksTab = selectedCategory === "editorpicks";
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category as "movies" | "tvshows" | "editorpicks");
+    setSelectedCategory(category as "movies" | "tvshows");
   };
 
   const handleShowDetails = async (media: MediaItem | FeaturedMedia) => {
@@ -255,25 +253,50 @@ export function DiscoverContent() {
 
   return (
     <div className="relative min-h-screen">
-      <DiscoverNavigation
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-      />
-
       <WideContainer ultraWide classNames="!px-0">
+        {/* Category Toggle */}
+        <div className="flex justify-center md:justify-start px-4 md:px-8 lg:px-4 py-8">
+          <div className="flex p-1 space-x-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 h-[3.25rem] items-center">
+            {[
+              { id: "movies", label: "discover.tabs.movies" },
+              { id: "tvshows", label: "discover.tabs.tvshows" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() =>
+                  setSelectedCategory(tab.id as "movies" | "tvshows")
+                }
+                className={classNames(
+                  "px-6 h-full rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center whitespace-nowrap",
+                  selectedCategory === tab.id
+                    ? "bg-white text-black shadow-lg"
+                    : "text-white/70 hover:text-white hover:bg-white/10",
+                )}
+              >
+                {t(tab.label)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Movies Tab */}
-        <div style={{ display: isMoviesTab ? "block" : "none" }}>
+        <div
+          className={classNames(
+            "transition-opacity duration-300",
+            isMoviesTab ? "opacity-100" : "opacity-0 hidden",
+          )}
+        >
           {renderMoviesContent()}
         </div>
 
         {/* TV Shows Tab */}
-        <div style={{ display: isTVShowsTab ? "block" : "none" }}>
+        <div
+          className={classNames(
+            "transition-opacity duration-300",
+            isTVShowsTab ? "opacity-100" : "opacity-0 hidden",
+          )}
+        >
           {renderTVShowsContent()}
-        </div>
-
-        {/* Editor Picks Tab */}
-        <div style={{ display: isEditorPicksTab ? "block" : "none" }}>
-          {renderEditorPicksContent()}
         </div>
       </WideContainer>
 

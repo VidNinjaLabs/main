@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
 import { Dropdown, OptionItem } from "@/components/form/Dropdown";
+import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
 import { MediaCard } from "@/components/media/MediaCard";
 import { Flare } from "@/components/utils/Flare";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -45,16 +46,16 @@ function MoreCard({ link }: { link: string }) {
   const { t } = useTranslation();
 
   return (
-    <div className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto">
+    <div className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto">
       <Link to={link} className="block">
-        <Flare.Base className="group -m-[0.705em] h-[20rem] hover:scale-95 transition-all rounded-xl bg-background-main duration-300 hover:bg-mediaCard-hoverBackground tabbable">
+        <Flare.Base className="group -m-[0.705em] h-[9rem] md:h-[11.25rem] hover:scale-95 transition-all rounded-xl bg-background-main duration-300 hover:bg-mediaCard-hoverBackground tabbable">
           <Flare.Light
             flareSize={300}
             cssColorVar="--colors-mediaCard-hoverAccent"
             backgroundClass="bg-mediaCard-hoverBackground duration-100"
             className="rounded-xl bg-background-main group-hover:opacity-100"
           />
-          <Flare.Child className="pointer-events-auto h-[20rem] relative mb-2 p-[0.4em] transition-transform duration-300">
+          <Flare.Child className="pointer-events-auto h-[9rem] md:h-[11.25rem] relative mb-2 p-[0.4em] transition-transform duration-300">
             <div className="flex absolute inset-0 flex-col items-center justify-center">
               <ArrowRight className="text-4xl mb-2 transition-transform duration-300" />
               <span className="text-sm text-center px-2">
@@ -321,15 +322,15 @@ export function MediaCarousel({
         </div>
         <div className="relative overflow-hidden carousel-container md:pb-4">
           <div className="grid grid-flow-col auto-cols-max gap-4 pt-0 overflow-x-scroll scrollbar-none rounded-xl overflow-y-hidden md:pl-8 md:pr-8">
-            <div className="md:w-12" />
+            <div className="md:w-6" />
             {Array(10)
               .fill(null)
               .map((_, index) => (
                 <div
                   key={`skeleton-loading-${Math.random().toString(36).substring(2)}`}
-                  className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto"
+                  className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
                 >
-                  <MediaCard
+                  <HorizontalMediaCard
                     media={{
                       id: `skeleton-${index}`,
                       title: "",
@@ -340,7 +341,7 @@ export function MediaCarousel({
                   />
                 </div>
               ))}
-            <div className="md:w-12" />
+            <div className="md:w-6" />
           </div>
         </div>
       </div>
@@ -513,7 +514,7 @@ export function MediaCarousel({
           }}
           onWheel={handleWheel}
         >
-          <div className="md:w-12" />
+          <div className="md:w-6" />
 
           {media.length > 0
             ? media.map((item) => (
@@ -522,9 +523,9 @@ export function MediaCarousel({
                     e.preventDefault()
                   }
                   key={item.id}
-                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto"
+                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
                 >
-                  <MediaCard
+                  <HorizontalMediaCard
                     linkable
                     key={item.id}
                     media={{
@@ -533,7 +534,14 @@ export function MediaCarousel({
                       poster: item.poster_path
                         ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
                         : "/placeholder.png",
+                      backdrop: item.backdrop_path
+                        ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}`
+                        : undefined,
                       type: isTVShow ? "show" : "movie",
+                      badge:
+                        actualContentType === "popular"
+                          ? t("home.search.badges.trending")
+                          : undefined,
                       year: isTVShow
                         ? item.first_air_date
                           ? parseInt(item.first_air_date.split("-")[0], 10)
@@ -551,9 +559,9 @@ export function MediaCarousel({
                 .map((_, index) => (
                   <div
                     key={`skeleton-${categorySlug}-${Math.random().toString(36).substring(2)}`}
-                    className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto"
+                    className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
                   >
-                    <MediaCard
+                    <HorizontalMediaCard
                       media={{
                         id: `skeleton-${index}`,
                         title: "",
@@ -569,7 +577,7 @@ export function MediaCarousel({
             <MoreCard link={generatedMoreLink} />
           )}
 
-          <div className="md:w-12" />
+          <div className="md:w-6" />
         </div>
 
         {!isMobile && (

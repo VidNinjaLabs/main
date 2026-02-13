@@ -45,7 +45,7 @@ export function Discover() {
 
       <PageTitle subpage k="global.pages.discover" />
 
-      <div className="!mt-[-170px]">
+      <div className="md:!mt-[-170px] portrait:mt-[-100px] landscape:mt-20">
         {/* Featured Carousel */}
         <FeaturedCarousel onShowDetails={handleShowDetails} />
       </div>

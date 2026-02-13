@@ -329,7 +329,7 @@ export function BookmarksCarousel({
                   }}
                   onWheel={handleWheel}
                 >
-                  <div className="md:w-12" />
+                  <div className="md:w-6" />
 
                   {section.items
                     .slice(0, MAX_ITEMS_PER_SECTION)
@@ -357,7 +357,7 @@ export function BookmarksCarousel({
                     <MoreBookmarksCard />
                   )}
 
-                  <div className="md:w-12" />
+                  <div className="md:w-6" />
                 </div>
 
                 {!isMobile && (
@@ -394,7 +394,7 @@ export function BookmarksCarousel({
                 }}
                 onWheel={handleWheel}
               >
-                <div className="md:w-12" />
+                <div className="md:w-6" />
 
                 {section.items.length > 0
                   ? section.items
@@ -428,7 +428,7 @@ export function BookmarksCarousel({
                   <MoreBookmarksCard />
                 )}
 
-                <div className="md:w-12" />
+                <div className="md:w-6" />
               </div>
 
               {!isMobile && (

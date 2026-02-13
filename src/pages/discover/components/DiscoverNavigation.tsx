@@ -1,35 +1,34 @@
+import classNames from "classnames";
 import { useTranslation } from "react-i18next";
 
-interface DiscoverNavigationProps {
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
-}
+import { useDiscoverStore } from "@/stores/discover";
 
-export function DiscoverNavigation({
-  selectedCategory,
-  onCategoryChange,
-}: DiscoverNavigationProps) {
+export function DiscoverNavigation() {
   const { t } = useTranslation();
+  const { selectedCategory, setSelectedCategory } = useDiscoverStore();
+
+  const tabs = [
+    { id: "movies", label: "discover.tabs.movies" },
+    { id: "tvshows", label: "discover.tabs.tvshows" },
+  ];
 
   return (
-    <div className="pb-2 w-full max-w-screen-xl mx-auto">
-      <div className="relative flex justify-center">
-        <div className="flex space-x-4">
-          {["movies", "tvshows"].map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={`text-xl md:text-2xl font-bold p-2 bg-transparent text-center rounded-full cursor-pointer flex items-center transition-transform duration-200 ${
-                selectedCategory === category
-                  ? "transform scale-105 text-type-link"
-                  : "text-type-secondary"
-              }`}
-              onClick={() => onCategoryChange(category)}
-            >
-              {t(`discover.tabs.${category}`)}
-            </button>
-          ))}
-        </div>
+    <div className="pb-6 pt-2 w-full flex justify-center items-center z-40 relative">
+      <div className="flex p-1 space-x-1 bg-white/10 backdrop-blur-md rounded-full">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedCategory(tab.id as "movies" | "tvshows")}
+            className={classNames(
+              "px-6 py-2 rounded-full text-sm md:text-base font-semibold transition-all duration-300",
+              selectedCategory === tab.id
+                ? "bg-white text-black shadow-lg"
+                : "text-white/70 hover:text-white hover:bg-white/10",
+            )}
+          >
+            {t(tab.label)}
+          </button>
+        ))}
       </div>
     </div>
   );
