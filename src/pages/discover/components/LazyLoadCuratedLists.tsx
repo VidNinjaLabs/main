@@ -109,7 +109,7 @@ export function LazyLoadCuratedLists({
       {/* Curated Movie Lists */}
       {curatedLists.map((list) => (
         <div key={list.listSlug}>
-          <div className="flex items-center justify-between ml-2 md:ml-8 mt-2">
+          <div className="flex items-center justify-between mt-2">
             <div className="flex flex-col">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl pl-5 text-balance">
@@ -126,7 +126,6 @@ export function LazyLoadCuratedLists({
               }}
               onWheel={handleWheel}
             >
-              <div className="md:w-6" />
               {movieDetails[list.listSlug]?.map((movie: TMDBMovieData) => (
                 <div
                   key={movie.id}
@@ -152,7 +151,6 @@ export function LazyLoadCuratedLists({
                   />
                 </div>
               ))}
-              <div className="md:w-6" />
             </div>
             {!isMobile && (
               <CarouselNavButtons

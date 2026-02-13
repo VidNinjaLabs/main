@@ -1,7 +1,9 @@
+import classNames from "classnames";
 import { useRef } from "react";
 import { Helmet } from "react-helmet-async";
 
 import { WideContainer } from "@/components/layout/WideContainer";
+import { useDiscoverStore } from "@/stores/discover";
 import { useOverlayStack } from "@/stores/interface/overlayStack";
 import { useProgressStore } from "@/stores/progress";
 import { shouldShowProgress } from "@/stores/progress/utils";
@@ -45,7 +47,7 @@ export function Discover() {
 
       <PageTitle subpage k="global.pages.discover" />
 
-      <div className="md:!mt-[-170px] portrait:mt-[-100px] landscape:mt-20">
+      <div className="md:mt-[-170px] portrait:mt-0 landscape:mt-0 landscape:md:mt-[-100px]">
         {/* Featured Carousel */}
         <FeaturedCarousel onShowDetails={handleShowDetails} />
       </div>
@@ -59,6 +61,40 @@ export function Discover() {
           />
         </WideContainer>
       )}
+
+      {/* Mobile Category Switch */}
+      <div className="flex md:hidden justify-center items-center gap-4 my-6 relative z-20">
+        <button
+          type="button"
+          onClick={() => {
+            useDiscoverStore.getState().setSelectedCategory("movies");
+            window.scrollTo(0, 0);
+          }}
+          className={classNames(
+            "px-6 py-2 rounded-full text-sm font-bold transition-all duration-300",
+            useDiscoverStore((state) => state.selectedCategory) === "movies"
+              ? "bg-white text-black shadow-lg scale-105"
+              : "bg-white/10 text-white hover:bg-white/20",
+          )}
+        >
+          Movies
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            useDiscoverStore.getState().setSelectedCategory("tvshows");
+            window.scrollTo(0, 0);
+          }}
+          className={classNames(
+            "px-6 py-2 rounded-full text-sm font-bold transition-all duration-300",
+            useDiscoverStore((state) => state.selectedCategory) === "tvshows"
+              ? "bg-white text-black shadow-lg scale-105"
+              : "bg-white/10 text-white hover:bg-white/20",
+          )}
+        >
+          TV Shows
+        </button>
+      </div>
 
       {/* Main Content */}
       <WideContainer topMargin="mt-4" ultraWide>

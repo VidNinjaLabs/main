@@ -203,7 +203,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
   if (isLoading && currentPage === 1) {
     return (
       <SubPageLayout>
-        <WideContainer>
+        <WideContainer classNames="!px-4 md:!px-12">
           <div className="animate-pulse">
             <div className="h-8 bg-mediaCard-hoverBackground rounded w-1/4 mb-8" />
             <HorizontalMediaGrid>
@@ -216,7 +216,6 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
                   >
                     <div className="animate-pulse">
                       <div className="w-full aspect-video bg-mediaCard-hoverBackground rounded-lg" />
-                      <div className="mt-2 h-4 bg-mediaCard-hoverBackground rounded w-3/4" />
                     </div>
                   </div>
                 ))}
@@ -229,7 +228,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
 
   return (
     <SubPageLayout>
-      <WideContainer>
+      <WideContainer classNames="!px-4 md:!px-12">
         <div className="flex items-center justify-between gap-8">
           <div className="flex items-center gap-3">
             <button
@@ -470,7 +469,7 @@ export function MoreContent({ onShowDetails }: MoreContentProps) {
 
         <div
           className={`transition-opacity duration-300 ease-in-out ${
-            isContentVisible ? "opacity-100" : "opacity-0"
+            isContentVisible ? "opacity-100 md:pl-8 md:pr-8" : "opacity-0"
           }`}
         >
           <HorizontalMediaGrid>

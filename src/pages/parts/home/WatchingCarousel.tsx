@@ -20,7 +20,7 @@ interface WatchingCarouselProps {
 
 function MediaCardSkeleton() {
   return (
-    <div className="relative mt-4 group cursor-default rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto">
+    <div className="relative mt-4 group cursor-default rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0">
       <div className="animate-pulse">
         <div className="w-full aspect-[2/3] bg-mediaCard-hoverBackground rounded-lg" />
         <div className="mt-2 h-4 bg-mediaCard-hoverBackground rounded w-3/4" />
@@ -91,7 +91,7 @@ export function WatchingCarousel({
       <SectionHeading
         title={t("home.continueWatching.sectionTitle")}
         icon={Icons.CLOCK}
-        className="ml-2 md:ml-8 mt-2 -mb-5"
+        className="ml-4 md:ml-8 mt-2 -mb-5"
       >
         <div className="mr-6">
           <EditButton
@@ -110,8 +110,6 @@ export function WatchingCarousel({
           }}
           onWheel={handleWheel}
         >
-          <div className="md:w-6" />
-
           {items.length > 0
             ? items.map((media) => (
                 <div
@@ -119,7 +117,7 @@ export function WatchingCarousel({
                   onContextMenu={(e: React.MouseEvent<HTMLDivElement>) =>
                     e.preventDefault()
                   }
-                  className="relative mt-4 group cursor-pointer rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto"
+                  className="relative mt-4 group cursor-pointer rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0"
                 >
                   <WatchedMediaCard
                     key={media.id}
@@ -135,8 +133,6 @@ export function WatchingCarousel({
                   key={`skeleton-${categorySlug}-${Math.random().toString(36).substring(7)}`}
                 />
               ))}
-
-          <div className="md:w-6" />
         </div>
 
         {!isMobile && (

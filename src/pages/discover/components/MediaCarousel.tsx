@@ -46,7 +46,7 @@ function MoreCard({ link }: { link: string }) {
   const { t } = useTranslation();
 
   return (
-    <div className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto">
+    <div className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto mr-4 md:mr-0">
       <Link to={link} className="block">
         <Flare.Base className="group -m-[0.705em] h-[9rem] md:h-[11.25rem] hover:scale-95 transition-all rounded-xl bg-background-main duration-300 hover:bg-mediaCard-hoverBackground tabbable">
           <Flare.Light
@@ -313,9 +313,9 @@ export function MediaCarousel({
   if (!isIntersecting || !sectionTitle) {
     return (
       <div ref={targetRef as React.RefObject<HTMLDivElement>}>
-        <div className="flex items-center justify-between ml-2 md:ml-8 mt-2">
+        <div className="flex items-center justify-between ml-4 md:ml-8 mt-2">
           <div className="flex gap-4 items-center">
-            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl pl-5 text-balance">
+            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl text-balance">
               {t("discover.carousel.title.loading")}
             </h2>
           </div>
@@ -328,7 +328,7 @@ export function MediaCarousel({
               .map((_, index) => (
                 <div
                   key={`skeleton-loading-${Math.random().toString(36).substring(2)}`}
-                  className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
+                  className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0"
                 >
                   <HorizontalMediaCard
                     media={{
@@ -350,10 +350,10 @@ export function MediaCarousel({
 
   return (
     <div ref={targetRef as React.RefObject<HTMLDivElement>}>
-      <div className="flex items-center justify-between ml-2 md:ml-8 mt-2">
+      <div className="flex items-center justify-between ml-4 md:ml-8 mt-2">
         <div className="flex flex-col">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl pl-5 text-balance">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl text-balance">
               {sectionTitle}
             </h2>
             {showRecommendations &&
@@ -433,17 +433,21 @@ export function MediaCarousel({
                   />
                 </div>
               )}
+            {moreContent && (
+              <Link
+                to={generatedMoreLink}
+                onClick={handleMoreClick}
+                className="flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer group h-full"
+              >
+                <span className="flex items-center">
+                  <span className="text-sm font-medium max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
+                    {t("discover.carousel.more")}
+                  </span>
+                  <ArrowRight className="text-sm transition-transform duration-300 group-hover:translate-x-1 ml-1" />
+                </span>
+              </Link>
+            )}
           </div>
-          {moreContent && (
-            <Link
-              to={generatedMoreLink}
-              onClick={handleMoreClick}
-              className="flex px-5 items-center hover:text-type-link transition-colors"
-            >
-              <span className="text-sm">{t("discover.carousel.more")}</span>
-              <ArrowRight className="text-sm ml-1" />
-            </Link>
-          )}
         </div>
         {relatedButtons && relatedButtons.length > 0 && (
           <div className="flex items-center space-x-2 mr-6">
@@ -514,8 +518,6 @@ export function MediaCarousel({
           }}
           onWheel={handleWheel}
         >
-          <div className="md:w-6" />
-
           {media.length > 0
             ? media.map((item) => (
                 <div
@@ -523,7 +525,7 @@ export function MediaCarousel({
                     e.preventDefault()
                   }
                   key={item.id}
-                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
+                  className="relative mt-4 group cursor-pointer user-select-none rounded-xl bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0"
                 >
                   <HorizontalMediaCard
                     linkable
@@ -559,7 +561,7 @@ export function MediaCarousel({
                 .map((_, index) => (
                   <div
                     key={`skeleton-${categorySlug}-${Math.random().toString(36).substring(2)}`}
-                    className="relative mt-4 group cursor-default user-select-none rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
+                    className="relative mt-4 group cursor-default user-select-none rounded-xl bg-transparent transition-colors duration-300 w-[16rem] md:w-[20rem] h-auto"
                   >
                     <HorizontalMediaCard
                       media={{

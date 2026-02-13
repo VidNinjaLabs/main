@@ -254,30 +254,7 @@ export function DiscoverContent() {
   return (
     <div className="relative min-h-screen">
       <WideContainer ultraWide classNames="!px-0">
-        {/* Category Toggle */}
-        <div className="flex justify-center md:justify-start px-4 md:px-8 lg:px-4 py-8">
-          <div className="flex p-1 space-x-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 h-[3.25rem] items-center">
-            {[
-              { id: "movies", label: "discover.tabs.movies" },
-              { id: "tvshows", label: "discover.tabs.tvshows" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() =>
-                  setSelectedCategory(tab.id as "movies" | "tvshows")
-                }
-                className={classNames(
-                  "px-6 h-full rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center whitespace-nowrap",
-                  selectedCategory === tab.id
-                    ? "bg-white text-black shadow-lg"
-                    : "text-white/70 hover:text-white hover:bg-white/10",
-                )}
-              >
-                {t(tab.label)}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Category Toggle - Removed as it is now in Navigation */}
 
         {/* Movies Tab */}
         <div
@@ -302,7 +279,7 @@ export function DiscoverContent() {
 
       {/* Lazy-loaded Curated Movie Lists */}
       {isMoviesTab && (
-        <WideContainer ultraWide>
+        <WideContainer ultraWide classNames="!px-0">
           <LazyLoadCuratedLists
             onShowDetails={handleShowDetails}
             carouselRefs={carouselRefs}

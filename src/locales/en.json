@@ -1179,7 +1179,6 @@
       "uptime": "Uptime",
       "latency": "Latency",
       "status": "Status",
-      "noSources": "No providers available.",
       "refresh": "Refresh Providers",
       "refreshing": "Refreshing..."
     },

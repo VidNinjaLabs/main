@@ -15,7 +15,6 @@ import { getMediaBackdrop, getMediaBackdropEn } from "@/backend/metadata/tmdb";
 
 import { IconPatch } from "../buttons/IconPatch";
 import { LucideIcon } from "../LucideIcon";
-import { MediaBookmarkButton } from "./MediaBookmark";
 
 // Intersection Observer Hook
 function useIntersectionObserver(options: IntersectionObserverInit = {}) {
@@ -55,17 +54,11 @@ function useIntersectionObserver(options: IntersectionObserverInit = {}) {
 // Skeleton Component for Horizontal Card
 function HorizontalMediaCardSkeleton() {
   return (
-    <div className="group -m-[0.705em] rounded-xl bg-background-main transition-colors duration-300">
+    <div className="group -m-[0.705em] rounded-xl transition-colors duration-300">
       <div className="pointer-events-auto relative mb-2 p-[0.4em] transition-transform duration-300">
         <div className="animate-pulse">
           {/* Backdrop skeleton - 16:9 aspect ratio */}
-          <div className="relative mb-2 pb-[56.25%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground" />
-
-          {/* Title skeleton */}
-          <div className="mb-1">
-            <div className="h-4 bg-mediaCard-hoverBackground rounded w-3/4 mb-1" />
-            <div className="h-3 bg-mediaCard-hoverBackground rounded w-1/2" />
-          </div>
+          <div className="relative pb-[56.25%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground" />
         </div>
       </div>
     </div>
@@ -182,28 +175,20 @@ function HorizontalMediaCardContent({
 
   return (
     <Flare.Base
-      className={`group -m-[0.705em] rounded-xl bg-background-main transition-colors duration-300 focus:relative focus:z-10 ${
-        canLink ? "hover:bg-mediaCard-hoverBackground tabbable" : ""
+      className={`group rounded-xl transition-colors duration-300 focus:relative focus:z-10 ${
+        canLink ? "tabbable" : ""
       } ${closable ? "jiggle" : ""}`}
       tabIndex={canLink ? 0 : -1}
       onKeyUp={(e) => e.key === "Enter" && e.currentTarget.click()}
     >
-      <Flare.Light
-        flareSize={300}
-        cssColorVar="--colors-mediaCard-hoverAccent"
-        backgroundClass="bg-mediaCard-hoverBackground duration-100"
-        className={classNames({
-          "rounded-xl bg-background-main group-hover:opacity-100": canLink,
-        })}
-      />
       <Flare.Child
-        className={`pointer-events-auto relative mb-2 p-[0.4em] transition-transform duration-300 ${
+        className={`pointer-events-auto relative transition-transform duration-300 ${
           canLink ? "" : "opacity-60"
         }`}
       >
         <div
           className={classNames(
-            "relative mb-2 pb-[56.25%] w-full overflow-hidden rounded-xl bg-mediaCard-hoverBackground bg-cover bg-center transition-[border-radius] duration-300",
+            "relative pb-[56.25%] w-full overflow-hidden rounded-xl bg-cover bg-center transition-[border-radius] duration-300",
             {
               "group-hover:rounded-lg": canLink,
             },
@@ -269,15 +254,6 @@ function HorizontalMediaCardContent({
             </>
           ) : null}
 
-          {!closable && (
-            <div
-              className="absolute top-2 left-2 bookmark-button"
-              onClick={(e) => e.preventDefault()}
-            >
-              <MediaBookmarkButton media={media} />
-            </div>
-          )}
-
           <div
             className={`absolute inset-0 flex items-center justify-center bg-mediaCard-badge bg-opacity-80 transition-opacity duration-500 ${
               closable ? "opacity-100" : "pointer-events-none opacity-0"
@@ -293,12 +269,7 @@ function HorizontalMediaCardContent({
         </div>
 
         {/* Title hidden for horizontal cards as it's merged into the image */}
-        <div className="media-info-container mt-1 justify-start flex flex-wrap">
-          <DotList
-            className="text-[10px] md:text-xs text-type-secondary"
-            content={dotListContent}
-          />
-        </div>
+        {/* Metadata removed as per request */}
 
         {!closable && (
           <div className="absolute bottom-2 right-2">

@@ -10,6 +10,7 @@ import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { BlurEllipsis } from "@/pages/layouts/SubPageLayout";
 import { useBannerSize } from "@/stores/banner";
 import { usePreferencesStore } from "@/stores/preferences";
+import { useDiscoverStore } from "@/stores/discover";
 
 import { BrandPill } from "./BrandPill";
 
@@ -58,16 +59,17 @@ export function Navigation(props: NavigationProps) {
   return (
     <>
       {/* backgrounds - simplified */}
+      {/* backgrounds - simplified */}
       <div
         className={classNames(
           "fixed left-0 right-0 top-0 z-[50] flex items-center",
           props.doBackground
             ? isDesktop
-              ? scrollPosition > 400
-                ? "bg-zinc-950/60 backdrop-blur-md h-14 md:h-20"
-                : "bg-transparent h-20 md:h-24"
-              : "bg-gradient-to-b from-black/90 via-black/40 to-transparent h-24 md:h-32" // Mobile ambient header
-            : "bg-transparent h-20 md:h-24",
+              ? scrollPosition > 100
+                ? "bg-zinc-950/90 h-14 md:h-16 shadow-xl"
+                : "bg-transparent h-15 md:h-12"
+              : "bg-background-main/80 backdrop-blur-md h-14 md:h-16" // Mobile ambient header
+            : "bg-transparent h-14 md:h-16",
         )}
         style={{
           top: `${bannerHeight}px`,
@@ -81,21 +83,59 @@ export function Navigation(props: NavigationProps) {
           top: `${bannerHeight}px`,
         }}
       >
-        <div className={classNames("flex items-center")}>
+        <div
+          className={classNames(
+            "flex items-center w-full max-w-[1920px] mx-auto px-4 md:px-12 h-14 md:h-16",
+          )}
+        >
           <div className="px-3 md:px-2.5 py-1.5 md:py-2.5 relative z-[60] flex flex-1 items-center justify-between">
-            {/* Left Side: Logo */}
-            <div className="flex items-center space-x-1.5 ssm:space-x-3 pointer-events-auto">
+            {/* Left Side: Logo & Category Links */}
+            <div className="flex items-center gap-8 pointer-events-auto">
               <Link
                 className="block tabbable rounded-full text-xs ssm:text-base transition-transform active:scale-95"
                 to="/"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                <BrandPill
-                  clickable
-                  header
-                  className="h-10 md:h-14 p-2 !py-0"
-                />
+                <BrandPill clickable header className="h-8 md:h-10 p-2 !py-0" />
               </Link>
+
+              {/* Category Links - Desktop */}
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    useDiscoverStore.getState().setSelectedCategory("movies");
+                    navigate("/discover");
+                    window.scrollTo(0, 0);
+                  }}
+                  className={classNames(
+                    "px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200",
+                    useDiscoverStore((state) => state.selectedCategory) ===
+                      "movies" && window.location.pathname === "/discover"
+                      ? "bg-white text-black shadow-lg scale-105"
+                      : "text-gray-300 hover:text-white hover:bg-white/10",
+                  )}
+                >
+                  Movies
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    useDiscoverStore.getState().setSelectedCategory("tvshows");
+                    navigate("/discover");
+                    window.scrollTo(0, 0);
+                  }}
+                  className={classNames(
+                    "px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200",
+                    useDiscoverStore((state) => state.selectedCategory) ===
+                      "tvshows" && window.location.pathname === "/discover"
+                      ? "bg-white text-black shadow-lg scale-105"
+                      : "text-gray-300 hover:text-white hover:bg-white/10",
+                  )}
+                >
+                  TV Shows
+                </button>
+              </div>
             </div>
 
             {/* Show search box on /browse page - special case center */}

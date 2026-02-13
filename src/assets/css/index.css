@@ -22,6 +22,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   font-size: 1.0248em;
+  overflow-y: scroll; /* Force scrollbar to prevent layout shift */
 }
 
 html[data-full],

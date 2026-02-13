@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Flare } from "@/components/utils/Flare";
 
@@ -12,13 +13,16 @@ interface CarouselNavButtonsProps {
 interface NavButtonProps {
   direction: "left" | "right";
   onClick: () => void;
+  visible?: boolean;
 }
 
-function NavButton({ direction, onClick }: NavButtonProps) {
+function NavButton({ direction, onClick, visible = true }: NavButtonProps) {
   return (
     <button
       type="button"
-      className={`absolute ${direction === "left" ? "left-12" : "right-12"} top-1/2 transform -translate-y-3/4 z-10`}
+      className={`absolute ${direction === "left" ? "left-12" : "right-12"} top-1/2 transform -translate-y-3/4 z-10 transition-opacity duration-300 ${
+        visible ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
       onClick={onClick}
     >
       <Flare.Base className="group -m-[0.705em] rounded-full bg-search-hoverBackground transition-transform duration-300 focus:relative focus:z-10 hover:bg-mediaCard-hoverBackground tabbable hover:scale-110">
@@ -44,27 +48,44 @@ export function CarouselNavButtons({
   categorySlug,
   carouselRefs,
 }: CarouselNavButtonsProps) {
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(true);
+
+  useEffect(() => {
+    const carousel = carouselRefs.current[categorySlug];
+    if (!carousel) return;
+
+    const checkScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = carousel;
+      setShowLeft(scrollLeft > 0);
+      setShowRight(scrollLeft < scrollWidth - clientWidth - 10); // buffer
+    };
+
+    carousel.addEventListener("scroll", checkScroll);
+    // Initial check
+    checkScroll();
+    
+    // Check after a delay to ensure content is loaded
+    setTimeout(checkScroll, 500);
+
+    return () => {
+      carousel.removeEventListener("scroll", checkScroll);
+    };
+  }, [categorySlug, carouselRefs]);
+
   const handleScroll = (direction: "left" | "right") => {
     const carousel = carouselRefs.current[categorySlug];
     if (!carousel) return;
 
-    const movieElements = carousel.getElementsByTagName("a");
-    if (movieElements.length === 0) return;
-
-    // Wait for next frame to ensure measurements are available
-    requestAnimationFrame(() => {
-      const movieWidth = movieElements[0].getBoundingClientRect().width;
-
-      const carouselWidth = carousel.getBoundingClientRect().width;
-
-      if (movieWidth === 0 || carouselWidth === 0) {
-        return;
-      }
-
-      const visibleMovies = Math.floor(carouselWidth / movieWidth);
-      const scrollAmount = movieWidth * (visibleMovies > 5 ? 4 : 2);
-
-      const newScrollPosition =
+    const movieElements = carousel.getElementsByTagName("block");
+    // Fallback if no block elements, try div with specific class or just calculate based on known width
+    // Just use a simpler scroll amount if needed, but keeping existing logic if possible.
+    // The previous logic looked for 'a' tags, but we might be using divs now.
+    // Let's stick to a safe scroll amount relative to screen if elements aren't found.
+    const scrollAmount = carousel.clientWidth * 0.75;
+    
+    // Original logic tried to find 'a' tags, let's keep it robust
+    const newScrollPosition =
         carousel.scrollLeft +
         (direction === "left" ? -scrollAmount : scrollAmount);
 
@@ -72,13 +93,12 @@ export function CarouselNavButtons({
         left: newScrollPosition,
         behavior: "smooth",
       });
-    });
   };
 
   return (
     <>
-      <NavButton direction="left" onClick={() => handleScroll("left")} />
-      <NavButton direction="right" onClick={() => handleScroll("right")} />
+      <NavButton direction="left" onClick={() => handleScroll("left")} visible={showLeft} />
+      <NavButton direction="right" onClick={() => handleScroll("right")} visible={showRight} />
     </>
   );
 }
