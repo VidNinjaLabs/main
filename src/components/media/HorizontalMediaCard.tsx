@@ -128,6 +128,9 @@ function HorizontalMediaCardContent({
 
   // Fetch high-quality backdrop on mount
   useEffect(() => {
+    // Skip if this is a skeleton item
+    if (forceSkeleton || media.id.startsWith("skeleton")) return;
+
     let isMounted = true;
 
     // Start with a fallback/placeholder or the basic cached merged image if needed immediately (optional)
@@ -145,7 +148,7 @@ function HorizontalMediaCardContent({
     return () => {
       isMounted = false;
     };
-  }, [media.id, media.type]);
+  }, [media.id, media.type, forceSkeleton, media.backdrop]);
 
   // Prefetch backdrop image once we have a URL
   useEffect(() => {

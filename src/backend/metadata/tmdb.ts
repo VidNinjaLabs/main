@@ -398,8 +398,8 @@ export async function getMediaBackdropEn(
     if (!data.backdrop_url) return undefined;
 
     // Optimize the original image using wsrv.nl
-    // we use the original from tmdb but resize/compress with wsrv
-    return `https://wsrv.nl/?url=${encodeURIComponent(data.backdrop_url)}&output=webp&q=80`;
+    // we use the original from tmdb but resize/compress with wsrv to 1280px for better performance
+    return `https://wsrv.nl/?url=${encodeURIComponent(data.backdrop_url)}&output=webp&w=1280&q=80`;
   } catch (e) {
     console.error("Failed to fetch en-US backdrop:", e);
     return undefined;

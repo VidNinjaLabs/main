@@ -64,7 +64,7 @@ export function OverlayDisplay(props: { children: ReactNode }) {
     };
   }, []);
   return (
-    <div className="popout-location">
+    <div className="popout-location h-full w-full">
       <TurnstileInteractive />
       {props.children}
     </div>

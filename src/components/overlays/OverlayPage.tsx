@@ -85,9 +85,9 @@ export function OverlayPage(props: Props) {
       setMeasuredHeight(finalHeight);
 
       // Register immediately with measured height
-      // On mobile, use 290 to match OverlayMobilePosition container
+      // On mobile, use full width minus margin
       const registeredWidth = isMobile
-        ? 290
+        ? window.innerWidth - 32 // Full width with some margin/padding
         : props.fullWidth
           ? window.innerWidth - 80
           : props.width;

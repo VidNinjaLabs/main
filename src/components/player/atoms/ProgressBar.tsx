@@ -140,7 +140,7 @@ export function ProgressBar() {
 
       <div className="w-full" ref={ref}>
         <div
-          className="group w-full h-4 flex items-center cursor-pointer"
+          className="group w-full h-2 flex items-center cursor-pointer"
           onMouseDown={dragMouseDown}
           onTouchStart={dragMouseDown}
           onMouseLeave={mouseLeave}
@@ -154,7 +154,7 @@ export function ProgressBar() {
           >
             {/* Pre-loaded content bar */}
             <div
-              className="absolute top-0 left-0 h-full rounded-full bg-white/20 flex justify-end items-center"
+              className="absolute top-0 left-0 h-full bg-white/40 rounded-full flex justify-end items-center"
               style={{
                 width: `${(buffered / duration) * 100}%`,
               }}
@@ -162,7 +162,7 @@ export function ProgressBar() {
 
             {/* Actual progress bar */}
             <div
-              className="absolute top-0 dir-neutral:left-0 h-full rounded-full bg-progress-filled flex justify-end items-center"
+              className="absolute top-0 dir-neutral:left-0 rounded-full h-full bg-progress-filled flex justify-end items-center"
               style={{
                 width: `${
                   Math.max(

@@ -242,31 +242,31 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           autoStartLoad: true,
           startPosition: resumePosition > 0 ? resumePosition : -1,
 
-          // STABLE BUFFER STRATEGY - Prevents bufferStalledError
+          // STABLE BUFFER STRATEGY - Optimized for "YouTube-style" experience
           // ====================================================
 
           // 1. CONSERVATIVE BUFFERING (prevents stalls)
           startLevel: -1, // Let ABR choose based on bandwidth
-          capLevelToPlayerSize: true,
-          maxBufferLength: 30, // Conservative 30s target (not 60s)
-          maxMaxBufferLength: 60, // Cap at 60s (not 300s)
-          maxBufferSize: 100 * 1000 * 1000, // 100MB limit
-          maxBufferHole: 0.8, // Tolerate larger gaps to prevent unnecessary stalls
-          backBufferLength: 10, // Minimal back buffer (save memory)
+          capLevelToPlayerSize: false, // Don't cap quality, let it go to 4K if bandwidth allows
+          maxBufferLength: 60, // Target 60s of forward buffer (was 30s)
+          maxMaxBufferLength: 300, // Allow up to 5 minutes buffered (was 60s)
+          maxBufferSize: 150 * 1000 * 1000, // 150MB limit
+          maxBufferHole: 2.0, // Tolerate larger gaps to prevent unnecessary stalls (was 0.8)
+          backBufferLength: 60, // Keep 60s of history for instant seek-back (was 10)
 
           // 2. AGGRESSIVE GAP HANDLING (prevents stalls)
-          highBufferWatchdogPeriod: 1, // Check every 1s (not 3s)
+          highBufferWatchdogPeriod: 1, // Check every 1s
           nudgeOffset: 0.1,
-          nudgeMaxRetry: 10, // More retries to jump gaps
+          nudgeMaxRetry: 10,
 
           // 3. FAST FRAGMENT LOADING
           fragLoadPolicy: {
             default: {
-              maxLoadTimeMs: 20 * 1000, // Faster timeout
-              maxTimeToFirstByteMs: 10 * 1000,
+              maxLoadTimeMs: 10 * 1000, // Fail faster (10s) to switch CDN/retry
+              maxTimeToFirstByteMs: 5 * 1000, // Fail faster on TTFB (5s)
               errorRetry: {
-                maxNumRetry: 6, // More retries
-                retryDelayMs: 500, // Faster retry (not 1000ms)
+                maxNumRetry: 6,
+                retryDelayMs: 500,
                 maxRetryDelayMs: 3000,
               },
               timeoutRetry: {
@@ -282,12 +282,10 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           lowLatencyMode: false,
           progressive: true,
 
-          // 5. ADAPTIVE QUALITY (prevents over-ambitious upgrades)
-          abrEwmaDefaultEstimate: 500000, // Start conservative
-          abrBandWidthFactor: 0.95, // Trust bandwidth measurements (not 0.8)
-          abrBandWidthUpFactor: 0.7, // Still slow upgrades
-          abrEwmaFastLive: 3.0, // Slower adaptation (not 1.0)
-          abrEwmaSlowLive: 9.0, // Much slower (not 3.0)
+          // 5. ADAPTIVE QUALITY (Aggressive upgrades)
+          abrEwmaDefaultEstimate: 1000000, // Start optimistic (1Mbps)
+          abrBandWidthFactor: 0.95, // Trust bandwidth measurements
+          abrBandWidthUpFactor: 0.9, // Upgrade quality faster (was 0.7)
           abrMaxWithRealBitrate: true,
 
           renderTextTracksNatively: false,
@@ -435,7 +433,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
           lastBufferLevel = bufferAhead;
 
           // CRITICAL FIX: Proactive quality management based on buffer TREND
-          if (bufferAhead < 3 && bufferTrend < 0) {
+          if (bufferAhead < 2 && bufferTrend < 0) {
             // Buffer critically low AND decreasing - emergency downgrade
             console.warn(
               "[Buffer] Emergency: buffer =",

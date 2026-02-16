@@ -65,7 +65,7 @@ export function VolumeButton() {
           <HugeiconsIcon
             icon={getVolumeIcon()}
             size="md"
-            className="w-5 h-5 md:w-[25px] md:h-[25px] text-white transition-colors"
+            className="w-8 h-8 lg:w-10 lg:h-10 text-white transition-colors"
             strokeWidth={2}
           />
         </button>

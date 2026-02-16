@@ -93,7 +93,7 @@ export function useInternalOverlayRouter(id: string) {
 
   const close = useCallback(
     (preventRouteClear?: boolean) => {
-      if (route && !preventRouteClear) setRoute(null);
+      if (route && !preventRouteClear) setRoute(null, { replace: true });
       setTransition(null);
     },
     [setRoute, route, setTransition],

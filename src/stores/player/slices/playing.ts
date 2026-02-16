@@ -18,7 +18,7 @@ export interface PlayingSlice {
   setHasResumed(resumed: boolean): void;
 }
 
-export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
+export const createPlayingSlice: MakeSlice<PlayingSlice> = (set, get) => ({
   mediaPlaying: {
     isPlaying: false,
     isPaused: true,
@@ -31,16 +31,12 @@ export const createPlayingSlice: MakeSlice<PlayingSlice> = (set) => ({
     playbackRate: 1,
   },
   play() {
-    set((state) => {
-      state.mediaPlaying.isPlaying = true;
-      state.mediaPlaying.isPaused = false;
-    });
+    const display = get().display;
+    display?.play();
   },
   pause() {
-    set((state) => {
-      state.mediaPlaying.isPlaying = false;
-      state.mediaPlaying.isPaused = false;
-    });
+    const display = get().display;
+    display?.pause();
   },
   setIsLoading(loading: boolean) {
     set((state) => {

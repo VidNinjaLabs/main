@@ -625,13 +625,14 @@ export function EpisodesView({
 
   const playEpisode = useCallback(
     (episodeId: string) => {
+      // Close the router first (REPLACE state) to ensure the current history entry
+      // is clean (no menu open).
+      router.close();
+
       if (loadingState.value) {
         const newData = setPlayerMeta(loadingState.value.fullData, episodeId);
         if (newData) onChange?.(newData);
       }
-      // prevent router clear here, otherwise its done double
-      // player already switches route after meta change
-      router.close(true);
     },
     [setPlayerMeta, loadingState, router, onChange],
   );
@@ -1028,6 +1029,24 @@ export function EpisodesRouter(props: EpisodesProps) {
   return <EpisodesOverlay onChange={props.onChange} id="episodes" />;
 }
 
+function EpisodesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M8 5h14v8h2V5a2 2 0 0 0-2-2H8zm10 4H4V7h14a2 2 0 0 1 2 2v8h-2zM0 13a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm14 6v-6H2v6z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
 export function Episodes(props: {
   inControl: boolean;
   iconSizeClass?: string;
@@ -1040,18 +1059,21 @@ export function Episodes(props: {
   useEffect(() => {
     setHasOpenOverlay(router.isRouterActive);
   }, [setHasOpenOverlay, router.isRouterActive]);
+
   if (type !== "show" || !props.inControl) return null;
 
   return (
-    <OverlayAnchor id={router.id}>
-      <VideoPlayerButton
-        onClick={() => router.open("/episodes")}
-        icon={Layers}
-        iconSizeClass={props.iconSizeClass}
-        className="text-white transition-colors"
-      >
-        {t("player.menus.episodes.button")}
-      </VideoPlayerButton>
+    <OverlayAnchor id="episodes" className="inline-flex">
+      <div className="relative">
+        <button
+          onClick={() => router.open("/episodes")}
+          className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
+          title={t("player.menus.episodes.button")}
+        >
+          <EpisodesIcon className={props.iconSizeClass || "w-8 h-8"} />
+          <span className="sr-only">{t("player.menus.episodes.button")}</span>
+        </button>
+      </div>
     </OverlayAnchor>
   );
 }

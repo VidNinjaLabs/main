@@ -93,10 +93,11 @@ function useNextSeasonEpisode(
 }
 
 export function NextEpisodeButton(props: {
-  controlsShowing: boolean;
+  controlsShowing?: boolean;
   onChange?: (meta: PlayerMeta) => void;
   inControl: boolean;
   showAsButton?: boolean;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const duration = usePlayerStore((s) => s.progress.duration);

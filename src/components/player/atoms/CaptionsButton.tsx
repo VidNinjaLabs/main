@@ -343,16 +343,15 @@ export function CaptionsButton() {
     if (!open) setView("main");
   };
 
-  const handleCaptionSelect = async (captionId: string | null) => {
+  const handleCaptionSelect = (captionId: string | null) => {
     if (!captionId) {
       setCaption(null);
       return;
     }
-    try {
-      await selectCaptionById(captionId);
-    } catch (error) {
+    // Fire and forget - don't await to keep UI responsive
+    selectCaptionById(captionId).catch((error) => {
       console.error("Failed to load caption:", error);
-    }
+    });
   };
 
   const handleAudioSelect = (trackId: string) => {
@@ -373,7 +372,7 @@ export function CaptionsButton() {
           <HugeiconsIcon
             icon={ClosedCaptionIcon}
             size="md"
-            className="w-5 h-5 md:w-[25px] md:h-[25px] text-white transition-colors"
+            className="w-8 h-8 lg:w-10 lg:h-10 text-white transition-colors"
           />
         </button>
       </Popover.Trigger>
@@ -407,44 +406,41 @@ export function CaptionsButton() {
                   <span className="text-white text-sm">Off</span>
                 </button>
 
-                {captionList.length === 0 ? (
-                  <div className="px-4 py-2 text-white/40 text-sm pl-11">
-                    No subtitles
-                  </div>
-                ) : (
-                  captionList.slice(0, 5).map((caption, index) => {
-                    let displayName =
-                      caption.display || getLanguageName(caption.language);
-                    if (
-                      !caption.display &&
-                      (!caption.language || caption.language === "en")
-                    ) {
-                      displayName = `Subtitle ${index + 1}`;
-                    }
-                    return (
-                      <button
-                        key={caption.id}
-                        onClick={() => handleCaptionSelect(caption.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
-                      >
-                        {selectedCaption?.id === caption.id ? (
-                          <Check className="w-4 h-4 text-white flex-shrink-0" />
-                        ) : (
-                          <div className="w-4 h-4 flex-shrink-0" />
-                        )}
-                        <span className="text-white/90 text-sm truncate">
-                          {displayName}
-                          {caption.isHearingImpaired && " (CC)"}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-                {captionList.length > 5 && (
-                  <div className="px-4 py-1.5 text-white/40 text-sm pl-11">
-                    +{captionList.length - 5} more
-                  </div>
-                )}
+                <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                  {captionList.length === 0 ? (
+                    <div className="px-4 py-2 text-white/40 text-sm pl-11">
+                      No subtitles
+                    </div>
+                  ) : (
+                    captionList.map((caption, index) => {
+                      let displayName =
+                        caption.display || getLanguageName(caption.language);
+                      if (
+                        !caption.display &&
+                        (!caption.language || caption.language === "en")
+                      ) {
+                        displayName = `Subtitle ${index + 1}`;
+                      }
+                      return (
+                        <button
+                          key={caption.id}
+                          onClick={() => handleCaptionSelect(caption.id)}
+                          className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
+                        >
+                          {selectedCaption?.id === caption.id ? (
+                            <Check className="w-4 h-4 text-white flex-shrink-0" />
+                          ) : (
+                            <div className="w-4 h-4 flex-shrink-0" />
+                          )}
+                          <span className="text-white/90 text-sm truncate">
+                            {displayName}
+                            {caption.isHearingImpaired && " (CC)"}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               </div>
 
               {/* Settings Link */}
@@ -466,13 +462,13 @@ export function CaptionsButton() {
                   Audio
                 </h3>
               </div>
-              <div className="py-1.5">
+              <div className="py-1.5 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                 {audioTracks.length === 0 ? (
                   <div className="px-4 py-2 text-white/40 text-sm">
                     No audio tracks
                   </div>
                 ) : (
-                  audioTracks.slice(0, 5).map((track) => (
+                  audioTracks.map((track) => (
                     <button
                       key={track.id}
                       onClick={() => handleAudioSelect(track.id)}
@@ -490,11 +486,6 @@ export function CaptionsButton() {
                       </span>
                     </button>
                   ))
-                )}
-                {audioTracks.length > 5 && (
-                  <div className="px-4 py-1.5 text-white/40 text-sm pl-11">
-                    +{audioTracks.length - 5} more
-                  </div>
                 )}
               </div>
             </div>

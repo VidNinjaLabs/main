@@ -8,7 +8,7 @@ export function LoadingSpinner() {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <Spinner />
+      <Spinner size={250} />
     </div>
   );
 }

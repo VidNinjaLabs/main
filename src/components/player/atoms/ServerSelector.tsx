@@ -153,7 +153,7 @@ export function ServerSelector() {
           <HugeiconsIcon
             icon={CloudIcon}
             size="sm"
-            className={`text-white transition-colors ${
+            className={`w-8 h-8 lg:w-10 lg:h-10 text-white transition-colors ${
               loadingProviderId ? "animate-pulse" : ""
             }`}
             strokeWidth={2}

@@ -73,14 +73,28 @@ function BaseContainer(props: { children?: ReactNode }) {
     }
   }, [display, containerEl]);
 
+  // Prevent global scrolling when player is active
+  useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
   return (
     <div
       ref={containerEl}
       id="vidninja-player-container"
-      className="overflow-hidden bg-black"
+      className="fixed inset-0 z-50 overflow-hidden bg-black"
     >
       <OverlayDisplay>
-        <div className="h-screen select-none">{props.children}</div>
+        <div className="h-full w-full select-none">{props.children}</div>
       </OverlayDisplay>
     </div>
   );
@@ -109,7 +123,7 @@ export function Container(props: PlayerProps) {
         {/* <WatchPartyReporter /> Removed */}
         <SkipTracker />
         {/* <WatchPartyResetter /> Removed */}
-        <div className="relative h-screen overflow-hidden z-10 isolate">
+        <div className="relative h-full w-full overflow-hidden z-10 isolate">
           <VideoClickTarget showingControls={props.showingControls} />
           <HeadUpdater />
           {props.children}

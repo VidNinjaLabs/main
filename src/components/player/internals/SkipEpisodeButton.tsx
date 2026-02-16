@@ -12,6 +12,7 @@ interface SkipEpisodeButtonProps {
   inControl: boolean;
   onChange?: (meta: PlayerMeta) => void;
   iconSizeClass?: string;
+  className?: string;
 }
 
 export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
@@ -71,7 +72,7 @@ export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
       onClick={() => loadNextEpisode()}
       icon={Icons.SKIP_EPISODE}
       iconSizeClass={props.iconSizeClass || "text-xl"}
-      className="text-white/70 hover:text-white transition-colors font-medium"
+      className={`text-white/70 hover:text-white transition-colors font-medium ${props.className || ""}`}
     >
       <span className={props.iconSizeClass ? "text-sm md:text-base" : ""}>
         Next Episode

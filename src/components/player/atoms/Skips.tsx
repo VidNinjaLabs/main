@@ -9,7 +9,7 @@ const sizeMap: Record<"sm" | "md" | "lg" | "xl", { base: number; lg: number }> =
   {
     sm: { base: 24, lg: 28 },
     md: { base: 32, lg: 40 }, // Default for all controls
-    lg: { base: 70, lg: 70 },
+    lg: { base: 56, lg: 56 }, // Mobile center controls (was 70)
     xl: { base: 64, lg: 96 },
   };
 

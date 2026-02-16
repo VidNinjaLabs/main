@@ -17,20 +17,26 @@ export function useQueryParams() {
 
 export function useQueryParam(
   param: string,
-): [string | null, (a: string | null) => void] {
+): [
+  string | null,
+  (a: string | null, options?: { replace?: boolean }) => void,
+] {
   const params = useQueryParams();
   const location = useLocation();
   const navigate = useNavigate();
   const currentValue = params[param] ?? null;
 
   const set = useCallback(
-    (value: string | null) => {
+    (value: string | null, options?: { replace?: boolean }) => {
       const parsed = new URLSearchParams(location.search);
       if (value) parsed.set(param, value);
       else parsed.delete(param);
-      navigate({
-        search: parsed.toString(),
-      });
+      navigate(
+        {
+          search: parsed.toString(),
+        },
+        { replace: options?.replace },
+      );
     },
     [param, location.search, navigate],
   );
