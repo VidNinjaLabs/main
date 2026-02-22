@@ -2,11 +2,18 @@ import { ArrowLeft } from "lucide-react";
 import { PlayerHoverState } from "@/stores/player/slices/interface";
 import { usePlayerStore } from "@/stores/player/store";
 import { useQueryParam } from "@/hooks/useQueryParams";
+import { closeEpisodesPanel } from "@/components/player/atoms/Episodes";
 
 export function PlayerTopBar() {
   const [route, setRoute] = useQueryParam("r");
+  const hasOpenOverlay = usePlayerStore((s) => s.interface.hasOpenOverlay);
 
   const handleBack = () => {
+    // If a panel/overlay is open (e.g., episodes), close it instead of navigating away
+    if (hasOpenOverlay) {
+      closeEpisodesPanel();
+      return;
+    }
     if (route) {
       setRoute(null, { replace: true });
       return;
@@ -29,7 +36,6 @@ export function PlayerTopBar() {
           className="p-1 text-white/90 hover:text-white transition-colors"
           title="Go Back"
         >
-          {/* Using ArrowLeft from lucide-react directly instead of iframe if possible, but keeping style */}
           <ArrowLeft className="w-8 h-8 lg:w-10 lg:h-10" />
         </button>
 

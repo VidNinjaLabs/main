@@ -15,6 +15,7 @@ export type MWSeasonWithEpisodeMeta = {
   number: number;
   title: string;
   episodes: {
+    runtime: any;
     id: string;
     number: number;
     title: string;

@@ -1,1042 +1,579 @@
 import classNames from "classnames";
 import {
-  Bookmark,
   ChevronLeft,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Film,
-  Layers,
+  Play,
+  X,
 } from "lucide-react";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useAsync } from "react-use";
 
 import { getMetaFromId } from "@/backend/metadata/getmeta";
 import { MWMediaType, MWSeasonMeta } from "@/backend/metadata/types/mw";
-import { Icons } from "@/components/Icon";
-import { ProgressRing } from "@/components/layout/ProgressRing";
 import { LucideIcon } from "@/components/LucideIcon";
-import { OverlayAnchor } from "@/components/overlays/OverlayAnchor";
-import { Overlay } from "@/components/overlays/OverlayDisplay";
-import { OverlayPage } from "@/components/overlays/OverlayPage";
-import { OverlayRouter } from "@/components/overlays/OverlayRouter";
 import { usePlayerMeta } from "@/components/player/hooks/usePlayerMeta";
-import { VideoPlayerButton } from "@/components/player/internals/Button";
-import { Menu } from "@/components/player/internals/ContextMenu";
-import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { useBookmarkStore } from "@/stores/bookmarks";
 import { PlayerMeta } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
-import { usePreferencesStore } from "@/stores/preferences";
 import { useProgressStore } from "@/stores/progress";
 import { scrollToElement } from "@/utils/scroll";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 import { hasAired } from "../utils/aired";
 
-function CenteredText(props: { children: React.ReactNode }) {
-  return (
-    <div className="h-full w-full flex justify-center items-center p-8 text-center">
-      {props.children}
-    </div>
-  );
-}
-
-interface EpisodeItemProps {
-  episode: any;
-  isActive: boolean;
-  isAired: boolean;
-  isWatched: boolean;
-  isFavorited: boolean;
-  percentage: number;
-  episodeProgress?: any;
-  onPlay: (episodeId: string) => void;
-  onToggleWatch: (episodeId: string, event: React.MouseEvent) => void;
-  onToggleFavorite: (episodeId: string, event: React.MouseEvent) => void;
-  onToggleExpansion?: (episodeId: string, event: React.MouseEvent) => void;
-  expandedEpisodes?: { [key: string]: boolean };
-  truncatedEpisodes?: { [key: string]: boolean };
-  descriptionRefs?: React.MutableRefObject<{
-    [key: string]: HTMLParagraphElement | null;
-  }>;
-  forceCompactEpisodeView?: boolean;
-  seasonNumber?: number;
-}
-
-function EpisodeItem({
-  episode,
-  isActive,
-  isAired,
-  isWatched,
-  isFavorited,
-  percentage,
-  episodeProgress,
-  onPlay,
-  onToggleWatch,
-  onToggleFavorite,
-  onToggleExpansion,
-  expandedEpisodes = {},
-  truncatedEpisodes = {},
-  descriptionRefs,
-  forceCompactEpisodeView = false,
-  seasonNumber,
-}: EpisodeItemProps) {
-  const { t } = useTranslation();
-
-  return (
-    <div>
-      {/* Extra small screens - Simple vertical list with no thumbnails */}
-      <div
-        className={classNames(
-          "block w-full px-3 relative",
-          forceCompactEpisodeView ? "" : "sm:hidden",
-        )}
-      >
-        <Menu.Link
-          onClick={() => onPlay(episode.id)}
-          active={isActive}
-          clickable={isAired}
-          rightSide={
-            <div className="flex items-center gap-2">
-              {isAired && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => onToggleFavorite(episode.id, e)}
-                    className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
-                    title={t("player.menus.episodes.markAsFavorite")}
-                  >
-                    <LucideIcon
-                      icon={Bookmark}
-                      fill={isFavorited ? "currentColor" : "none"}
-                      className="h-8 w-8 text-white/80"
-                    />
-                  </button>
-                  {!isActive && (
-                    <button
-                      type="button"
-                      onClick={(e) => onToggleWatch(episode.id, e)}
-                      className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
-                      title={
-                        isWatched
-                          ? t("player.menus.episodes.markAsUnwatched")
-                          : t("player.menus.episodes.markAsWatched")
-                      }
-                    >
-                      <LucideIcon
-                        icon={isWatched ? EyeOff : Eye}
-                        className="h-4 w-4 text-white/80"
-                      />
-                    </button>
-                  )}
-                </>
-              )}
-              {episodeProgress && (
-                <ProgressRing
-                  className="h-[18px] w-[18px] text-white"
-                  percentage={percentage}
-                />
-              )}
-            </div>
-          }
-        >
-          <Menu.LinkTitle>
-            <div
-              className={classNames(
-                "text-left flex items-center space-x-1 text-video-context-type-main",
-                isAired || isActive ? "" : "text-opacity-25",
-              )}
-            >
-              <span className="p-0.5 px-2 rounded inline bg-video-context-hoverColor bg-opacity-50">
-                {seasonNumber
-                  ? `S${seasonNumber}E${episode.number}`
-                  : `E${episode.number}`}
-              </span>
-              <span className="line-clamp-1 break-all">{episode.title}</span>
-            </div>
-          </Menu.LinkTitle>
-        </Menu.Link>
-      </div>
-
-      {/* Small screens - Vertical list with thumbnails to the left */}
-      <div
-        onClick={() => onPlay(episode.id)}
-        className={classNames(
-          "hidden sm:flex lg:hidden w-full rounded-lg overflow-hidden transition-all duration-200 relative cursor-pointer",
-          forceCompactEpisodeView ? "!hidden" : "",
-          isActive
-            ? "bg-video-context-hoverColor/50"
-            : "hover:bg-video-context-hoverColor/50",
-          !isAired ? "opacity-50" : "",
-        )}
-      >
-        {/* Thumbnail */}
-        <div className="relative aspect-video max-h-[110px] w-1/3 flex-shrink-0 bg-video-context-hoverColor">
-          {episode.still_path ? (
-            <img
-              src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
-              alt={episode.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-              <LucideIcon
-                icon={Film}
-                className="text-video-context-type-main opacity-50 text-3xl"
-              />
-            </div>
-          )}
-
-          {/* Episode Number Badge */}
-          <div className="absolute top-2 left-2 flex items-center space-x-2">
-            <span className="p-0.5 px-2 rounded inline bg-video-context-hoverColor bg-opacity-80 text-video-context-type-main text-sm">
-              {seasonNumber
-                ? `S${seasonNumber}E${episode.number}`
-                : `E${episode.number}`}
-            </span>
-            {!isAired && (
-              <span className="bg-video-context-hoverColor/50 text-video-context-type-main/80 text-sm px-1 py-0.5 rounded-md">
-                {episode.air_date
-                  ? `(${t("details.airs")} - ${new Date(episode.air_date).toLocaleDateString()})`
-                  : `(${t("media.unreleased")})`}
-              </span>
-            )}
-          </div>
-
-          {/* Mark as watched and favorite buttons */}
-          {isAired && (
-            <div className="absolute top-2 right-2 flex gap-1">
-              <button
-                type="button"
-                onClick={(e) => onToggleFavorite(episode.id, e)}
-                className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
-                title={t("player.menus.episodes.markAsFavorite")}
-              >
-                <LucideIcon
-                  icon={Bookmark}
-                  fill={isFavorited ? "currentColor" : "none"}
-                  className="h-8 w-8 text-white/80"
-                />
-              </button>
-              {!isActive && (
-                <button
-                  type="button"
-                  onClick={(e) => onToggleWatch(episode.id, e)}
-                  className="p-1.5 bg-black/50 rounded-full hover:bg-black/80 transition-colors"
-                  title={
-                    isWatched
-                      ? t("player.menus.episodes.markAsUnwatched")
-                      : t("player.menus.episodes.markAsWatched")
-                  }
-                >
-                  <LucideIcon
-                    icon={isWatched ? EyeOff : Eye}
-                    className="h-4 w-4 text-white/80"
-                  />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="p-3 flex-1">
-          <h3 className="font-bold text-white line-clamp-1">{episode.title}</h3>
-          {episode.overview && (
-            <div className="relative">
-              <p
-                ref={(el) => {
-                  if (descriptionRefs) {
-                    descriptionRefs.current[`medium-${episode.id}`] = el;
-                  }
-                }}
-                className={classNames(
-                  "text-sm text-white/80 mt-1.5 transition-all duration-200",
-                  !expandedEpisodes[`medium-${episode.id}`]
-                    ? "line-clamp-2"
-                    : "max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2",
-                )}
-              >
-                {episode.overview}
-              </p>
-              {!expandedEpisodes[`medium-${episode.id}`] &&
-                truncatedEpisodes[`medium-${episode.id}`] && (
-                  <button
-                    type="button"
-                    onClick={(e) =>
-                      onToggleExpansion?.(`medium-${episode.id}`, e)
-                    }
-                    className="text-sm text-white/60 hover:text-white transition-opacity duration-200 opacity-0 animate-fade-in"
-                  >
-                    {t("player.menus.episodes.showMore")}
-                  </button>
-                )}
-              {expandedEpisodes[`medium-${episode.id}`] && (
-                <button
-                  type="button"
-                  onClick={(e) =>
-                    onToggleExpansion?.(`medium-${episode.id}`, e)
-                  }
-                  className="mt-2 text-sm text-white/60 hover:text-white transition-opacity duration-200 opacity-0 animate-fade-in"
-                >
-                  {t("player.menus.episodes.showLess")}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Progress indicator */}
-        {percentage > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-progress-background/25">
-            <div
-              className="h-full bg-progress-filled"
-              style={{
-                width: `${percentage}%`,
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Large screens - Netflix-style horizontal cards */}
-      <div
-        onClick={() => onPlay(episode.id)}
-        className={classNames(
-          "hidden lg:flex gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer",
-          forceCompactEpisodeView ? "!hidden" : "",
-          isActive
-            ? "bg-video-context-hoverColor/50"
-            : "hover:bg-video-context-hoverColor/30",
-          !isAired && "opacity-50",
-        )}
-      >
-        {/* Thumbnail */}
-        <div className="relative w-[160px] h-[90px] flex-shrink-0 rounded overflow-hidden bg-video-context-hoverColor">
-          {episode.still_path ? (
-            <img
-              src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
-              alt={episode.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-black/50">
-              <LucideIcon
-                icon={Film}
-                className="text-video-context-type-main opacity-50 text-2xl"
-              />
-            </div>
-          )}
-
-          {/* Progress bar */}
-          {percentage > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-              <div
-                className="h-full bg-red-600"
-                style={{
-                  width: `${percentage}%`,
-                }}
-              />
-            </div>
-          )}
-
-          {/* Episode badge */}
-          <div className="absolute top-2 left-2">
-            <span className="px-2 py-0.5 rounded bg-black/70 text-white text-xs font-medium backdrop-blur-sm">
-              {seasonNumber
-                ? `S${seasonNumber}E${episode.number}`
-                : `E${episode.number}`}
-            </span>
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          {/* Title and metadata */}
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-white line-clamp-1 flex-1">
-              {episode.title}
-            </h4>
-            {isAired && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(episode.id, e);
-                  }}
-                  className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
-                  title={t("player.menus.episodes.markAsFavorite")}
-                >
-                  <LucideIcon
-                    icon={Bookmark}
-                    fill={isFavorited ? "currentColor" : "none"}
-                    className="h-4 w-4 text-white/80"
-                  />
-                </button>
-                {!isActive && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleWatch(episode.id, e);
-                    }}
-                    className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
-                    title={
-                      isWatched
-                        ? t("player.menus.episodes.markAsUnwatched")
-                        : t("player.menus.episodes.markAsWatched")
-                    }
-                  >
-                    <LucideIcon
-                      icon={isWatched ? EyeOff : Eye}
-                      className="h-4 w-4 text-white/80"
-                    />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          {episode.overview && (
-            <p className="text-sm text-white/60 line-clamp-2">
-              {episode.overview}
-            </p>
-          )}
-
-          {/* Air date for unaired episodes */}
-          {!isAired && episode.air_date && (
-            <p className="text-xs text-white/50 mt-1">
-              {t("details.airs")} -{" "}
-              {new Date(episode.air_date).toLocaleDateString()}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Season data hook
+// ─────────────────────────────────────────────────────────────────────────────
 
 function useSeasonData(mediaId: string, seasonId: string) {
   const [seasons, setSeason] = useState<MWSeasonMeta[] | null>(null);
-
   const state = useAsync(async () => {
+    if (!mediaId || !seasonId) return null;
     const data = await getMetaFromId(MWMediaType.SERIES, mediaId, seasonId);
     if (data?.meta.type !== MWMediaType.SERIES) return null;
     setSeason(data.meta.seasons);
-    return {
-      season: data.meta.seasonData,
-      fullData: data,
-    };
+    return { season: data.meta.seasonData, fullData: data };
   }, [mediaId, seasonId]);
-
   return [state, seasons] as const;
 }
 
-function SeasonsView({
-  selectedSeason,
-  setSeason,
-}: {
-  selectedSeason: string;
-  setSeason: (id: string) => void;
-}) {
-  const { t } = useTranslation();
-  const meta = usePlayerStore((s) => s.meta);
-  const [loadingState, seasons] = useSeasonData(
-    meta?.tmdbId ?? "",
-    selectedSeason,
-  );
-  const getFavoriteEpisodes = useBookmarkStore((s) => s.getFavoriteEpisodes);
-  const favoriteEpisodes = meta?.tmdbId ? getFavoriteEpisodes(meta.tmdbId) : [];
+// ─────────────────────────────────────────────────────────────────────────────
+// Portal helper — synchronous so no extra render/flash
+// ─────────────────────────────────────────────────────────────────────────────
 
-  let content: ReactNode = null;
-  if (seasons) {
-    content = (
-      <Menu.Section>
-        {/* Favorites section */}
-        {favoriteEpisodes.length > 0 && (
-          <Menu.ChevronLink
-            key="favorites"
-            onClick={() => setSeason("favorites")}
-          >
-            <span className="font-bold">
-              {t("player.menus.episodes.favorites")} ({favoriteEpisodes.length})
-            </span>
-          </Menu.ChevronLink>
-        )}
-        {seasons?.map((season) => {
-          return (
-            <Menu.ChevronLink
-              key={season.id}
-              onClick={() => setSeason(season.id)}
-            >
-              {season.title}
-            </Menu.ChevronLink>
-          );
-        })}
-      </Menu.Section>
-    );
-  } else if (loadingState.error)
-    content = (
-      <CenteredText>{t("player.menus.episodes.loadingError")}</CenteredText>
-    );
-  else if (loadingState.loading)
-    content = (
-      <CenteredText>{t("player.menus.episodes.loadingList")}</CenteredText>
-    );
-
+function getPlayerPortalElement(): Element {
   return (
-    <Menu.CardWithScrollable>
-      {/* <Menu.Title>
-        {meta?.title ?? t("player.menus.episodes.loadingTitle")}
-      </Menu.Title> */}
-      {content}
-    </Menu.CardWithScrollable>
+    document.getElementById("vidninja-portal-mount") ||
+    document.getElementById("vidninja-player-container") ||
+    document.body
   );
 }
 
-export function EpisodesView({
-  id,
+// ─────────────────────────────────────────────────────────────────────────────
+// Close-on-mouseleave helpers (shared between button + popup)
+// ─────────────────────────────────────────────────────────────────────────────
+
+let _globalSetOpen: ((v: boolean) => void) | null = null;
+let _globalCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+
+export function closeEpisodesPanel() {
+  _globalSetOpen?.(false);
+}
+
+function scheduleClose(delayMs = 300) {
+  if (_globalCloseTimeout) clearTimeout(_globalCloseTimeout);
+  _globalCloseTimeout = setTimeout(() => {
+    _globalSetOpen?.(false);
+    _globalCloseTimeout = null;
+  }, delayMs);
+}
+
+function cancelClose() {
+  if (_globalCloseTimeout) {
+    clearTimeout(_globalCloseTimeout);
+    _globalCloseTimeout = null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DESKTOP popup – floating above bottom bar
+// Image 1: season header, numbered episode rows, active ep shows thumbnail + desc
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DesktopEpisodeList({
   selectedSeason,
-  goBack,
   onChange,
+  onClose,
+  onBackToSeasons,
 }: {
-  id: string;
   selectedSeason: string;
-  goBack?: () => void;
   onChange?: (meta: PlayerMeta) => void;
+  onClose: () => void;
+  onBackToSeasons: () => void;
 }) {
   const { t } = useTranslation();
-  const router = useOverlayRouter(id);
   const { setPlayerMeta } = usePlayerMeta();
   const meta = usePlayerStore((s) => s.meta);
-  const [loadingState, seasons] = useSeasonData(
-    meta?.tmdbId ?? "",
-    selectedSeason,
-  );
+  const [loadingState] = useSeasonData(meta?.tmdbId ?? "", selectedSeason);
   const progress = useProgressStore();
-  const updateItem = useProgressStore((s) => s.updateItem);
-  const getFavoriteEpisodes = useBookmarkStore((s) => s.getFavoriteEpisodes);
-  const favoriteEpisodes = meta?.tmdbId ? getFavoriteEpisodes(meta.tmdbId) : [];
-  const bookmarks = useBookmarkStore((s) => s.bookmarks);
-
-  // Load all seasons for favorites view
-  const [allSeasonsLoading, setAllSeasonsLoading] = useState(false);
-  const [allSeasonsData, setAllSeasonsData] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (selectedSeason === "favorites" && meta?.tmdbId && seasons) {
-      setAllSeasonsLoading(true);
-      const loadAllSeasons = async () => {
-        const seasonPromises = seasons.map(async (season) => {
-          try {
-            const data = await getMetaFromId(
-              MWMediaType.SERIES,
-              meta.tmdbId,
-              season.id,
-            );
-            return data?.meta.type === MWMediaType.SERIES
-              ? data.meta.seasonData
-              : null;
-          } catch (error) {
-            console.error(`Failed to load season ${season.id}:`, error);
-            return null;
-          }
-        });
-
-        const results = await Promise.all(seasonPromises);
-        setAllSeasonsData(results.filter(Boolean));
-        setAllSeasonsLoading(false);
-      };
-
-      loadAllSeasons();
-    }
-  }, [selectedSeason, meta?.tmdbId, seasons]);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const activeEpisodeRef = useRef<HTMLDivElement>(null);
-  const [expandedEpisodes, setExpandedEpisodes] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [truncatedEpisodes, setTruncatedEpisodes] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const descriptionRefs = useRef<{
-    [key: string]: HTMLParagraphElement | null;
-  }>({});
-  const forceCompactEpisodeView = usePreferencesStore(
-    (s) => s.forceCompactEpisodeView,
+  const activeRef = useRef<HTMLDivElement>(null);
+  // Which row is expanded (shows thumbnail+desc)
+  const [expandedId, setExpandedId] = useState<string | null>(
+    meta?.episode?.tmdbId ?? null,
   );
 
-  const isTextTruncated = (element: HTMLElement | null) => {
-    if (!element) return false;
-    return element.scrollHeight > element.clientHeight;
-  };
-
-  // Check truncation after render and when expanded state changes
   useEffect(() => {
-    const checkTruncation = () => {
-      const newTruncatedState: { [key: string]: boolean } = {};
-      if (!loadingState.value) return;
+    if (activeRef.current) scrollToElement(activeRef.current, { behavior: "smooth", block: "nearest" });
+  }, [loadingState.value]);
 
-      loadingState.value.season.episodes.forEach((ep) => {
-        // Check medium view
-        if (!expandedEpisodes[`medium-${ep.id}`]) {
-          const mediumElement = descriptionRefs.current[`medium-${ep.id}`];
-          newTruncatedState[`medium-${ep.id}`] = isTextTruncated(mediumElement);
-        }
-        // Check large view
-        if (!expandedEpisodes[`large-${ep.id}`]) {
-          const largeElement = descriptionRefs.current[`large-${ep.id}`];
-          newTruncatedState[`large-${ep.id}`] = isTextTruncated(largeElement);
-        }
-      });
-      setTruncatedEpisodes(newTruncatedState);
-    };
-
-    // Initial check
-    checkTruncation();
-
-    // Check after a short delay to ensure content is rendered
-    const timeoutId = setTimeout(checkTruncation, 250);
-
-    // Also check when window is resized
-    const handleResize = () => {
-      checkTruncation();
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [loadingState.value, expandedEpisodes]);
-
-  const toggleEpisodeExpansion = (
-    episodeId: string,
-    event: React.MouseEvent,
-  ) => {
-    event.stopPropagation();
-    setExpandedEpisodes((prev) => ({
-      ...prev,
-      [episodeId]: !prev[episodeId],
-    }));
-  };
+  // Reset expansion when season changes
+  useEffect(() => {
+    setExpandedId(meta?.episode?.tmdbId ?? null);
+  }, [selectedSeason, meta?.episode?.tmdbId]);
 
   const playEpisode = useCallback(
     (episodeId: string) => {
-      // Close the router first (REPLACE state) to ensure the current history entry
-      // is clean (no menu open).
-      router.close();
-
+      onClose();
       if (loadingState.value) {
         const newData = setPlayerMeta(loadingState.value.fullData, episodeId);
         if (newData) onChange?.(newData);
       }
     },
-    [setPlayerMeta, loadingState, router, onChange],
+    [setPlayerMeta, loadingState, onClose, onChange],
   );
 
-  const toggleWatchStatus = useCallback(
-    (episodeId: string, event: React.MouseEvent) => {
-      event.stopPropagation();
-      if (loadingState.value && meta?.tmdbId) {
-        const episode = loadingState.value.season.episodes.find(
-          (ep) => ep.id === episodeId,
-        );
-        if (episode) {
-          // Check if the episode is already watched
-          const episodeProgress =
-            progress.items[meta.tmdbId]?.episodes?.[episodeId];
-          const percentage = episodeProgress
-            ? (episodeProgress.progress.watched /
-                episodeProgress.progress.duration) *
-              100
-            : 0;
-
-          // If watched (>90%), reset to 0%, otherwise set to 100%
-          const isWatched = percentage > 90;
-
-          updateItem({
-            meta: {
-              tmdbId: meta.tmdbId,
-              title: meta.title || "",
-              type: "show",
-              releaseYear: meta.releaseYear,
-              poster: meta.poster,
-              episode: {
-                tmdbId: episodeId,
-                number: episode.number,
-                title: episode.title || "",
-              },
-              season: {
-                tmdbId: selectedSeason,
-                number: loadingState.value.season.number,
-                title: loadingState.value.season.title || "",
-              },
-            },
-            progress: {
-              watched: isWatched ? 0 : 60,
-              duration: 60,
-            },
-          });
-        }
-      }
-    },
-    [loadingState, meta, selectedSeason, updateItem, progress.items],
-  );
-
-  const toggleFavoriteEpisode = useBookmarkStore(
-    (s) => s.toggleFavoriteEpisode,
-  );
-
-  const toggleFavoriteStatus = useCallback(
-    (episodeId: string, event: React.MouseEvent) => {
-      event.stopPropagation();
-      if (meta?.tmdbId) {
-        toggleFavoriteEpisode(meta.tmdbId, episodeId, {
-          title: meta.title || "",
-          poster: meta.poster,
-          year: meta.releaseYear,
-        });
-      }
-    },
-    [
-      meta?.tmdbId,
-      meta?.title,
-      meta?.poster,
-      meta?.releaseYear,
-      toggleFavoriteEpisode,
-    ],
-  );
-
-  const handleScroll = (direction: "left" | "right") => {
-    if (!carouselRef.current) return;
-
-    const cardWidth = 256; // w-64 in pixels
-    const cardSpacing = 16; // space-x-4 in pixels
-    const scrollAmount = (cardWidth + cardSpacing) * 2;
-
-    const newScrollPosition =
-      carouselRef.current.scrollLeft +
-      (direction === "left" ? -scrollAmount : scrollAmount);
-
-    carouselRef.current.scrollTo({
-      left: newScrollPosition,
-      behavior: "smooth",
-    });
-  };
-
-  useEffect(() => {
-    if (activeEpisodeRef.current) {
-      // horizontal scroll
-      if (window.innerWidth >= 1024 && carouselRef.current) {
-        const containerLeft = carouselRef.current.getBoundingClientRect().left;
-        const containerWidth = carouselRef.current.clientWidth;
-        const elementLeft =
-          activeEpisodeRef.current.getBoundingClientRect().left;
-        const elementWidth = activeEpisodeRef.current.clientWidth;
-
-        // Calculate center
-        const scrollPosition =
-          elementLeft - containerLeft - containerWidth / 2 + elementWidth / 2;
-
-        carouselRef.current.scrollLeft += scrollPosition;
-      } else {
-        // vertical scroll
-        scrollToElement(activeEpisodeRef.current, {
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    }
-  }, [loadingState.value]);
-
-  if (!meta?.tmdbId) return null;
-
-  let content: ReactNode = null;
-  if (loadingState.error)
-    content = (
-      <CenteredText>{t("player.menus.episodes.loadingError")}</CenteredText>
-    );
-  else if (loadingState.loading)
-    content = (
-      <CenteredText>{t("player.menus.episodes.loadingList")}</CenteredText>
-    );
-  else if (selectedSeason === "favorites") {
-    // Handle favorites view - show actual favorite episodes
-    if (favoriteEpisodes.length === 0) {
-      content = (
-        <div className="flex-shrink-0 w-full flex justify-center items-center p-4">
-          <p>{t("player.menus.episodes.noFavorites")}</p>
-        </div>
-      );
-    } else if (allSeasonsLoading) {
-      content = (
-        <CenteredText>{t("player.menus.episodes.loadingList")}</CenteredText>
-      );
-    } else {
-      // Get all episodes from all seasons and filter by favorite episode IDs
-      const allEpisodes = allSeasonsData.flatMap((seasonData) =>
-        seasonData.episodes.map((ep: any) => ({
-          ...ep,
-          seasonNumber: seasonData.number,
-        })),
-      );
-
-      const favoriteEpisodesData = allEpisodes.filter((ep) =>
-        favoriteEpisodes.includes(ep.id),
-      );
-      if (favoriteEpisodesData.length === 0) {
-        content = (
-          <div className="flex-shrink-0 w-full flex justify-center items-center p-4">
-            <p>{t("player.menus.episodes.noFavorites")}</p>
-          </div>
-        );
-      } else {
-        content = (
-          <div className="relative">
-            <div
-              className={classNames(
-                "flex pb-4 pt-2 scrollbar-hide",
-                {
-                  "carousel-container":
-                    window.innerWidth >= 1024 && !forceCompactEpisodeView,
-                },
-                forceCompactEpisodeView
-                  ? "flex-col space-y-3"
-                  : "flex-col lg:flex-row lg:overflow-x-auto space-y-3 sm:space-y-4 lg:space-y-0 lg:space-x-4 lg:px-12",
-              )}
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
-            >
-              {favoriteEpisodesData.map((ep) => {
-                const episodeProgress =
-                  progress.items[meta?.tmdbId ?? ""]?.episodes?.[ep.id];
-                const percentage = episodeProgress
-                  ? (episodeProgress.progress.watched /
-                      episodeProgress.progress.duration) *
-                    100
-                  : 0;
-                const isWatched = percentage > 90;
-                const isAired = hasAired(ep.air_date);
-                const isActive = ep.id === meta?.episode?.tmdbId;
-                const isFavorited = meta?.tmdbId
-                  ? (bookmarks[meta.tmdbId]?.favoriteEpisodes?.includes(
-                      ep.id,
-                    ) ?? false)
-                  : false;
-
-                return (
-                  <EpisodeItem
-                    key={ep.id}
-                    episode={ep}
-                    isActive={isActive}
-                    isAired={isAired}
-                    isWatched={isWatched}
-                    isFavorited={isFavorited}
-                    percentage={percentage}
-                    episodeProgress={episodeProgress}
-                    onPlay={playEpisode}
-                    onToggleWatch={toggleWatchStatus}
-                    onToggleFavorite={toggleFavoriteStatus}
-                    onToggleExpansion={toggleEpisodeExpansion}
-                    expandedEpisodes={expandedEpisodes}
-                    truncatedEpisodes={truncatedEpisodes}
-                    descriptionRefs={descriptionRefs}
-                    forceCompactEpisodeView={forceCompactEpisodeView}
-                    seasonNumber={ep.seasonNumber}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-    }
-  } else if (loadingState.value) {
-    content = (
-      <div className="relative">
-        {/* Horizontal scroll buttons */}
-        <div className="hidden">
-          <button
-            type="button"
-            className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
-            onClick={() => handleScroll("left")}
-          >
-            <LucideIcon icon={ChevronLeft} className="text-white/80" />
-          </button>
-        </div>
-
-        <div
-          ref={carouselRef}
-          className={classNames(
-            "flex pb-4 pt-2 scrollbar-hide",
-            forceCompactEpisodeView
-              ? "flex-col  space-y-3"
-              : "flex-col space-y-2 lg:space-y-2 lg:overflow-y-auto lg:px-0",
-          )}
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          {loadingState.value.season.episodes.length === 0 ? (
-            <div className="flex-shrink-0 w-full flex justify-center items-center p-4">
-              <p>{t("player.menus.episodes.emptyState")}</p>
-            </div>
-          ) : (
-            loadingState.value.season.episodes.map((ep) => {
-              const episodeProgress =
-                progress.items[meta?.tmdbId]?.episodes?.[ep.id];
-              const percentage = episodeProgress
-                ? (episodeProgress.progress.watched /
-                    episodeProgress.progress.duration) *
-                  100
-                : 0;
-
-              const isAired = hasAired(ep.air_date);
-              const isActive = ep.id === meta?.episode?.tmdbId;
-              const isWatched = percentage > 90;
-              const isFavorited = meta?.tmdbId
-                ? (bookmarks[meta.tmdbId]?.favoriteEpisodes?.includes(ep.id) ??
-                  false)
-                : false;
-
-              return (
-                <div key={ep.id} ref={isActive ? activeEpisodeRef : null}>
-                  <EpisodeItem
-                    episode={ep}
-                    isActive={isActive}
-                    isAired={isAired}
-                    isWatched={isWatched}
-                    isFavorited={isFavorited}
-                    percentage={percentage}
-                    episodeProgress={episodeProgress}
-                    onPlay={playEpisode}
-                    onToggleWatch={toggleWatchStatus}
-                    onToggleFavorite={toggleFavoriteStatus}
-                    onToggleExpansion={toggleEpisodeExpansion}
-                    expandedEpisodes={expandedEpisodes}
-                    truncatedEpisodes={truncatedEpisodes}
-                    descriptionRefs={descriptionRefs}
-                    forceCompactEpisodeView={forceCompactEpisodeView}
-                  />
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Right scroll button */}
-        <div className="hidden">
-          <button
-            type="button"
-            className="p-2 bg-black/80 hover:bg-video-context-hoverColor transition-colors rounded-full border border-video-context-border backdrop-blur-sm"
-            onClick={() => handleScroll("right")}
-          >
-            <LucideIcon icon={ChevronRight} className="text-white/80" />
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const seasonTitle =
+    loadingState.value?.season.title ??
+    t("player.menus.episodes.loadingTitle");
 
   return (
     <div className="flex flex-col h-full">
-      {/* Sticky Header */}
-      <div className="flex-shrink-0">
-        <Menu.BackLink onClick={goBack} side="right">
-          {selectedSeason === "favorites"
-            ? t("player.menus.episodes.favorites")
-            : loadingState?.value?.season.title ||
-              t("player.menus.episodes.loadingTitle")}
-        </Menu.BackLink>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0">
+        <button
+          type="button"
+          onClick={onBackToSeasons}
+          className="text-white/70 hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h3 className="text-white font-bold text-lg">{seasonTitle}</h3>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-hide">
-        {content}
+      {/* Episode list */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {loadingState.loading && (
+          <div className="flex items-center justify-center h-32">
+            <div className="w-7 h-7 border-2 border-white/20 rounded-full animate-spin" />
+          </div>
+        )}
+        {loadingState.error && (
+          <div className="p-6 text-center text-white/50 text-sm">
+            {t("player.menus.episodes.loadingError")}
+          </div>
+        )}
+        {loadingState.value && (
+          <div>
+            {loadingState.value.season.episodes.map((ep) => {
+              const epProg = progress.items[meta?.tmdbId ?? ""]?.episodes?.[ep.id];
+              const pct = epProg ? (epProg.progress.watched / epProg.progress.duration) * 100 : 0;
+              const isActive = ep.id === meta?.episode?.tmdbId;
+              const isExpanded = ep.id === expandedId;
+              const isAired = hasAired(ep.air_date);
+
+              return (
+                <div
+                  key={ep.id}
+                  ref={isActive ? activeRef : null}
+                >
+                  {/* Row – click to expand/collapse */}
+                  <div
+                    onClick={() => {
+                      if (!isAired) return;
+                      setExpandedId(isExpanded ? null : ep.id);
+                    }}
+                    className={classNames(
+                      "flex items-center gap-4 px-5 py-3 cursor-pointer transition-colors",
+                      isAired ? "hover:bg-white/5" : "opacity-40 cursor-default",
+                      isExpanded && "bg-white/5",
+                    )}
+                  >
+                    {/* Number */}
+                    <span
+                      className={classNames(
+                        "text-lg font-semibold w-6 flex-shrink-0 tabular-nums",
+                        isActive ? "text-white" : "text-white/60",
+                      )}
+                    >
+                      {ep.number}
+                    </span>
+
+                    {/* Title */}
+                    <span
+                      className={classNames(
+                        "flex-1 text-sm font-semibold",
+                        isActive ? "text-white" : "text-white/80",
+                      )}
+                    >
+                      {ep.title}
+                    </span>
+
+                    {/* Progress dash */}
+                    <div className="flex-shrink-0 w-24 h-px bg-white/15 relative">
+                      {pct > 0 && (
+                        <div
+                          className="absolute left-0 top-0 h-full bg-white/60"
+                          style={{ width: `${pct}%` }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded: thumbnail + description, play button INSIDE plays it */}
+                  {isExpanded && (
+                    <div className="flex gap-4 px-5 py-4 bg-white/5">
+                      {ep.still_path && (
+                        <div
+                          onClick={() => playEpisode(ep.id)}
+                          className="relative w-[200px] h-[113px] flex-shrink-0 rounded-md overflow-hidden cursor-pointer group/thumb"
+                        >
+                          <img
+                            src={`https://image.tmdb.org/t/p/w400${ep.still_path}`}
+                            alt={ep.title}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Overlay darkens on hover */}
+                          <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/40 transition-colors" />
+                          {/* Play button */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center group-hover/thumb:scale-110 transition-transform">
+                              <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {ep.overview && (
+                        <p className="text-sm text-white/70 leading-relaxed flex-1 line-clamp-4">
+                          {ep.overview}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function EpisodesOverlay({
-  id,
-  onChange,
+function DesktopSeasonList({
+  seasons,
+  selectedSeason,
+  onSelect,
 }: {
-  id: string;
-  onChange?: (meta: PlayerMeta) => void;
+  seasons: MWSeasonMeta[];
+  selectedSeason: string;
+  onSelect: (id: string) => void;
 }) {
-  const router = useOverlayRouter(id);
-  const meta = usePlayerStore((s) => s.meta);
-  const [selectedSeason, setSelectedSeason] = useState("");
-
-  const lastActiveState = useRef(false);
-  useEffect(() => {
-    if (lastActiveState.current === router.isRouterActive) return;
-    lastActiveState.current = router.isRouterActive;
-    setSelectedSeason(meta?.season?.tmdbId ?? "");
-  }, [meta, selectedSeason, setSelectedSeason, router.isRouterActive]);
-
-  const setSeason = useCallback(
-    (seasonId: string) => {
-      setSelectedSeason(seasonId);
-      router.navigate("/episodes");
-    },
-    [router],
-  );
-
-  const forceCompactEpisodeView = usePreferencesStore(
-    (s) => s.forceCompactEpisodeView,
-  );
-
   return (
-    <Overlay id={id}>
-      <OverlayRouter id={id}>
-        <OverlayPage id={id} path="/" width={343} height={431}>
-          <SeasonsView setSeason={setSeason} selectedSeason={selectedSeason} />
-        </OverlayPage>
-        <OverlayPage
-          id={id}
-          path="/episodes"
-          width={420}
-          height={600}
-          fullWidth={false}
+    <div className="flex flex-col">
+      {seasons.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          onClick={() => onSelect(s.id)}
+          className={classNames(
+            "flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-white/5 first:border-t-0",
+            s.id === selectedSeason ? "text-white font-semibold" : "text-white/70",
+          )}
         >
-          {selectedSeason.length > 0 ? (
-            <EpisodesView
-              selectedSeason={selectedSeason}
-              id={id}
-              goBack={() => router.navigate("/")}
-              onChange={onChange}
-            />
-          ) : null}
-        </OverlayPage>
-      </OverlayRouter>
-    </Overlay>
+          <span>{s.title}</span>
+          <ChevronLeft className="w-4 h-4 rotate-180 text-white/40" />
+        </button>
+      ))}
+    </div>
   );
 }
+
+// The actual floating popup (desktop only, shown on hover)
+function DesktopEpisodesPopup({
+  isOpen,
+  onClose,
+  onChange,
+  anchorRef,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onChange?: (meta: PlayerMeta) => void;
+  anchorRef: React.RefObject<HTMLDivElement>;
+}) {
+  const meta = usePlayerStore((s) => s.meta);
+  const [selectedSeason, setSelectedSeason] = useState(meta?.season?.tmdbId ?? "");
+  const [view, setView] = useState<"seasons" | "episodes">("episodes");
+  const [, seasons] = useSeasonData(meta?.tmdbId ?? "", selectedSeason);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedSeason(meta?.season?.tmdbId ?? "");
+      setView("episodes");
+    }
+  }, [isOpen, meta?.season?.tmdbId]);
+
+  return createPortal(
+    <div
+      className={classNames(
+        "absolute bottom-[88px] right-4 z-[300] w-[480px] max-h-[70vh]",
+        "flex flex-col rounded-2xl overflow-hidden",
+        "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
+        "transition-all duration-200 ease-out origin-bottom-right",
+        isOpen
+          ? "opacity-100 scale-100 pointer-events-auto"
+          : "opacity-0 scale-95 pointer-events-none",
+      )}
+      onMouseEnter={cancelClose}
+      onMouseLeave={() => scheduleClose()}
+    >
+      {view === "seasons" && seasons ? (
+        <div className="flex flex-col h-full">
+          <div className="px-5 py-4 flex-shrink-0">
+            <h3 className="text-white font-bold text-lg">{meta?.title}</h3>
+          </div>
+          <div className="overflow-y-auto flex-1">
+            <DesktopSeasonList
+              seasons={seasons}
+              selectedSeason={selectedSeason}
+              onSelect={(id) => { setSelectedSeason(id); setView("episodes"); }}
+            />
+          </div>
+        </div>
+      ) : (
+        <DesktopEpisodeList
+          selectedSeason={selectedSeason}
+          onChange={onChange}
+          onClose={onClose}
+          onBackToSeasons={() => setView("seasons")}
+        />
+      )}
+    </div>,
+    getPlayerPortalElement(),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOBILE fullscreen overlay
+// Image 2: title top-left, X top-right, season tabs, horizontal episode cards
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MobileEpisodesOverlay({
+  isOpen,
+  onClose,
+  onChange,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onChange?: (meta: PlayerMeta) => void;
+}) {
+  const meta = usePlayerStore((s) => s.meta);
+  const [selectedSeason, setSelectedSeason] = useState(meta?.season?.tmdbId ?? "");
+  const [, seasons] = useSeasonData(meta?.tmdbId ?? "", selectedSeason);
+  const [loadingState] = useSeasonData(meta?.tmdbId ?? "", selectedSeason);
+  const { setPlayerMeta } = usePlayerMeta();
+  const progress = useProgressStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const activeCardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) setSelectedSeason(meta?.season?.tmdbId ?? "");
+  }, [isOpen, meta?.season?.tmdbId]);
+
+  useEffect(() => {
+    if (activeCardRef.current) {
+      activeCardRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [loadingState.value]);
+
+  const playEpisode = useCallback(
+    (episodeId: string) => {
+      onClose();
+      if (loadingState.value) {
+        const newData = setPlayerMeta(loadingState.value.fullData, episodeId);
+        if (newData) onChange?.(newData);
+      }
+    },
+    [setPlayerMeta, loadingState, onClose, onChange],
+  );
+
+  return createPortal(
+    <div
+      className={classNames(
+        "absolute inset-0 z-[300] flex flex-col",
+        "bg-black/90 backdrop-blur-2xl",
+        "transition-all duration-250 ease-out",
+        isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-4 flex-shrink-0">
+        <h2 className="text-white font-bold text-lg line-clamp-1 flex-1 mr-4">
+          {meta?.title}
+        </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 rounded-full hover:bg-white/10 transition-colors text-white"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Season tabs */}
+      {seasons && seasons.length > 0 && (
+        <div className="flex gap-2 px-5 pb-4 overflow-x-auto scrollbar-none flex-shrink-0">
+          {seasons.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setSelectedSeason(s.id)}
+              className={classNames(
+                "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors flex-shrink-0",
+                s.id === selectedSeason
+                  ? "bg-white text-black"
+                  : "bg-white/10 text-white/80 hover:bg-white/20",
+              )}
+            >
+              {s.title}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Horizontal episode scroll */}
+      <div className="flex-1 overflow-hidden flex flex-col justify-center">
+        {loadingState.loading && (
+          <div className="flex items-center justify-center h-40">
+            <div className="w-8 h-8 rounded-full animate-spin" />
+          </div>
+        )}
+
+        {loadingState.value && (
+          <div
+            ref={scrollRef}
+            className="flex gap-4 px-5 overflow-x-auto pb-4 scrollbar-none"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {loadingState.value.season.episodes.map((ep) => {
+              const epProg = progress.items[meta?.tmdbId ?? ""]?.episodes?.[ep.id];
+              const pct = epProg ? (epProg.progress.watched / epProg.progress.duration) * 100 : 0;
+              const isActive = ep.id === meta?.episode?.tmdbId;
+              const isAired = hasAired(ep.air_date);
+              // Duration from episode runtime (minutes)
+              const duration = ep.runtime ? `${ep.runtime}m` : null;
+
+              return (
+                <div
+                  key={ep.id}
+                  ref={isActive ? activeCardRef : null}
+                  className="flex-shrink-0 w-[240px] flex flex-col gap-2"
+                >
+                  {/* Thumbnail */}
+                  <div
+                    onClick={() => isAired && playEpisode(ep.id)}
+                    className={classNames(
+                      "relative aspect-video rounded-xl overflow-hidden cursor-pointer",
+                      isAired ? "transition-all" : "opacity-40 cursor-default",
+                      isActive ? "" : "",
+                    )}
+                  >
+                    {ep.still_path ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w400${ep.still_path}`}
+                        alt={ep.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white/10" />
+                    )}
+
+                    {/* Play circle */}
+                    {isAired && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-black/50 border-2 border-white/80 flex items-center justify-center backdrop-blur-sm">
+                          <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Progress bar */}
+                    {pct > 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                        <div className="h-full bg-red-500" style={{ width: `${pct}%` }} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Episode info row */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-sm font-semibold">
+                      {ep.number}. {ep.title}
+                    </span>
+                  </div>
+
+                  {/* Duration */}
+                  {duration && (
+                    <span className="text-white/50 text-xs -mt-1">{duration}</span>
+                  )}
+
+                  {/* Description */}
+                  {ep.overview && (
+                    <p className="text-white/60 text-xs leading-relaxed line-clamp-4">
+                      {ep.overview}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>,
+    getPlayerPortalElement(),
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Public exports
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 interface EpisodesProps {
   onChange?: (meta: PlayerMeta) => void;
 }
 
 export function EpisodesRouter(props: EpisodesProps) {
-  return <EpisodesOverlay onChange={props.onChange} id="episodes" />;
+  const [isOpen, setIsOpen] = useState(false);
+  const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
+
+  useEffect(() => {
+    _globalSetOpen = setIsOpen;
+    return () => { _globalSetOpen = null; };
+  }, []);
+
+  useEffect(() => {
+    setHasOpenOverlay(isOpen);
+  }, [isOpen, setHasOpenOverlay]);
+
+  const { isMobile } = useIsMobile();
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  return isMobile ? (
+    <MobileEpisodesOverlay
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      onChange={props.onChange}
+    />
+  ) : (
+    <DesktopEpisodesPopup
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      onChange={props.onChange}
+      anchorRef={anchorRef}
+    />
+  );
 }
 
 function EpisodesIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         fill="currentColor"
         fillRule="evenodd"
@@ -1051,29 +588,53 @@ export function Episodes(props: {
   inControl: boolean;
   iconSizeClass?: string;
 }) {
-  const { t } = useTranslation();
-  const router = useOverlayRouter("episodes");
-  const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
   const type = usePlayerStore((s) => s.meta?.type);
+  const { t } = useTranslation();
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const openPanel = useCallback(() => {
+    cancelClose();
+    _globalSetOpen?.(true);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    // Only hover-open on desktop
+    if (window.innerWidth >= 1024) {
+      cancelClose();
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = setTimeout(() => {
+        _globalSetOpen?.(true);
+      }, 120);
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    // Cancel pending open, then schedule close on desktop
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    if (window.innerWidth >= 1024) scheduleClose();
+  }, []);
 
   useEffect(() => {
-    setHasOpenOverlay(router.isRouterActive);
-  }, [setHasOpenOverlay, router.isRouterActive]);
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
 
   if (type !== "show" || !props.inControl) return null;
 
   return (
-    <OverlayAnchor id="episodes" className="inline-flex">
-      <div className="relative">
-        <button
-          onClick={() => router.open("/episodes")}
-          className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
-          title={t("player.menus.episodes.button")}
-        >
-          <EpisodesIcon className={props.iconSizeClass || "w-8 h-8"} />
-          <span className="sr-only">{t("player.menus.episodes.button")}</span>
-        </button>
-      </div>
-    </OverlayAnchor>
+    <div className="relative inline-flex">
+      <button
+        onClick={openPanel}            // click on mobile
+        onMouseEnter={handleMouseEnter} // hover on desktop
+        onMouseLeave={handleMouseLeave}
+        className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
+        title={t("player.menus.episodes.button")}
+      >
+        <EpisodesIcon className={props.iconSizeClass || "w-8 h-8"} />
+        <span className="sr-only">{t("player.menus.episodes.button")}</span>
+      </button>
+    </div>
   );
 }

@@ -63,13 +63,11 @@ const PopoverContent = forwardRef<
           sideOffset={sideOffset}
           className={classNames(
             // Base styles
-            "z-[100] rounded-xl overflow-hidden pointer-events-auto",
+            "z-[100] rounded-2xl overflow-hidden pointer-events-auto",
             // Background with blur
-            "bg-video-context-background/95 backdrop-blur-md",
-            // Border
-            "border border-white/10",
+            "bg-[#1a1a1a]/95 backdrop-blur-xl",
             // Shadow
-            "shadow-xl shadow-black/30",
+            "shadow-2xl shadow-black/50",
             // Animation
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

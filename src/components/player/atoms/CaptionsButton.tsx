@@ -1,610 +1,374 @@
 import { ClosedCaptionIcon } from "@hugeicons/react";
-import { useState } from "react";
-import { Check, Settings, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Popover } from "@/components/ui/Popover";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Check, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { usePlayerStore } from "@/stores/player/store";
 import { useCaptions } from "@/components/player/hooks/useCaptions";
 import { getLanguageName } from "@/utils/languageNames";
 import { useSubtitleStore } from "@/stores/subtitles";
+import classNames from "classnames";
+import { createPortal } from "react-dom";
+import { usePopupPosition } from "./usePopupPosition";
 
-function SubtitleSettingsModal({ onClose }: { onClose: () => void }) {
+function getPlayerPortalElement(): HTMLElement {
+  return (
+    document.getElementById("vidninja-portal-mount") ||
+    document.getElementById("vidninja-player-container") ||
+    document.body
+  );
+}
+
+let _captionsSetOpen: ((v: boolean) => void) | null = null;
+let _captionsCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleCloseCaptions(delayMs = 300) {
+  if (_captionsCloseTimer) clearTimeout(_captionsCloseTimer);
+  _captionsCloseTimer = setTimeout(() => {
+    _captionsSetOpen?.(false);
+    _captionsCloseTimer = null;
+  }, delayMs);
+}
+function cancelCloseCaptions() {
+  if (_captionsCloseTimer) {
+    clearTimeout(_captionsCloseTimer);
+    _captionsCloseTimer = null;
+  }
+}
+
+// ─── Settings sub-view ────────────────────────────────────────────────────────
+
+function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
   const styling = useSubtitleStore((s) => s.styling);
   const delay = useSubtitleStore((s) => s.delay);
-  const overrideCasing = useSubtitleStore((s) => s.overrideCasing);
   const updateStyling = useSubtitleStore((s) => s.updateStyling);
   const setDelay = useSubtitleStore((s) => s.setDelay);
-  const setOverrideCasing = useSubtitleStore((s) => s.setOverrideCasing);
 
-  const colors = ["#ffffff", "#80b1fa", "#e2e535", "#10B239FF"];
+  const colors = ["#ffffff", "#80b1fa", "#e2e535", "#10B239"];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
-      <div className="bg-zinc-800 rounded-lg w-[500px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-700 sticky top-0 bg-zinc-800 z-10">
-          <h2 className="text-white font-semibold text-lg">
-            Subtitles Settings
-          </h2>
+    <>
+      {/* Settings header */}
+      <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-white/70 hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h3 className="text-white font-bold text-lg">Subtitle Settings</h3>
+      </div>
+
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-5 pb-5 space-y-5">
+        {/* Delay */}
+        <div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Delay</div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDelay(delay - 0.1)}
+              className="flex-1 py-2.5 px-4 bg-white/8 hover:bg-white/12 rounded-xl text-white text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Late
+            </button>
+            <div className="w-20 text-center py-2.5 bg-white/8 rounded-xl text-white font-mono text-sm">
+              {delay.toFixed(1)}s
+            </div>
+            <button
+              onClick={() => setDelay(delay + 0.1)}
+              className="flex-1 py-2.5 px-4 bg-white/8 hover:bg-white/12 rounded-xl text-white text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              Early
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Size */}
+        <div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">
+            Text Size — {Math.round(styling.size * 100)}%
+          </div>
+          <input
+            type="range" min="50" max="200" value={styling.size * 100}
+            onChange={(e) => updateStyling({ ...styling, size: parseInt(e.target.value) / 100 })}
+            className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer accent-white"
+          />
+        </div>
+
+        {/* Background Opacity */}
+        <div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">
+            Background — {Math.round(styling.backgroundOpacity * 100)}%
+          </div>
+          <input
+            type="range" min="0" max="100" value={styling.backgroundOpacity * 100}
+            onChange={(e) => updateStyling({ ...styling, backgroundOpacity: parseInt(e.target.value) / 100 })}
+            className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer accent-white"
+          />
+        </div>
+
+        {/* Color */}
+        <div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Color</div>
+          <div className="flex items-center gap-3">
+            {colors.map((color) => (
+              <button
+                key={color}
+                onClick={() => updateStyling({ ...styling, color })}
+                className={classNames(
+                  "w-8 h-8 rounded-full transition-all",
+                  styling.color === color ? "ring-2 ring-white ring-offset-2 ring-offset-[#1a1a1a]" : "",
+                )}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+            <input
+              type="color" value={styling.color}
+              onChange={(e) => updateStyling({ ...styling, color: e.target.value })}
+              className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0"
+            />
+          </div>
+        </div>
+
+        {/* Bold */}
+        <div className="flex items-center justify-between">
+          <span className="text-white text-sm font-semibold">Bold</span>
           <button
-            onClick={onClose}
-            className="text-white/70 hover:text-white transition-colors"
+            onClick={() => updateStyling({ ...styling, bold: !styling.bold })}
+            className={classNames(
+              "w-10 h-6 rounded-full transition-colors",
+              styling.bold ? "bg-blue-500" : "bg-white/20",
+            )}
           >
-            <X className="w-5 h-5" />
+            <div className={classNames(
+              "w-5 h-5 bg-white rounded-full transition-transform m-0.5",
+              styling.bold ? "translate-x-4" : "translate-x-0",
+            )} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Delay */}
-          <div>
-            <div className="text-white font-medium mb-3">Subtitle Delay</div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setDelay(delay - 0.1)}
-                className="flex-1 py-2 px-4 bg-zinc-700 hover:bg-zinc-600 rounded text-white transition-colors flex items-center justify-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="text-xs">Late</span>
-              </button>
-              <div className="w-24 text-center py-2 bg-zinc-900 rounded text-white font-mono">
-                {delay.toFixed(1)}s
-              </div>
-              <button
-                onClick={() => setDelay(delay + 0.1)}
-                className="flex-1 py-2 px-4 bg-zinc-700 hover:bg-zinc-600 rounded text-white transition-colors flex items-center justify-center gap-2"
-              >
-                <span className="text-xs">Early</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Fix Capitals */}
-          <div className="flex items-center justify-between">
-            <div className="text-white font-medium">Fix Capitals</div>
-            <button
-              onClick={() => setOverrideCasing(!overrideCasing)}
-              className={`w-12 h-6 rounded-full transition-colors ${
-                overrideCasing ? "bg-blue-500" : "bg-zinc-600"
-              }`}
-            >
-              <div
-                className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  overrideCasing ? "translate-x-6" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="border-t border-zinc-700 pt-6" />
-
-          {/* Background Opacity */}
-          <div>
-            <div className="text-white font-medium mb-3">
-              Background Opacity
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={styling.backgroundOpacity * 100}
-              onChange={(e) =>
-                updateStyling({
-                  ...styling,
-                  backgroundOpacity: parseInt(e.target.value) / 100,
-                })
-              }
-              className="w-full"
-            />
-            <div className="text-gray-400 text-xs text-center mt-1">
-              {Math.round(styling.backgroundOpacity * 100)}%
-            </div>
-          </div>
-
-          {/* Background Blur */}
-          <div className="flex items-center justify-between">
-            <div className="text-white font-medium">Background Blur</div>
-            <button
-              onClick={() =>
-                updateStyling({
-                  ...styling,
-                  backgroundBlurEnabled: !styling.backgroundBlurEnabled,
-                })
-              }
-              className={`w-12 h-6 rounded-full transition-colors ${
-                styling.backgroundBlurEnabled ? "bg-blue-500" : "bg-zinc-600"
-              }`}
-            >
-              <div
-                className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  styling.backgroundBlurEnabled
-                    ? "translate-x-6"
-                    : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-
-          {styling.backgroundBlurEnabled && (
-            <div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={styling.backgroundBlur * 100}
-                onChange={(e) =>
-                  updateStyling({
-                    ...styling,
-                    backgroundBlur: parseInt(e.target.value) / 100,
-                  })
-                }
-                className="w-full"
-              />
-              <div className="text-gray-400 text-xs text-center mt-1">
-                {Math.round(styling.backgroundBlur * 100)}%
-              </div>
-            </div>
-          )}
-
-          {/* Text Size */}
-          <div>
-            <div className="text-white font-medium mb-3">Text Size</div>
-            <input
-              type="range"
-              min="1"
-              max="200"
-              value={styling.size * 100}
-              onChange={(e) =>
-                updateStyling({
-                  ...styling,
-                  size: parseInt(e.target.value) / 100,
-                })
-              }
-              className="w-full"
-            />
-            <div className="text-gray-400 text-xs text-center mt-1">
-              {Math.round(styling.size * 100)}%
-            </div>
-          </div>
-
-          {/* Font Style */}
-          <div>
-            <div className="text-white font-medium mb-3">Font Style</div>
-            <select
-              value={styling.fontStyle}
-              onChange={(e) =>
-                updateStyling({ ...styling, fontStyle: e.target.value })
-              }
-              className="w-full bg-zinc-700 text-white rounded px-3 py-2"
-            >
-              <option value="default">Default</option>
-              <option value="raised">Raised</option>
-              <option value="depressed">Depressed</option>
-              <option value="Border">Border</option>
-              <option value="dropShadow">Drop Shadow</option>
-            </select>
-          </div>
-
-          {/* Border Thickness (only if Border style) */}
-          {styling.fontStyle === "Border" && (
-            <div>
-              <div className="text-white font-medium mb-3">
-                Border Thickness
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="0.1"
-                value={styling.borderThickness}
-                onChange={(e) =>
-                  updateStyling({
-                    ...styling,
-                    borderThickness: parseFloat(e.target.value),
-                  })
-                }
-                className="w-full"
-              />
-              <div className="text-gray-400 text-xs text-center mt-1">
-                {styling.borderThickness.toFixed(1)}px
-              </div>
-            </div>
-          )}
-
-          {/* Bold */}
-          <div className="flex items-center justify-between">
-            <div className="text-white font-medium">Bold</div>
-            <button
-              onClick={() => updateStyling({ ...styling, bold: !styling.bold })}
-              className={`w-12 h-6 rounded-full transition-colors ${
-                styling.bold ? "bg-blue-500" : "bg-zinc-600"
-              }`}
-            >
-              <div
-                className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  styling.bold ? "translate-x-6" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Color */}
-          <div>
-            <div className="text-white font-medium mb-3">Color</div>
-            <div className="flex items-center gap-2">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => updateStyling({ ...styling, color })}
-                  className={`w-10 h-10 rounded-full transition-all ${
-                    styling.color === color
-                      ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-800"
-                      : ""
-                  }`}
-                  style={{ backgroundColor: color }}
-                >
-                  {styling.color === color && (
-                    <Check className="w-5 h-5 text-black mx-auto" />
-                  )}
-                </button>
-              ))}
-              <input
-                type="color"
-                value={styling.color}
-                onChange={(e) =>
-                  updateStyling({ ...styling, color: e.target.value })
-                }
-                className="w-10 h-10 rounded-full cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Vertical Position */}
-          <div>
-            <div className="text-white font-medium mb-3">Vertical Position</div>
-            <div className="flex gap-2">
-              <button
-                onClick={() =>
-                  updateStyling({ ...styling, verticalPosition: 1 })
-                }
-                className={`flex-1 py-2 rounded transition-colors ${
-                  styling.verticalPosition === 1
-                    ? "bg-white text-black"
-                    : "bg-zinc-700 text-white hover:bg-zinc-600"
-                }`}
-              >
-                Low
-              </button>
-              <button
-                onClick={() =>
-                  updateStyling({ ...styling, verticalPosition: 3 })
-                }
-                className={`flex-1 py-2 rounded transition-colors ${
-                  styling.verticalPosition === 3
-                    ? "bg-white text-black"
-                    : "bg-zinc-700 text-white hover:bg-zinc-600"
-                }`}
-              >
-                High
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Example Preview */}
-        <div className="p-6 pt-0">
-          <div className="bg-black/30 rounded p-4 text-center">
-            <div
-              className="inline-block px-4 py-2 rounded"
-              style={{
-                backgroundColor: `rgba(0,0,0,${styling.backgroundOpacity})`,
-                backdropFilter: styling.backgroundBlurEnabled
-                  ? `blur(${Math.floor(styling.backgroundBlur * 64)}px)`
-                  : "none",
-                color: styling.color,
-                fontSize: `${styling.size}rem`,
-                fontWeight: styling.bold ? "bold" : "normal",
-              }}
-            >
-              This is a subtitles example.
-            </div>
+        {/* Preview */}
+        <div className="bg-black/30 rounded-xl p-4 text-center">
+          <div
+            className="inline-block px-4 py-2 rounded"
+            style={{
+              backgroundColor: `rgba(0,0,0,${styling.backgroundOpacity})`,
+              color: styling.color,
+              fontSize: `${styling.size}rem`,
+              fontWeight: styling.bold ? "bold" : "normal",
+            }}
+          >
+            This is a subtitle example.
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function CaptionsButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<"main" | "settings">("main");
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const popupStyle = usePopupPosition(anchorRef, isOpen, 480);
 
   const captionList = usePlayerStore((s) => s.captionList);
   const selectedCaption = usePlayerStore((s) => s.caption.selected);
   const setCaption = usePlayerStore((s) => s.setCaption);
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
-  const { selectCaptionById } = useCaptions();
-
-  // Audio tracks
   const audioTracks = usePlayerStore((s) => s.audioTracks);
   const currentAudioTrack = usePlayerStore((s) => s.currentAudioTrack);
   const display = usePlayerStore((s) => s.display);
+  const { selectCaptionById } = useCaptions();
 
-  // Subtitle settings
-  const styling = useSubtitleStore((s) => s.styling);
-  const delay = useSubtitleStore((s) => s.delay);
-  const updateStyling = useSubtitleStore((s) => s.updateStyling);
-  const setDelay = useSubtitleStore((s) => s.setDelay);
+  useEffect(() => {
+    _captionsSetOpen = (v) => {
+      setIsOpen(v);
+      setHasOpenOverlay(v);
+      if (!v) setView("main");
+    };
+    return () => { _captionsSetOpen = null; };
+  }, [setHasOpenOverlay]);
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    setHasOpenOverlay(open);
-    if (!open) setView("main");
-  };
+  const handleMouseEnter = useCallback(() => {
+    if (window.innerWidth >= 1024) {
+      cancelCloseCaptions();
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => { _captionsSetOpen?.(true); }, 120);
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    if (window.innerWidth >= 1024) scheduleCloseCaptions();
+  }, []);
+
+  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
 
   const handleCaptionSelect = (captionId: string | null) => {
-    if (!captionId) {
-      setCaption(null);
-      return;
-    }
-    // Fire and forget - don't await to keep UI responsive
-    selectCaptionById(captionId).catch((error) => {
-      console.error("Failed to load caption:", error);
-    });
+    if (!captionId) { setCaption(null); return; }
+    selectCaptionById(captionId).catch(console.error);
   };
 
   const handleAudioSelect = (trackId: string) => {
-    if (display) {
-      display.setAudioTrack(trackId);
-    }
+    if (display) display.setAudioTrack(trackId);
   };
 
-  const colors = ["#ffffff", "#80b1fa", "#e2e535", "#10B239"];
+  const portalEl = getPlayerPortalElement();
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
-      <Popover.Trigger asChild>
-        <button
-          className="p-1 md:p-2 transition-colors group outline-none rounded-md focus-visible:ring-2 focus-visible:ring-white/20"
-          title="Captions & Audio"
-        >
-          <HugeiconsIcon
-            icon={ClosedCaptionIcon}
-            size="md"
-            className="w-8 h-8 lg:w-10 lg:h-10 text-white transition-colors"
-          />
-        </button>
-      </Popover.Trigger>
-      <Popover.Content
-        className="w-[420px] p-0"
-        align="center"
-        side="top"
-        sideOffset={10}
-        showArrow={true}
+    <div className="relative inline-flex" ref={anchorRef}>
+      <button
+        onClick={() => {
+          if (window.innerWidth < 1024) {
+            const next = !isOpen;
+            setIsOpen(next);
+            setHasOpenOverlay(next);
+            if (!next) setView("main");
+          } else {
+            cancelCloseCaptions();
+            setIsOpen(true);
+            setHasOpenOverlay(true);
+          }
+        }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
+        title="Captions & Audio"
       >
-        {view === "main" ? (
-          <div className="flex">
-            {/* Subtitles Column */}
-            <div className="flex-1 border-r border-white/10">
-              <div className="px-4 py-2.5 border-b border-white/10">
-                <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
-                  Subtitles
-                </h3>
-              </div>
-              <div className="py-1.5">
-                {/* Off Option */}
-                <button
-                  onClick={() => handleCaptionSelect(null)}
-                  className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
-                >
-                  {!selectedCaption ? (
-                    <Check className="w-4 h-4 text-white flex-shrink-0" />
-                  ) : (
-                    <div className="w-4 h-4 flex-shrink-0" />
-                  )}
-                  <span className="text-white text-sm">Off</span>
-                </button>
+        <HugeiconsIcon
+          icon={ClosedCaptionIcon}
+          size="md"
+          className="w-8 h-8 lg:w-10 lg:h-10"
+        />
+      </button>
 
-                <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                  {captionList.length === 0 ? (
-                    <div className="px-4 py-2 text-white/40 text-sm pl-11">
-                      No subtitles
-                    </div>
-                  ) : (
-                    captionList.map((caption, index) => {
-                      let displayName =
-                        caption.display || getLanguageName(caption.language);
-                      if (
-                        !caption.display &&
-                        (!caption.language || caption.language === "en")
-                      ) {
-                        displayName = `Subtitle ${index + 1}`;
-                      }
-                      return (
-                        <button
-                          key={caption.id}
-                          onClick={() => handleCaptionSelect(caption.id)}
-                          className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
-                        >
-                          {selectedCaption?.id === caption.id ? (
-                            <Check className="w-4 h-4 text-white flex-shrink-0" />
-                          ) : (
-                            <div className="w-4 h-4 flex-shrink-0" />
-                          )}
-                          <span className="text-white/90 text-sm truncate">
-                            {displayName}
-                            {caption.isHearingImpaired && " (CC)"}
-                          </span>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Settings Link */}
-              <div className="px-4 py-2.5 border-t border-white/10">
-                <button
-                  onClick={() => setView("settings")}
-                  className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </button>
-              </div>
-            </div>
-
-            {/* Audio Column */}
-            <div className="flex-1">
-              <div className="px-4 py-2.5 border-b border-white/10">
-                <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
-                  Audio
-                </h3>
-              </div>
-              <div className="py-1.5 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                {audioTracks.length === 0 ? (
-                  <div className="px-4 py-2 text-white/40 text-sm">
-                    No audio tracks
+      {createPortal(
+        <div
+          style={popupStyle}
+          className={classNames(
+            "absolute bottom-[88px] z-[300] w-[580px] max-h-[70vh]",
+            "flex flex-col rounded-2xl overflow-hidden",
+            "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
+            "transition-all duration-200 ease-out origin-bottom",
+            isOpen
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-95 pointer-events-none",
+          )}
+          onMouseEnter={cancelCloseCaptions}
+          onMouseLeave={() => scheduleCloseCaptions()}
+        >
+          {view === "settings" ? (
+            <SubtitleSettingsView onBack={() => setView("main")} />
+          ) : (
+            <>
+              {/* Two-column layout: Subtitles | Audio */}
+              <div className="flex flex-1 overflow-hidden min-h-0">
+                {/* Subtitles column */}
+                <div className="flex-1 flex flex-col min-w-0">
+                  <div className="px-5 py-4 flex-shrink-0">
+                    <h3 className="text-white font-bold text-base">Subtitles</h3>
                   </div>
-                ) : (
-                  audioTracks.map((track) => (
-                    <button
-                      key={track.id}
-                      onClick={() => handleAudioSelect(track.id)}
-                      className="w-full px-4 py-2 text-left hover:bg-white/10 transition-colors flex items-center gap-3"
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    {/* Off */}
+                    <div
+                      onClick={() => handleCaptionSelect(null)}
+                      className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-white/5 transition-colors text-white/70 hover:text-white"
                     >
-                      {currentAudioTrack?.id === track.id ? (
-                        <Check className="w-4 h-4 text-white flex-shrink-0" />
-                      ) : (
-                        <div className="w-4 h-4 flex-shrink-0" />
-                      )}
-                      <span className="text-white/90 text-sm truncate">
-                        {track.label ||
-                          getLanguageName(track.language) ||
-                          `Track ${track.id}`}
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Settings View */}
-            <div className="px-4 py-2.5 border-b border-white/10 flex items-center gap-2">
-              <button
-                onClick={() => setView("main")}
-                className="text-white/70 hover:text-white"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <h3 className="text-white/70 font-medium text-xs uppercase tracking-wider">
-                Settings
-              </h3>
-            </div>
+                      <div className="w-4 flex-shrink-0 flex items-center">
+                        {!selectedCaption && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                      <span className="text-lg font-semibold">Off</span>
+                    </div>
 
-            <div className="p-4 space-y-4">
-              {/* Delay */}
-              <div>
-                <div className="text-white/70 text-sm mb-2">Delay</div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setDelay(delay - 0.1)}
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-sm"
-                  >
-                    -0.1s
-                  </button>
-                  <div className="flex-1 text-center text-white text-sm font-mono">
-                    {delay.toFixed(1)}s
+                    {captionList.length === 0 ? (
+                      <div className="px-5 py-3 text-white/30 text-lg">No subtitles</div>
+                    ) : (
+                      captionList.map((caption, index) => {
+                        let name = caption.display || getLanguageName(caption.language);
+                        if (!caption.display && (!caption.language || caption.language === "en")) {
+                          name = `Subtitle ${index + 1}`;
+                        }
+                        const isSelected = selectedCaption?.id === caption.id;
+                        return (
+                          <div
+                            key={caption.id}
+                            onClick={() => handleCaptionSelect(caption.id)}
+                            className={classNames(
+                              "flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-white/5 transition-colors",
+                              isSelected ? "text-white" : "text-white/70",
+                            )}
+                          >
+                            <div className="w-4 flex-shrink-0 flex items-center">
+                              {isSelected && <Check className="w-4 h-4 text-white" />}
+                            </div>
+                            <span className="flex-1 text-lg font-semibold truncate">
+                              {name}{caption.isHearingImpaired && " (CC)"}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                  <button
-                    onClick={() => setDelay(delay + 0.1)}
-                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-sm"
-                  >
-                    +0.1s
-                  </button>
-                </div>
-              </div>
 
-              {/* Size */}
-              <div>
-                <div className="text-white/70 text-sm mb-2">
-                  Size: {Math.round(styling.size * 100)}%
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="200"
-                  value={styling.size * 100}
-                  onChange={(e) =>
-                    updateStyling({
-                      ...styling,
-                      size: parseInt(e.target.value) / 100,
-                    })
-                  }
-                  className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Background */}
-              <div>
-                <div className="text-white/70 text-sm mb-2">
-                  Background: {Math.round(styling.backgroundOpacity * 100)}%
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={styling.backgroundOpacity * 100}
-                  onChange={(e) =>
-                    updateStyling({
-                      ...styling,
-                      backgroundOpacity: parseInt(e.target.value) / 100,
-                    })
-                  }
-                  className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Color */}
-              <div>
-                <div className="text-white/70 text-sm mb-2">Color</div>
-                <div className="flex items-center gap-2">
-                  {colors.map((color) => (
+                  {/* Settings link */}
+                  <div className="px-5 py-3 flex-shrink-0 ">
                     <button
-                      key={color}
-                      onClick={() => updateStyling({ ...styling, color })}
-                      className={`w-6 h-6 rounded-full transition-all ${
-                        styling.color === color
-                          ? "ring-2 ring-white ring-offset-2 ring-offset-black"
-                          : ""
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                      onClick={() => setView("settings")}
+                      className="text-blue-400 hover:text-blue-300 text-lg flex items-center gap-2 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                  </div>
+                </div>
+
+                {/* Audio column */}
+                <div className="flex-1 flex flex-col min-w-0">
+                  <div className="px-5 py-4 flex-shrink-0">
+                    <h3 className="text-white font-bold text-lg">Audio</h3>
+                  </div>
+                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    {audioTracks.length === 0 ? (
+                      <div className="px-5 py-3 text-white/30 text-lg">No audio tracks</div>
+                    ) : (
+                      audioTracks.map((track) => {
+                        const isSelected = currentAudioTrack?.id === track.id;
+                        return (
+                          <div
+                            key={track.id}
+                            onClick={() => handleAudioSelect(track.id)}
+                            className={classNames(
+                              "flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-white/5 transition-colors",
+                              isSelected ? "text-white" : "text-white/70",
+                            )}
+                          >
+                            <div className="w-4 flex-shrink-0 flex items-center">
+                              {isSelected && <Check className="w-4 h-4 text-white" />}
+                            </div>
+                            <span className="flex-1 text-lg font-semibold truncate">
+                              {track.label || getLanguageName(track.language) || `Track ${track.id}`}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  {/* Empty bottom to match settings link height */}
+                  <div className="px-5 py-3 flex-shrink-0  opacity-0 pointer-events-none">
+                    <span className="text-lg">placeholder</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Bold Toggle */}
-              <div className="flex items-center justify-between">
-                <span className="text-white/70 text-sm">Bold</span>
-                <button
-                  onClick={() =>
-                    updateStyling({ ...styling, bold: !styling.bold })
-                  }
-                  className={`w-9 h-5 rounded-full transition-colors ${styling.bold ? "bg-blue-500" : "bg-white/20"}`}
-                >
-                  <div
-                    className={`w-4 h-4 bg-white rounded-full transition-transform ${styling.bold ? "translate-x-4" : "translate-x-0.5"}`}
-                  />
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </Popover.Content>
-    </Popover.Root>
+            </>
+          )}
+        </div>,
+        portalEl,
+      )}
+    </div>
   );
 }

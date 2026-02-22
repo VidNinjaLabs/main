@@ -1,167 +1,39 @@
 import { Gauge } from "lucide-react";
 import { usePlayerStore } from "@/stores/player/store";
-import { DropdownMenu } from "@/components/ui/DropdownMenu";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import classNames from "classnames";
-import { LucideIcon } from "@/components/LucideIcon";
-import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { usePopupPosition } from "./usePopupPosition";
 
-// Speed Button List Component
-function SpeedButtonList(props: {
-  options: number[];
-  selected: number;
-  onClick: (v: number) => void;
-  disabled?: boolean;
-}) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [customValue, setCustomValue] = useState<string>("");
-  const [isCustomSpeed, setIsCustomSpeed] = useState(false);
-
-  useEffect(() => {
-    if (!props.options.includes(props.selected)) {
-      setIsCustomSpeed(true);
-    } else {
-      setIsCustomSpeed(false);
-    }
-  }, [props.selected, props.options]);
-
-  const handleButtonClick = useCallback(
-    (option: number, index: number) => {
-      // Prevent Dropdown closing
-      if (editingIndex === index) return;
-      if (isCustomSpeed && option === props.selected) {
-        setEditingIndex(0);
-        setCustomValue(option.toString());
-        return;
-      }
-      props.onClick(option);
-      setIsCustomSpeed(false);
-    },
-    [editingIndex, props, isCustomSpeed],
-  );
-
-  const handleDoubleClick = useCallback(
-    (option: number, index: number) => {
-      if (props.disabled) return;
-      setEditingIndex(index);
-      setCustomValue(option.toString());
-    },
-    [props.disabled],
-  );
-
-  const handleCustomValueChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setCustomValue(e.target.value);
-    },
-    [],
-  );
-
-  const handleCustomValueKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        const value = parseFloat(customValue);
-        if (!Number.isNaN(value) && value > 0 && value <= 5) {
-          props.onClick(value);
-          setEditingIndex(null);
-          setIsCustomSpeed(true);
-        }
-      } else if (e.key === "Escape") {
-        setEditingIndex(null);
-      }
-    },
-    [customValue, props],
-  );
-
-  const handleInputBlur = useCallback(() => {
-    setEditingIndex(null);
-  }, []);
-
-  const handleResetCustomSpeed = useCallback(() => {
-    setIsCustomSpeed(false);
-    props.onClick(1);
-  }, [props]);
-
+function getPlayerPortalElement(): HTMLElement {
   return (
-    <div
-      className="flex items-center bg-white/5 p-1 rounded-lg gap-0.5"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {isCustomSpeed ? (
-        <button
-          type="button"
-          disabled={props.disabled}
-          className={classNames(
-            "w-full px-2 py-1.5 rounded-md text-sm relative",
-            "bg-white/20 text-white",
-            props.disabled ? "opacity-50 cursor-not-allowed" : null,
-          )}
-          onClick={() => handleButtonClick(props.selected, 0)}
-          onDoubleClick={() => handleDoubleClick(props.selected, 0)}
-          key="custom"
-        >
-          {editingIndex === 0 ? (
-            <input
-              type="text"
-              value={customValue}
-              onChange={handleCustomValueChange}
-              onKeyDown={handleCustomValueKeyDown}
-              onBlur={handleInputBlur}
-              className="w-full bg-transparent text-center focus:outline-none"
-              autoFocus
-              aria-label="Custom playback speed"
-            />
-          ) : (
-            <>
-              {`${props.selected}x`}
-              <button
-                type="button"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white"
-                onClick={handleResetCustomSpeed}
-                title="Reset to presets"
-              >
-                <LucideIcon icon={X} className="w-3 h-3" />
-              </button>
-            </>
-          )}
-        </button>
-      ) : (
-        props.options.map((option, index) => {
-          const isEditing = editingIndex === index;
-          return (
-            <button
-              type="button"
-              disabled={props.disabled}
-              className={classNames(
-                "flex-1 px-2 py-1.5 rounded-md text-xs relative transition-colors",
-                props.selected === option
-                  ? "bg-white/20 text-white"
-                  : "text-white/70 hover:bg-white/10",
-                props.disabled ? "opacity-50 cursor-not-allowed" : null,
-              )}
-              onClick={() => handleButtonClick(option, index)}
-              onDoubleClick={() => handleDoubleClick(option, index)}
-              key={option}
-            >
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={customValue}
-                  onChange={handleCustomValueChange}
-                  onKeyDown={handleCustomValueKeyDown}
-                  onBlur={handleInputBlur}
-                  className="w-full bg-transparent text-center focus:outline-none"
-                  autoFocus
-                  aria-label="Custom playback speed"
-                />
-              ) : (
-                `${option}x`
-              )}
-            </button>
-          );
-        })
-      )}
-    </div>
+    document.getElementById("vidninja-portal-mount") ||
+    document.getElementById("vidninja-player-container") ||
+    document.body
   );
+}
+
+let _speedSetOpen: ((v: boolean) => void) | null = null;
+let _speedCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleCloseSpeed(delayMs = 300) {
+  if (_speedCloseTimer) clearTimeout(_speedCloseTimer);
+  _speedCloseTimer = setTimeout(() => {
+    _speedSetOpen?.(false);
+    _speedCloseTimer = null;
+  }, delayMs);
+}
+function cancelCloseSpeed() {
+  if (_speedCloseTimer) {
+    clearTimeout(_speedCloseTimer);
+    _speedCloseTimer = null;
+  }
+}
+
+const SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+function formatSpeed(rate: number) {
+  return rate === 1 ? "Normal" : `${rate}x`;
 }
 
 export function SpeedButton() {
@@ -169,46 +41,127 @@ export function SpeedButton() {
   const display = usePlayerStore((s) => s.display);
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
   const [isOpen, setIsOpen] = useState(false);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const popupStyle = usePopupPosition(anchorRef, isOpen, 640);
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    setHasOpenOverlay(open);
-  };
+  useEffect(() => {
+    _speedSetOpen = (v) => {
+      setIsOpen(v);
+      setHasOpenOverlay(v);
+    };
+    return () => { _speedSetOpen = null; };
+  }, [setHasOpenOverlay]);
 
-  const setPlaybackRate = (rate: number) => {
-    if (display) {
-      display.setPlaybackRate(rate);
+  const handleMouseEnter = useCallback(() => {
+    if (window.innerWidth >= 1024) {
+      cancelCloseSpeed();
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => {
+        _speedSetOpen?.(true);
+      }, 120);
     }
-  };
+  }, []);
 
-  const speedOptions = [0.25, 0.5, 1, 1.5, 2];
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    if (window.innerWidth >= 1024) scheduleCloseSpeed();
+  }, []);
+
+  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+
+  const setPlaybackRate = useCallback((rate: number) => {
+    if (display) display.setPlaybackRate(rate);
+    setIsOpen(false);
+    setHasOpenOverlay(false);
+  }, [display, setHasOpenOverlay]);
+
+  const portalEl = getPlayerPortalElement();
 
   return (
-    <DropdownMenu.Root
-      open={isOpen}
-      onOpenChange={handleOpenChange}
-      modal={false}
-    >
-      <DropdownMenu.Trigger asChild>
-        <button
-          className="p-1 md:p-2 transition-colors group outline-none rounded-md focus-visible:ring-2 focus-visible:ring-white/20"
-          title="Playback Speed"
-        >
-          <Gauge className="w-8 h-8 lg:w-10 lg:h-10 text-white transition-colors" />
-        </button>
-      </DropdownMenu.Trigger>
+    <div className="relative inline-flex" ref={anchorRef}>
+      <button
+        onClick={() => {
+          if (window.innerWidth < 1024) {
+            const next = !isOpen;
+            setIsOpen(next);
+            setHasOpenOverlay(next);
+          } else {
+            cancelCloseSpeed();
+            setIsOpen(true);
+            setHasOpenOverlay(true);
+          }
+        }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
+        title="Playback Speed"
+      >
+        <Gauge className="w-8 h-8 lg:w-10 lg:h-10" />
+      </button>
 
-      <DropdownMenu.Content align="center" sideOffset={10} className="w-64 p-3">
-        <DropdownMenu.Arrow />
-        <div className="text-white/70 text-xs uppercase tracking-wider mb-3 px-1">
-          Speed
-        </div>
-        <SpeedButtonList
-          options={speedOptions}
-          selected={playbackRate}
-          onClick={setPlaybackRate}
-        />
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+      {createPortal(
+        <div
+          style={popupStyle}
+          className={classNames(
+            "absolute bottom-[88px] z-[300] w-[640px] max-h-[70vh]",
+            "flex flex-col rounded-2xl overflow-hidden",
+            "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
+            "transition-all duration-200 ease-out origin-bottom",
+            isOpen
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-95 pointer-events-none",
+          )}
+          onMouseEnter={cancelCloseSpeed}
+          onMouseLeave={() => scheduleCloseSpeed()}
+        >
+          {/* Header */}
+          <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0">
+            <h3 className="text-white font-bold text-lg">Playback Speed</h3>
+          </div>
+
+          {/* Slider */}
+          <div className="px-6 pb-6 pt-2">
+            {/* Track + dots */}
+            <div className="relative flex items-center justify-between">
+              {/* Track line */}
+              <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-white/20" />
+
+              {SPEED_OPTIONS.map((speed) => {
+                const isSelected = Math.abs(playbackRate - speed) < 0.01;
+                return (
+                  <button
+                    key={speed}
+                    type="button"
+                    onClick={() => setPlaybackRate(speed)}
+                    className="relative flex flex-col items-center gap-2 group z-10"
+                  >
+                    {/* Dot */}
+                    <div
+                      className={classNames(
+                        "w-4 h-4 rounded-full border-2 transition-all",
+                        isSelected
+                          ? "bg-white border-white scale-125"
+                          : "bg-[#1a1a1a] border-white/40 group-hover:border-white/70",
+                      )}
+                    />
+                    {/* Label below */}
+                    <span
+                      className={classNames(
+                        "text-lg font-semibold whitespace-nowrap mt-1",
+                        isSelected ? "text-white" : "text-white/50",
+                      )}
+                    >
+                      {speed === 1 ? "1x (Normal)" : `${speed}x`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        portalEl,
+      )}
+    </div>
   );
 }

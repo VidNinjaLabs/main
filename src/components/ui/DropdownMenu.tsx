@@ -56,10 +56,9 @@ const DropdownMenuSubContent = forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={classNames(
-      "z-[100] min-w-[140px] overflow-hidden rounded-xl p-1.5 pointer-events-auto",
-      "bg-video-context-background/95 backdrop-blur-md",
-      "border border-white/10",
-      "shadow-xl shadow-black/30",
+      "z-[100] min-w-[140px] overflow-hidden rounded-2xl pointer-events-auto",
+      "bg-[#1a1a1a]/95 backdrop-blur-xl",
+      "shadow-2xl shadow-black/50",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -93,10 +92,9 @@ const DropdownMenuContent = forwardRef<
         ref={ref}
         sideOffset={sideOffset}
         className={classNames(
-          "z-[100] min-w-[160px] overflow-hidden rounded-xl p-1.5 pointer-events-auto",
-          "bg-video-context-background/95 backdrop-blur-md",
-          "border border-white/10",
-          "shadow-xl shadow-black/30",
+          "z-[100] min-w-[160px] overflow-hidden rounded-2xl p-2 pointer-events-auto",
+          "bg-[#1a1a1a]/95 backdrop-blur-xl",
+          "shadow-2xl shadow-black/50",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",

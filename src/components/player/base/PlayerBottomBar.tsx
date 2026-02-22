@@ -27,6 +27,7 @@ export function PlayerBottomBar() {
   const duration = usePlayerStore((s) => s.progress.duration);
   const isFullscreen = usePlayerStore((s) => s.interface.isFullscreen);
   const display = usePlayerStore((s) => s.display);
+  const hasOpenOverlay = usePlayerStore((s) => s.interface.hasOpenOverlay);
 
   // Hide bottom bar only during initial load
   const showMinimalUI = !hasPlayedOnce;
@@ -68,8 +69,14 @@ export function PlayerBottomBar() {
       }}
       className="absolute bottom-0 left-0 right-0 z-50 px-2 md:px-6 lg:px-8 pb-3 lg:py-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-2 lg:pt-12 transition-opacity duration-200"
     >
-      {/* Row 1: Progress Bar with Timestamps */}
-      <div className="pointer-events-auto mb-0.5 lg:mb-4 w-full flex items-center gap-3">
+      {/* Row 1: Progress Bar with Timestamps – hidden when episode panel open */}
+      <div
+        className={`pointer-events-auto mb-0.5 lg:mb-4 w-full flex items-center gap-3 transition-all duration-200 overflow-hidden ${
+          hasOpenOverlay
+            ? "opacity-0 pointer-events-none max-h-0 mb-0"
+            : "opacity-100 max-h-20"
+        }`}
+      >
         {/* Current Time */}
         <div className="text-sm font-medium text-white/90 min-w-[35px] text-right">
           <Player.CurrentTime />
@@ -109,7 +116,7 @@ export function PlayerBottomBar() {
 
           {/* Title Info (Desktop) - Single Line Layout */}
           <div className="flex items-center ml-4 gap-2 text-white/90">
-            <h1 className="text-base font-medium line-clamp-1 max-w-[200px] lg:max-w-[300px]">
+            <h1 className="text-xl font-medium line-clamp-1 max-w-[600px] lg:max-w-[300px]">
               {meta?.title}
             </h1>
             {isShow && meta?.episode && (
@@ -134,10 +141,6 @@ export function PlayerBottomBar() {
 
         {/* Center Section (Mobile Only - Playback Controls) */}
         {/* MOVED TO PlayerCenterControls.tsx as per new design */}
-        {/* Mobile Volume Button (Moved to Left) */}
-        <div className="lg:hidden mr-auto pl-1">
-          <VolumeButton />
-        </div>
 
         {/* Center Section (Mobile Only - Spacer) */}
         {/* WE DO NOT NEED A SPACER IF WE WANT BUTTONS ON LEFT AND RIGHT. 
