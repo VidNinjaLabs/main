@@ -1,13 +1,16 @@
+/* eslint-disable react/button-has-type */
 import { ClosedCaptionIcon } from "@hugeicons/react";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Check, Settings, ChevronLeft, ChevronRight } from "lucide-react";
-import { HugeiconsIcon } from "@/components/HugeiconsIcon";
-import { usePlayerStore } from "@/stores/player/store";
-import { useCaptions } from "@/components/player/hooks/useCaptions";
-import { getLanguageName } from "@/utils/languageNames";
-import { useSubtitleStore } from "@/stores/subtitles";
 import classNames from "classnames";
+import { Check, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+import { HugeiconsIcon } from "@/components/HugeiconsIcon";
+import { useCaptions } from "@/components/player/hooks/useCaptions";
+import { usePlayerStore } from "@/stores/player/store";
+import { useSubtitleStore } from "@/stores/subtitles";
+import { getLanguageName } from "@/utils/languageNames";
+
 import { usePopupPosition } from "./usePopupPosition";
 
 function getPlayerPortalElement(): HTMLElement {
@@ -62,7 +65,9 @@ function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent px-5 pb-5 space-y-5">
         {/* Delay */}
         <div>
-          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Delay</div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">
+            Delay
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDelay(delay - 0.1)}
@@ -90,8 +95,16 @@ function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
             Text Size — {Math.round(styling.size * 100)}%
           </div>
           <input
-            type="range" min="50" max="200" value={styling.size * 100}
-            onChange={(e) => updateStyling({ ...styling, size: parseInt(e.target.value) / 100 })}
+            type="range"
+            min="50"
+            max="200"
+            value={styling.size * 100}
+            onChange={(e) =>
+              updateStyling({
+                ...styling,
+                size: parseInt(e.target.value, 10) / 100,
+              })
+            }
             className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer accent-white"
           />
         </div>
@@ -102,15 +115,25 @@ function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
             Background — {Math.round(styling.backgroundOpacity * 100)}%
           </div>
           <input
-            type="range" min="0" max="100" value={styling.backgroundOpacity * 100}
-            onChange={(e) => updateStyling({ ...styling, backgroundOpacity: parseInt(e.target.value) / 100 })}
+            type="range"
+            min="0"
+            max="100"
+            value={styling.backgroundOpacity * 100}
+            onChange={(e) =>
+              updateStyling({
+                ...styling,
+                backgroundOpacity: parseInt(e.target.value, 10) / 100,
+              })
+            }
             className="w-full h-1.5 bg-white/20 rounded appearance-none cursor-pointer accent-white"
           />
         </div>
 
         {/* Color */}
         <div>
-          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">Color</div>
+          <div className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3">
+            Color
+          </div>
           <div className="flex items-center gap-3">
             {colors.map((color) => (
               <button
@@ -118,14 +141,19 @@ function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
                 onClick={() => updateStyling({ ...styling, color })}
                 className={classNames(
                   "w-8 h-8 rounded-full transition-all",
-                  styling.color === color ? "ring-2 ring-white ring-offset-2 ring-offset-[#1a1a1a]" : "",
+                  styling.color === color
+                    ? "ring-2 ring-white ring-offset-2 ring-offset-[#1a1a1a]"
+                    : "",
                 )}
                 style={{ backgroundColor: color }}
               />
             ))}
             <input
-              type="color" value={styling.color}
-              onChange={(e) => updateStyling({ ...styling, color: e.target.value })}
+              type="color"
+              value={styling.color}
+              onChange={(e) =>
+                updateStyling({ ...styling, color: e.target.value })
+              }
               className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0"
             />
           </div>
@@ -141,10 +169,12 @@ function SubtitleSettingsView({ onBack }: { onBack: () => void }) {
               styling.bold ? "bg-blue-500" : "bg-white/20",
             )}
           >
-            <div className={classNames(
-              "w-5 h-5 bg-white rounded-full transition-transform m-0.5",
-              styling.bold ? "translate-x-4" : "translate-x-0",
-            )} />
+            <div
+              className={classNames(
+                "w-5 h-5 bg-white rounded-full transition-transform m-0.5",
+                styling.bold ? "translate-x-4" : "translate-x-0",
+              )}
+            />
           </button>
         </div>
 
@@ -191,14 +221,18 @@ export function CaptionsButton() {
       setHasOpenOverlay(v);
       if (!v) setView("main");
     };
-    return () => { _captionsSetOpen = null; };
+    return () => {
+      _captionsSetOpen = null;
+    };
   }, [setHasOpenOverlay]);
 
   const handleMouseEnter = useCallback(() => {
     if (window.innerWidth >= 1024) {
       cancelCloseCaptions();
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = setTimeout(() => { _captionsSetOpen?.(true); }, 120);
+      hoverTimerRef.current = setTimeout(() => {
+        _captionsSetOpen?.(true);
+      }, 120);
     }
   }, []);
 
@@ -207,10 +241,18 @@ export function CaptionsButton() {
     if (window.innerWidth >= 1024) scheduleCloseCaptions();
   }, []);
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    },
+    [],
+  );
 
   const handleCaptionSelect = (captionId: string | null) => {
-    if (!captionId) { setCaption(null); return; }
+    if (!captionId) {
+      setCaption(null);
+      return;
+    }
     selectCaptionById(captionId).catch(console.error);
   };
 
@@ -271,7 +313,9 @@ export function CaptionsButton() {
                 {/* Subtitles column */}
                 <div className="flex-1 flex flex-col min-w-0">
                   <div className="px-5 py-4 flex-shrink-0">
-                    <h3 className="text-white font-bold text-base">Subtitles</h3>
+                    <h3 className="text-white font-bold text-base">
+                      Subtitles
+                    </h3>
                   </div>
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     {/* Off */}
@@ -280,17 +324,25 @@ export function CaptionsButton() {
                       className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-white/5 transition-colors text-white/70 hover:text-white"
                     >
                       <div className="w-4 flex-shrink-0 flex items-center">
-                        {!selectedCaption && <Check className="w-4 h-4 text-white" />}
+                        {!selectedCaption && (
+                          <Check className="w-4 h-4 text-white" />
+                        )}
                       </div>
                       <span className="text-lg font-semibold">Off</span>
                     </div>
 
                     {captionList.length === 0 ? (
-                      <div className="px-5 py-3 text-white/30 text-lg">No subtitles</div>
+                      <div className="px-5 py-3 text-white/30 text-lg">
+                        No subtitles
+                      </div>
                     ) : (
                       captionList.map((caption, index) => {
-                        let name = caption.display || getLanguageName(caption.language);
-                        if (!caption.display && (!caption.language || caption.language === "en")) {
+                        let name =
+                          caption.display || getLanguageName(caption.language);
+                        if (
+                          !caption.display &&
+                          (!caption.language || caption.language === "en")
+                        ) {
                           name = `Subtitle ${index + 1}`;
                         }
                         const isSelected = selectedCaption?.id === caption.id;
@@ -304,10 +356,13 @@ export function CaptionsButton() {
                             )}
                           >
                             <div className="w-4 flex-shrink-0 flex items-center">
-                              {isSelected && <Check className="w-4 h-4 text-white" />}
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-white" />
+                              )}
                             </div>
                             <span className="flex-1 text-lg font-semibold truncate">
-                              {name}{caption.isHearingImpaired && " (CC)"}
+                              {name}
+                              {caption.isHearingImpaired && " (CC)"}
                             </span>
                           </div>
                         );
@@ -334,7 +389,9 @@ export function CaptionsButton() {
                   </div>
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     {audioTracks.length === 0 ? (
-                      <div className="px-5 py-3 text-white/30 text-lg">No audio tracks</div>
+                      <div className="px-5 py-3 text-white/30 text-lg">
+                        No audio tracks
+                      </div>
                     ) : (
                       audioTracks.map((track) => {
                         const isSelected = currentAudioTrack?.id === track.id;
@@ -348,10 +405,14 @@ export function CaptionsButton() {
                             )}
                           >
                             <div className="w-4 flex-shrink-0 flex items-center">
-                              {isSelected && <Check className="w-4 h-4 text-white" />}
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-white" />
+                              )}
                             </div>
                             <span className="flex-1 text-lg font-semibold truncate">
-                              {track.label || getLanguageName(track.language) || `Track ${track.id}`}
+                              {track.label ||
+                                getLanguageName(track.language) ||
+                                `Track ${track.id}`}
                             </span>
                           </div>
                         );

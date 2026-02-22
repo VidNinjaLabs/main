@@ -1,12 +1,15 @@
+/* eslint-disable react/button-has-type */
 import { CloudIcon } from "@hugeicons/react";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Check, Loader2 } from "lucide-react";
+import classNames from "classnames";
+import { Check, CircleX, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
+import { Provider } from "@/backend/api/types";
+import { backendClient } from "@/backend/api/vidninja";
 import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import { usePlayerStore } from "@/stores/player/store";
-import { backendClient } from "@/backend/api/vidninja";
-import { Provider } from "@/backend/api/types";
-import classNames from "classnames";
-import { createPortal } from "react-dom";
+
 import { usePopupPosition } from "./usePopupPosition";
 
 function getPlayerPortalElement(): HTMLElement {
@@ -37,7 +40,9 @@ function cancelCloseServer() {
 export function ServerSelector() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingProviderId, setLoadingProviderId] = useState<string | null>(null);
+  const [loadingProviderId, setLoadingProviderId] = useState<string | null>(
+    null,
+  );
   const [errorProviderId, setErrorProviderId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,12 +61,17 @@ export function ServerSelector() {
       setIsOpen(v);
       setHasOpenOverlay(v);
     };
-    return () => { _serverSetOpen = null; };
+    return () => {
+      _serverSetOpen = null;
+    };
   }, [setHasOpenOverlay]);
 
   useEffect(() => {
-    backendClient.getProviders()
-      .then((res) => { if (res && Array.isArray(res.sources)) setProviders(res.sources); })
+    backendClient
+      .getProviders()
+      .then((res) => {
+        if (res && Array.isArray(res.sources)) setProviders(res.sources);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -70,7 +80,9 @@ export function ServerSelector() {
     if (window.innerWidth >= 1024) {
       cancelCloseServer();
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = setTimeout(() => { _serverSetOpen?.(true); }, 120);
+      hoverTimerRef.current = setTimeout(() => {
+        _serverSetOpen?.(true);
+      }, 120);
     }
   }, []);
 
@@ -79,10 +91,16 @@ export function ServerSelector() {
     if (window.innerWidth >= 1024) scheduleCloseServer();
   }, []);
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    },
+    [],
+  );
 
   const handleProviderSelect = async (providerId: string) => {
-    if (loadingProviderId === providerId || providerId === currentProvider) return;
+    if (loadingProviderId === providerId || providerId === currentProvider)
+      return;
     if (!meta) return;
 
     usePlayerStore.getState().pauseCurrentPlayback();
@@ -93,9 +111,17 @@ export function ServerSelector() {
       const streamResponse =
         meta.type === "movie"
           ? await backendClient.scrapeMovie(meta.tmdbId, providerId)
-          : await backendClient.scrapeShow(meta.tmdbId, meta.season?.number || 1, meta.episode?.number || 1, providerId);
+          : await backendClient.scrapeShow(
+              meta.tmdbId,
+              meta.season?.number || 1,
+              meta.episode?.number || 1,
+              providerId,
+            );
 
-      if (!streamResponse || (!streamResponse.stream && !streamResponse.manifestUrl)) {
+      if (
+        !streamResponse ||
+        (!streamResponse.stream && !streamResponse.manifestUrl)
+      ) {
         throw new Error("No stream found");
       }
 
@@ -105,14 +131,22 @@ export function ServerSelector() {
       let streamHeaders = streamResponse.headers;
 
       if (streamResponse.stream) {
-        const streams = Array.isArray(streamResponse.stream) ? streamResponse.stream : [streamResponse.stream];
+        const streams = Array.isArray(streamResponse.stream)
+          ? streamResponse.stream
+          : [streamResponse.stream];
         if (streams.length > 0) {
           streamUrl = streams[0].playlist;
           streamHeaders = streams[0].headers;
         }
       }
 
-      usePlayerStore.getState().setSource({ type: "hls", url: streamUrl, headers: streamHeaders } as any, [], 0);
+      usePlayerStore
+        .getState()
+        .setSource(
+          { type: "hls", url: streamUrl, headers: streamHeaders } as any,
+          [],
+          0,
+        );
       usePlayerStore.getState().resumeCurrentPlayback();
       setLoadingProviderId(null);
       performPlay();
@@ -125,7 +159,8 @@ export function ServerSelector() {
     }
   };
 
-  const getProviderName = (id: string) => providers.find((p) => p.id === id)?.name ?? id;
+  const getProviderName = (id: string) =>
+    providers.find((p) => p.id === id)?.name ?? id;
   const portalEl = getPlayerPortalElement();
 
   return (
@@ -151,7 +186,10 @@ export function ServerSelector() {
         <HugeiconsIcon
           icon={CloudIcon}
           size="sm"
-          className={classNames("w-8 h-8 lg:w-10 lg:h-10", loadingProviderId && "animate-pulse")}
+          className={classNames(
+            "w-8 h-8 lg:w-10 lg:h-10",
+            loadingProviderId && "animate-pulse",
+          )}
           strokeWidth={2}
         />
         {loadingProviderId && (
@@ -176,17 +214,6 @@ export function ServerSelector() {
           onMouseEnter={cancelCloseServer}
           onMouseLeave={() => scheduleCloseServer()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 flex-shrink-0">
-            <h3 className="text-white font-bold text-lg">Select Server</h3>
-            {loadingProviderId && (
-              <span className="text-blue-300 text-lg flex items-center gap-1.5">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Switching...
-              </span>
-            )}
-          </div>
-
           {/* Server list */}
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {loading ? (
@@ -194,7 +221,9 @@ export function ServerSelector() {
                 <Loader2 className="w-6 h-6 animate-spin text-white/40" />
               </div>
             ) : providers.length === 0 ? (
-              <div className="px-5 py-6 text-white/40 text-lg">No servers available</div>
+              <div className="px-5 py-6 text-white/40 text-lg">
+                No servers available
+              </div>
             ) : (
               providers.map((provider) => {
                 const isSelected = provider.id === currentProvider;
@@ -203,11 +232,19 @@ export function ServerSelector() {
                 return (
                   <div
                     key={provider.id}
-                    onClick={() => !loadingProviderId && handleProviderSelect(provider.id)}
+                    onClick={() =>
+                      !loadingProviderId && handleProviderSelect(provider.id)
+                    }
                     className={classNames(
-                      "flex items-center gap-4 px-5 py-3 cursor-pointer transition-colors",
-                      loadingProviderId && !isLoading ? "opacity-40 cursor-default" : "hover:bg-white/5",
-                      hasError ? "text-red-400" : isSelected ? "text-white" : "text-white/70",
+                      "flex items-center gap-2 p-2.5 cursor-pointer transition-colors",
+                      loadingProviderId && !isLoading
+                        ? "opacity-40 cursor-default"
+                        : "hover:bg-white/5",
+                      hasError
+                        ? "text-red-400"
+                        : isSelected
+                          ? "text-white"
+                          : "text-white/70",
                     )}
                   >
                     <div className="w-5 flex-shrink-0 flex items-center justify-center">
@@ -217,8 +254,10 @@ export function ServerSelector() {
                         <Check className="w-4 h-4 text-white" />
                       ) : null}
                     </div>
-                    <span className="flex-1 text-lg font-semibold">{provider.name}</span>
-                    {hasError && <span className="text-lg text-red-400">Failed</span>}
+                    <span className="flex-1 text-lg font-semibold">
+                      {provider.name}
+                    </span>
+                    {hasError && <CircleX className="text-lg text-red-400" />}
                   </div>
                 );
               })

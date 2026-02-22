@@ -1,9 +1,12 @@
-import { Settings2, Check } from "lucide-react";
-import { usePlayerStore } from "@/stores/player/store";
-import { Popover } from "@/components/ui/Popover";
-import { useState, useRef, useCallback, useEffect } from "react";
+/* eslint-disable react/button-has-type */
 import classNames from "classnames";
+import { Check, Settings2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+import { Popover } from "@/components/ui/Popover";
+import { usePlayerStore } from "@/stores/player/store";
+
 import { usePopupPosition } from "./usePopupPosition";
 
 function getPlayerPortalElement(): HTMLElement {
@@ -42,10 +45,10 @@ function deriveSmartQualities(qualities: string[]): SmartQuality[] {
   // Sort descending by resolution
   numQualities.sort((a, b) => b.res - a.res);
 
-  let fourK: typeof numQualities[0] | null = null;
-  let hd: typeof numQualities[0] | null = null;
-  let good: typeof numQualities[0] | null = null;
-  let dataSave: typeof numQualities[0] | null = null;
+  let fourK: (typeof numQualities)[0] | null = null;
+  let hd: (typeof numQualities)[0] | null = null;
+  let good: (typeof numQualities)[0] | null = null;
+  let dataSave: (typeof numQualities)[0] | null = null;
 
   for (const item of numQualities) {
     if (item.res >= 2160) {
@@ -60,15 +63,31 @@ function deriveSmartQualities(qualities: string[]): SmartQuality[] {
   }
 
   const result: SmartQuality[] = [];
-  
-  if (hasAuto) result.push({ label: "Auto", value: autoValue, desc: "Adjusts dynamically" });
-  if (fourK) result.push({ label: "4K", value: fourK.q, desc: "Ultra High Definition" });
+
+  if (hasAuto)
+    result.push({
+      label: "Auto",
+      value: autoValue,
+      desc: "Adjusts dynamically",
+    });
+  if (fourK)
+    result.push({ label: "4K", value: fourK.q, desc: "Ultra High Definition" });
   if (hd) result.push({ label: "HD", value: hd.q, desc: "High Definition" });
-  if (good) result.push({ label: "Good", value: good.q, desc: "Standard Definition" });
-  if (dataSave) result.push({ label: "Data Save", value: dataSave.q, desc: "Reduced bandwidth" });
+  if (good)
+    result.push({ label: "Good", value: good.q, desc: "Standard Definition" });
+  if (dataSave)
+    result.push({
+      label: "Data Save",
+      value: dataSave.q,
+      desc: "Reduced bandwidth",
+    });
 
   for (const q of otherQualities) {
-    result.push({ label: q.charAt(0).toUpperCase() + q.slice(1), value: q, desc: "Video Quality" });
+    result.push({
+      label: q.charAt(0).toUpperCase() + q.slice(1),
+      value: q,
+      desc: "Video Quality",
+    });
   }
 
   return result;
@@ -77,9 +96,9 @@ function deriveSmartQualities(qualities: string[]): SmartQuality[] {
 function getCategoryForQuality(quality: string | null): string {
   if (!quality) return "Auto";
   const lower = quality.toLowerCase();
-  
+
   if (lower === "unknown" || lower === "auto") return "Auto";
-  
+
   const match = lower.match(/(\d+)/);
   if (match) {
     const res = parseInt(match[1], 10);
@@ -88,7 +107,7 @@ function getCategoryForQuality(quality: string | null): string {
     if (res >= 720) return "Good";
     return "Data Save";
   }
-  
+
   return quality.charAt(0).toUpperCase() + quality.slice(1);
 }
 
@@ -127,7 +146,9 @@ export function QualityButton() {
       setIsOpen(v);
       setHasOpenOverlay(v);
     };
-    return () => { _qualitySetOpen = null; };
+    return () => {
+      _qualitySetOpen = null;
+    };
   }, [setHasOpenOverlay]);
 
   const handleMouseEnter = useCallback(() => {
@@ -145,7 +166,12 @@ export function QualityButton() {
     if (window.innerWidth >= 1024) scheduleCloseQuality();
   }, []);
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    },
+    [],
+  );
 
   if (qualities.length === 0) return null;
 
@@ -154,7 +180,17 @@ export function QualityButton() {
   return (
     <div className="relative inline-flex" ref={anchorRef}>
       <button
-        onClick={() => { if (window.innerWidth < 1024) { const next = !isOpen; setIsOpen(next); setHasOpenOverlay(next); } else { cancelCloseQuality(); setIsOpen(true); setHasOpenOverlay(true); } }}
+        onClick={() => {
+          if (window.innerWidth < 1024) {
+            const next = !isOpen;
+            setIsOpen(next);
+            setHasOpenOverlay(next);
+          } else {
+            cancelCloseQuality();
+            setIsOpen(true);
+            setHasOpenOverlay(true);
+          }
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className="text-white hover:text-white/80 transition-colors flex items-center justify-center rounded-lg p-2"
@@ -167,7 +203,7 @@ export function QualityButton() {
         <div
           style={popupStyle}
           className={classNames(
-            "absolute bottom-[88px] z-[300] min-w-[320px] max-w-[320px]",
+            "absolute bottom-[88px] z-[300] min-w-[220px] max-w-[320px]",
             "flex flex-col rounded-2xl overflow-hidden",
             "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
             "transition-all duration-200 ease-out origin-bottom",
@@ -178,11 +214,6 @@ export function QualityButton() {
           onMouseEnter={cancelCloseQuality}
           onMouseLeave={() => scheduleCloseQuality()}
         >
-          {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0">
-            <h3 className="text-white font-bold text-lg">Quality</h3>
-          </div>
-
           {/* Quality list */}
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {smartQualities.map(({ label, value, desc }) => {
@@ -196,7 +227,7 @@ export function QualityButton() {
                     setHasOpenOverlay(false);
                   }}
                   className={classNames(
-                    "flex items-center gap-4 px-5 py-3 cursor-pointer hover:bg-white/5 transition-colors",
+                    "flex items-center gap-2 p-2.5 cursor-pointer hover:bg-white/5 transition-colors",
                     isSelected ? "text-white" : "text-white/70",
                   )}
                 >
@@ -204,11 +235,15 @@ export function QualityButton() {
                     {isSelected && <Check className="w-4 h-4 text-white" />}
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
-                    <span className="text-lg font-semibold leading-[1.1]">{label}</span>
+                    <span className="text-lg font-semibold leading-[1.1]">
+                      {label}
+                    </span>
                     {desc && (
-                      <span className="text-white/40 text-sm mt-0.5">{desc}</span>
+                      <span className="text-white/40 text-sm mt-0.5">
+                        {desc}
+                      </span>
                     )}
-                  </div>                  
+                  </div>
                 </div>
               );
             })}
