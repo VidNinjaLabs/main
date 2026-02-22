@@ -1,18 +1,16 @@
+/* eslint-disable react/no-unused-prop-types */
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
 import classNames from "classnames";
-import { Bell, Search, Settings, X } from "lucide-react";
+import { Bell, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, To, useNavigate } from "react-router-dom";
 
-import { SearchBarInput } from "@/components/form/SearchBar";
-import { LinksDropdown } from "@/components/LinksDropdown";
-import { useRandomTranslation } from "@/hooks/useRandomTranslation";
-import { useSearchQuery } from "@/hooks/useSearchQuery";
-import { BlurEllipsis } from "@/pages/layouts/SubPageLayout";
-import { useBannerSize } from "@/stores/banner";
-import { usePreferencesStore } from "@/stores/preferences";
-import { useDiscoverStore } from "@/stores/discover";
-
 import { BrandPill } from "./BrandPill";
+
+import { LinksDropdown } from "@/components/LinksDropdown";
+import { useBannerSize } from "@/stores/banner";
+import { useDiscoverStore } from "@/stores/discover";
 
 export interface NavigationProps {
   bg?: boolean;
@@ -28,10 +26,6 @@ export function Navigation(props: NavigationProps) {
 
   const [scrollPosition, setScrollPosition] = useState(0);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  const { t: randomT } = useRandomTranslation();
-  const [search, setSearch, setSearchUnFocus] = useSearchQuery();
-  const placeholder = randomT(`home.search.placeholder`);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,7 +52,6 @@ export function Navigation(props: NavigationProps) {
 
   return (
     <>
-      {/* backgrounds - simplified */}
       {/* backgrounds - simplified */}
       <div
         className={classNames(
@@ -138,35 +131,11 @@ export function Navigation(props: NavigationProps) {
               </div>
             </div>
 
-            {/* Show search box on /browse page - special case center */}
-            {window.location.pathname.startsWith("/browse") && (
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 pointer-events-auto flex items-center gap-2">
-                <div className="flex-1">
-                  <SearchBarInput
-                    onChange={setSearch}
-                    value={search}
-                    onUnFocus={setSearchUnFocus}
-                    placeholder={
-                      placeholder ?? "Search for movies or TV shows..."
-                    }
-                    isSticky={false}
-                    isInFeatured={false}
-                  />
-                </div>
-                <a
-                  onClick={() => handleClick("/discover")}
-                  rel="noreferrer"
-                  className="h-14 w-14 flex items-center justify-center text-white tabbable rounded-full backdrop-blur-lg cursor-pointer flex-shrink-0 bg-white/10 hover:bg-white/30 transition-all duration-200"
-                >
-                  <X size={28} />
-                </a>
-              </div>
-            )}
-
             {/* Right Side: Icons (Search | Notification | Account) */}
-            <div className="relative pointer-events-auto flex items-center gap-2 md:gap-4">
+            <div className="relative pointer-events-auto flex items-center gap-2 md:gap-4 ml-auto">
               {/* Search Icon */}
-              {window.location.pathname === "/discover" && (
+              {(window.location.pathname === "/discover" ||
+                window.location.pathname.startsWith("/browse")) && (
                 <a
                   onClick={() => handleClick("/browse")}
                   rel="noreferrer"

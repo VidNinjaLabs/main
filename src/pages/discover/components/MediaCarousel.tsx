@@ -1,7 +1,6 @@
 import { Listbox } from "@headlessui/react";
 import { ArrowRight, ArrowUpDown, Check } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
@@ -20,6 +19,7 @@ import { useIntersectionObserver } from "@/pages/discover/hooks/useIntersectionO
 import { useDiscoverStore } from "@/stores/discover";
 import { useProgressStore } from "@/stores/progress";
 import { MediaItem } from "@/utils/mediaTypes";
+import { useTranslation } from "react-i18next";
 
 import { CarouselNavButtons } from "./CarouselNavButtons";
 
@@ -115,7 +115,7 @@ export function MediaCarousel({
   // Set up intersection observer for lazy loading
   const { targetRef, isIntersecting, hasIntersected } = useIntersectionObserver(
     {
-      rootMargin: "300px",
+      rootMargin: "200px",
     },
   );
 
@@ -314,8 +314,8 @@ export function MediaCarousel({
     return (
       <div ref={targetRef as React.RefObject<HTMLDivElement>}>
         <div className="flex items-center justify-between ml-4 md:ml-8 mt-2">
-          <div className="flex gap-4 items-center">
-            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl text-balance">
+          <div className="flex gap-4 items-center w-full">
+            <h2 className="text-lg md:text-2xl cursor-default font-bold text-white text-balance">
               {t("discover.carousel.title.loading")}
             </h2>
           </div>
@@ -350,104 +350,211 @@ export function MediaCarousel({
 
   return (
     <div ref={targetRef as React.RefObject<HTMLDivElement>}>
-      <div className="flex items-center justify-between ml-4 md:ml-8 mt-2">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl cursor-default font-bold text-white md:text-2xl text-balance">
-              {sectionTitle}
-            </h2>
-            {showRecommendations &&
-              recommendationSources &&
-              recommendationSources.length > 0 && (
-                <div className="relative pr-4">
-                  <Dropdown
-                    selectedItem={
-                      recommendationSources.find(
-                        (s) => s.id === selectedRecommendationId,
-                      )
-                        ? {
-                            id: selectedRecommendationId || "",
-                            name:
-                              recommendationSources.find(
-                                (s) => s.id === selectedRecommendationId,
-                              )?.title || "",
-                          }
-                        : {
-                            id: "",
-                            name: recommendationSources[0]?.title || "",
-                          }
-                    }
-                    setSelectedItem={(item) => {
-                      const source = recommendationSources.find(
-                        (s) => s.id === item.id,
-                      );
-                      if (source) {
-                        setSelectedRecommendationId(item.id);
-                        setSelectedRecommendationTitle(source.title);
-                      }
-                    }}
-                    options={recommendationSources.map((source) => ({
-                      id: source.id,
-                      name: source.title,
-                    }))}
-                    customButton={
-                      <button
-                        type="button"
-                        className="px-2 py-1 text-sm bg-mediaCard-hoverBackground rounded-full hover:bg-mediaCard-background transition-colors flex items-center gap-1"
-                      >
-                        <span>{t("discover.carousel.change")}</span>
-                        <ArrowUpDown className="text-xs text-dropdown-secondary" />
-                      </button>
-                    }
-                    side="right"
-                    customMenu={
-                      <Listbox.Options static className="py-1">
-                        {recommendationSources.map((opt) => (
-                          <Listbox.Option
-                            className={({ active }) =>
-                              `cursor-pointer min-w-60 flex gap-4 items-center relative select-none py-2 px-4 mx-1 rounded-lg ${
-                                active
-                                  ? "bg-background-secondaryHover text-type-link"
-                                  : "text-type-secondary"
-                              }`
-                            }
-                            key={opt.id}
-                            value={{ id: opt.id, name: opt.title }}
-                          >
-                            {({ selected }) => (
-                              <>
-                                <span
-                                  className={`block ${selected ? "font-medium" : "font-normal"}`}
-                                >
-                                  {opt.title}
-                                </span>
-                                {selected && (
-                                  <Check className="text-xs text-type-link" />
-                                )}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    }
-                  />
-                </div>
-              )}
-            {moreContent && (
-              <Link
-                to={generatedMoreLink}
-                onClick={handleMoreClick}
-                className="flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer group h-full"
-              >
-                <span className="flex items-center">
-                  <span className="text-sm font-medium max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden">
-                    {t("discover.carousel.more")}
+      <div className="flex items-center justify-between ml-4 md:ml-8 mt-2 md:pr-6">
+        <div className="flex flex-col w-full pr-4 md:pr-0 min-w-0">
+          {showRecommendations && sectionTitle.includes(":") ? (
+            <div className="flex flex-col items-start min-w-0 w-full mb-1">
+              <div className="flex items-center justify-start gap-2 md:gap-3">
+                <div className="flex items-center gap-2 w-auto">
+                  <span className="text-xs md:text-sm cursor-default font-medium text-type-secondary truncate mt-[2px]">
+                    {sectionTitle.split(":")[0]}:
                   </span>
-                  <ArrowRight className="text-sm transition-transform duration-300 group-hover:translate-x-1 ml-1" />
-                </span>
-              </Link>
-            )}
-          </div>
+                  {recommendationSources &&
+                    recommendationSources.length > 0 && (
+                      <div className="relative flex-shrink-0">
+                        <Dropdown
+                          selectedItem={
+                            recommendationSources.find(
+                              (s) => s.id === selectedRecommendationId,
+                            )
+                              ? {
+                                  id: selectedRecommendationId || "",
+                                  name:
+                                    recommendationSources.find(
+                                      (s) => s.id === selectedRecommendationId,
+                                    )?.title || "",
+                                }
+                              : {
+                                  id: "",
+                                  name: recommendationSources[0]?.title || "",
+                                }
+                          }
+                          setSelectedItem={(item) => {
+                            const source = recommendationSources.find(
+                              (s) => s.id === item.id,
+                            );
+                            if (source) {
+                              setSelectedRecommendationId(item.id);
+                              setSelectedRecommendationTitle(source.title);
+                            }
+                          }}
+                          options={recommendationSources.map((source) => ({
+                            id: source.id,
+                            name: source.title,
+                          }))}
+                          customButton={
+                            <button
+                              type="button"
+                              className="px-2 py-1 text-xs md:text-sm bg-mediaCard-hoverBackground rounded-full hover:bg-mediaCard-background transition-colors flex items-center gap-1"
+                            >
+                              <span>{t("discover.carousel.change")}</span>
+                              <ArrowUpDown className="text-sm md:text-xs text-dropdown-secondary" />
+                            </button>
+                          }
+                          side="right"
+                          customMenu={
+                            <Listbox.Options static className="py-1">
+                              {recommendationSources.map((opt) => (
+                                <Listbox.Option
+                                  className={({ active }) =>
+                                    `cursor-pointer min-w-40 md:min-w-60 flex gap-4 items-center relative select-none py-2 px-4 mx-1 rounded-lg ${
+                                      active
+                                        ? "bg-background-secondaryHover text-type-link"
+                                        : "text-type-secondary"
+                                    }`
+                                  }
+                                  key={opt.id}
+                                  value={{ id: opt.id, name: opt.title }}
+                                >
+                                  {({ selected }) => (
+                                    <>
+                                      <span
+                                        className={`block text-sm md:text-base ${selected ? "font-medium" : "font-normal"}`}
+                                      >
+                                        {opt.title}
+                                      </span>
+                                      {selected && (
+                                        <Check className="text-xs text-type-link" />
+                                      )}
+                                    </>
+                                  )}
+                                </Listbox.Option>
+                              ))}
+                            </Listbox.Options>
+                          }
+                        />
+                      </div>
+                    )}
+                </div>
+                {moreContent && (
+                  <Link
+                    to={generatedMoreLink}
+                    onClick={handleMoreClick}
+                    className="flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer group h-full flex-shrink-0"
+                  >
+                    <span className="flex items-center">
+                      <span className="text-sm font-medium max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden hidden md:block">
+                        {t("discover.carousel.more")}
+                      </span>
+                      <ArrowRight className="text-lg md:text-sm transition-transform duration-300 group-hover:translate-x-1 ml-1" />
+                    </span>
+                  </Link>
+                )}
+              </div>
+              <h2 className="text-xl md:text-2xl cursor-default font-bold text-white truncate max-w-[80vw] md:max-w-none mt-1">
+                {sectionTitle.split(":").slice(1).join(":").trim()}
+              </h2>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full gap-2 md:gap-3 flex-nowrap">
+              <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                <h2 className="text-sm md:text-2xl cursor-default font-bold text-white truncate max-w-[50vw] md:max-w-none">
+                  {sectionTitle}
+                </h2>
+                {showRecommendations &&
+                  recommendationSources &&
+                  recommendationSources.length > 0 && (
+                    <div className="relative mt-1 md:mt-0 flex-shrink-0">
+                      <Dropdown
+                        selectedItem={
+                          recommendationSources.find(
+                            (s) => s.id === selectedRecommendationId,
+                          )
+                            ? {
+                                id: selectedRecommendationId || "",
+                                name:
+                                  recommendationSources.find(
+                                    (s) => s.id === selectedRecommendationId,
+                                  )?.title || "",
+                              }
+                            : {
+                                id: "",
+                                name: recommendationSources[0]?.title || "",
+                              }
+                        }
+                        setSelectedItem={(item) => {
+                          const source = recommendationSources.find(
+                            (s) => s.id === item.id,
+                          );
+                          if (source) {
+                            setSelectedRecommendationId(item.id);
+                            setSelectedRecommendationTitle(source.title);
+                          }
+                        }}
+                        options={recommendationSources.map((source) => ({
+                          id: source.id,
+                          name: source.title,
+                        }))}
+                        customButton={
+                          <button
+                            type="button"
+                            className="px-2 py-1 text-xs md:text-sm bg-mediaCard-hoverBackground rounded-full hover:bg-mediaCard-background transition-colors flex items-center gap-1"
+                          >
+                            <span>{t("discover.carousel.change")}</span>
+                            <ArrowUpDown className="text-sm md:text-xs text-dropdown-secondary" />
+                          </button>
+                        }
+                        side="right"
+                        customMenu={
+                          <Listbox.Options static className="py-1">
+                            {recommendationSources.map((opt) => (
+                              <Listbox.Option
+                                className={({ active }) =>
+                                  `cursor-pointer min-w-40 md:min-w-60 flex gap-4 items-center relative select-none py-2 px-4 mx-1 rounded-lg ${
+                                    active
+                                      ? "bg-background-secondaryHover text-type-link"
+                                      : "text-type-secondary"
+                                  }`
+                                }
+                                key={opt.id}
+                                value={{ id: opt.id, name: opt.title }}
+                              >
+                                {({ selected }) => (
+                                  <>
+                                    <span
+                                      className={`block text-sm md:text-base ${selected ? "font-medium" : "font-normal"}`}
+                                    >
+                                      {opt.title}
+                                    </span>
+                                    {selected && (
+                                      <Check className="text-xs text-type-link" />
+                                    )}
+                                  </>
+                                )}
+                              </Listbox.Option>
+                            ))}
+                          </Listbox.Options>
+                        }
+                      />
+                    </div>
+                  )}
+              </div>
+              {moreContent && (
+                <Link
+                  to={generatedMoreLink}
+                  onClick={handleMoreClick}
+                  className="flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer group h-full flex-shrink-0"
+                >
+                  <span className="flex items-center">
+                    <span className="text-sm font-medium max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden hidden md:block">
+                      {t("discover.carousel.more")}
+                    </span>
+                    <ArrowRight className="text-lg md:text-sm transition-transform duration-300 group-hover:translate-x-1 ml-1" />
+                  </span>
+                </Link>
+              )}
+            </div>
+          )}
         </div>
         {relatedButtons && relatedButtons.length > 0 && (
           <div className="flex items-center space-x-2 mr-6">

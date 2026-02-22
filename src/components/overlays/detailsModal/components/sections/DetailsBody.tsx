@@ -13,6 +13,8 @@ import { MediaBookmarkButton } from "@/components/media/MediaBookmark";
 import { useBookmarkStore } from "@/stores/bookmarks";
 
 import { DetailsBodyProps } from "../../types";
+import { Share01Icon } from "@hugeicons/react";
+import { SquareArrowOutUpRight } from "lucide-react";
 
 export function DetailsBody({
   data,
@@ -240,10 +242,7 @@ export function DetailsBody({
                 className="p-2 opacity-75 transition-opacity duration-300 hover:scale-110 hover:cursor-pointer hover:opacity-95"
                 title={t("details.trailer")}
               >
-                <IconPatch
-                  icon={Icons.FILM}
-                  className="transition-transform duration-300 hover:scale-110 hover:cursor-pointer"
-                />
+                <SquareArrowOutUpRight className="transition-transform duration-300 hover:scale-110 hover:cursor-pointer" />
               </button>
             )}
             <MediaBookmarkButton

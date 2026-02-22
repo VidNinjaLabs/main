@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { EditButton } from "@/components/buttons/EditButton";
 import { Icons } from "@/components/Icon";
 import { SectionHeading } from "@/components/layout/SectionHeading";
-import { WatchedMediaCard } from "@/components/media/WatchedMediaCard";
+import { WatchedHorizontalMediaCard } from "@/components/media/WatchedMediaCard";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { CarouselNavButtons } from "@/pages/discover/components/CarouselNavButtons";
 import { useProgressStore } from "@/stores/progress";
@@ -20,9 +20,9 @@ interface WatchingCarouselProps {
 
 function MediaCardSkeleton() {
   return (
-    <div className="relative mt-4 group cursor-default rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0">
+    <div className="relative mt-4 group cursor-default rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[22rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0">
       <div className="animate-pulse">
-        <div className="w-full aspect-[2/3] bg-mediaCard-hoverBackground rounded-lg" />
+        <div className="w-full aspect-video bg-mediaCard-hoverBackground rounded-xl" />
         <div className="mt-2 h-4 bg-mediaCard-hoverBackground rounded w-3/4" />
       </div>
     </div>
@@ -117,9 +117,9 @@ export function WatchingCarousel({
                   onContextMenu={(e: React.MouseEvent<HTMLDivElement>) =>
                     e.preventDefault()
                   }
-                  className="relative mt-4 group cursor-pointer rounded-xl p-2 bg-transparent transition-colors duration-300 w-[10rem] md:w-[11.5rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0"
+                  className="relative mt-4 group cursor-pointer rounded-xl p-2 bg-transparent transition-colors duration-300 w-[16rem] md:w-[22rem] h-auto first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0"
                 >
-                  <WatchedMediaCard
+                  <WatchedHorizontalMediaCard
                     key={media.id}
                     media={media}
                     onShowDetails={onShowDetails}

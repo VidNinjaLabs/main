@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 
+import { HorizontalMediaCard } from "./HorizontalMediaCard";
+import { MediaCard } from "./MediaCard";
+
 import { getProgressPercentage, useProgressStore } from "@/stores/progress";
 import {
   ShowProgressResult,
   shouldShowProgress,
 } from "@/stores/progress/utils";
 import { MediaItem } from "@/utils/mediaTypes";
-
-import { MediaCard } from "./MediaCard";
 
 function formatSeries(series?: ShowProgressResult | null) {
   if (!series || !series.episode || !series.season) return undefined;
@@ -46,6 +47,37 @@ export function WatchedMediaCard(props: WatchedMediaCardProps) {
 
   return (
     <MediaCard
+      media={props.media}
+      series={formatSeries(itemToDisplay)}
+      linkable
+      percentage={percentage}
+      onClose={props.onClose}
+      closable={props.closable}
+      onShowDetails={props.onShowDetails}
+      editable={props.editable}
+      onEdit={props.onEdit}
+    />
+  );
+}
+
+export function WatchedHorizontalMediaCard(props: WatchedMediaCardProps) {
+  const progressItems = useProgressStore((s) => s.items);
+  const item = useMemo(() => {
+    return progressItems[props.media.id];
+  }, [progressItems, props.media]);
+  const itemToDisplay = useMemo(
+    () => (item ? shouldShowProgress(item) : null),
+    [item],
+  );
+  const percentage = itemToDisplay?.show
+    ? getProgressPercentage(
+        itemToDisplay.progress.watched,
+        itemToDisplay.progress.duration,
+      )
+    : undefined;
+
+  return (
+    <HorizontalMediaCard
       media={props.media}
       series={formatSeries(itemToDisplay)}
       linkable

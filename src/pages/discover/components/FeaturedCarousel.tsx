@@ -1,13 +1,20 @@
+/* eslint-disable import/order */
+/* eslint-disable import/no-unresolved */
+/* eslint-disable import/extensions */
+import { InformationCircleIcon } from "@hugeicons/react";
 import classNames from "classnames";
 import { ChevronLeft, ChevronRight, PlayIcon } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWindowSize } from "react-use";
 
-import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
-import { useDiscoverStore } from "@/stores/discover";
+import {
+  get,
+  getMediaBackdrop,
+  getMediaBackdropEn,
+  getMediaLogo,
+} from "@/backend/metadata/tmdb";
 // Extension and scrapers removed
-import { get, getMediaBackdrop, getMediaLogo } from "@/backend/metadata/tmdb";
 
 import {
   getDiscoverContent,
@@ -17,8 +24,10 @@ import { TMDBContentTypes } from "@/backend/metadata/types/tmdb";
 import type { TraktReleaseResponse } from "@/backend/metadata/types/trakt";
 import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
+import { HorizontalMediaCard } from "@/components/media/HorizontalMediaCard";
 import { Movie, TVShow } from "@/pages/discover/common";
 import { conf } from "@/setup/config";
+import { useDiscoverStore } from "@/stores/discover";
 import { useLanguageStore } from "@/stores/language";
 import { usePreferencesStore } from "@/stores/preferences";
 import { getTmdbLanguageCode } from "@/utils/language";
@@ -29,7 +38,6 @@ import {
   EDITOR_PICKS_MOVIES,
   EDITOR_PICKS_TV_SHOWS,
 } from "../hooks/useDiscoverMedia";
-import { InformationCircleIcon } from "@hugeicons/react";
 
 const t = i18n.t;
 
@@ -149,6 +157,9 @@ export function FeaturedCarousel({
   const userLanguage = useLanguageStore((s) => s.language);
   const formattedLanguage = getTmdbLanguageCode(userLanguage);
   const { width: windowWidth, height: windowHeight } = useWindowSize();
+  const [resolvedImages, setResolvedImages] = useState<Record<string, string>>(
+    {},
+  );
   const [releaseInfo, setReleaseInfo] = useState<TraktReleaseResponse | null>(
     null,
   );
@@ -171,6 +182,61 @@ export function FeaturedCarousel({
   useEffect(() => {
     // Scraping functionality removed
   }, [currentMedia]);
+
+  useEffect(() => {
+    if (!media.length) return;
+
+    let isMounted = true;
+    const preloads = media.slice(0, 2).map((item) => {
+      return new Promise<void>((resolve) => {
+        if (!item.id) {
+          resolve();
+          return;
+        }
+
+        getMediaBackdropEn(
+          item.id.toString(),
+          item.type === "movie" ? "movie" : "show",
+        )
+          .then((url) => {
+            if (url && isMounted) {
+              setResolvedImages((prev) => ({
+                ...prev,
+                [item.id!.toString()]: url,
+              }));
+              const img = new Image();
+              img.onload = () => resolve();
+              img.src = url;
+            } else {
+              resolve();
+            }
+          })
+          .catch(() => resolve());
+      });
+    });
+
+    // Also fetch the rest asynchronously without blocking the initial render
+    media.slice(2).forEach((item) => {
+      if (!item.id) return;
+      getMediaBackdropEn(
+        item.id.toString(),
+        item.type === "movie" ? "movie" : "show",
+      ).then((url) => {
+        if (url && isMounted) {
+          setResolvedImages((prev) => ({
+            ...prev,
+            [item.id!.toString()]: url,
+          }));
+        }
+      });
+    });
+
+    Promise.all(preloads).finally(() => setIsLoading(false));
+
+    return () => {
+      isMounted = false;
+    };
+  }, [media]);
 
   useEffect(() => {
     const fetchFeaturedMedia = async () => {
@@ -516,10 +582,19 @@ export function FeaturedCarousel({
   }
 
   const mediaTitle = currentMedia.title || currentMedia.name;
+  const isMobilePortrait = windowWidth < 768 && windowHeight > windowWidth;
+  const isMobileLandscape = windowHeight < 500 && windowWidth > windowHeight; // e.g. Phone sideways
+  const isMobile = isMobilePortrait || isMobileLandscape;
 
-  let searchClasses = "";
-  if (searching) searchClasses = "opacity-0 transition-opacity duration-300";
-  else searchClasses = "opacity-100 transition-opacity duration-300";
+  const hasCompositeImage = !!(
+    isMobile &&
+    currentMedia?.id &&
+    resolvedImages[currentMedia.id.toString()]
+  );
+
+  const searchClasses = searching
+    ? "opacity-0 pointer-events-none"
+    : "opacity-100 transition-opacity duration-300";
 
   const getQualityIndicator = () => {
     if (!releaseInfo || currentMedia.type === "show") return null;
@@ -564,11 +639,11 @@ export function FeaturedCarousel({
         "relative w-full transition-[height] duration-300 ease-in-out",
         searching
           ? "h-24"
-          : shorter
-            ? windowHeight > 600
-              ? "h-[40rem] md:h-[85vh]"
-              : "portrait:h-[100vh] landscape:h-[100vh]"
-            : "portrait:h-[40rem] landscape:h-[calc(100vh-4rem)] md:h-[100vh]",
+          : isMobileLandscape
+            ? "px-8 py-2 md:py-6 aspect-video" // Render as a padded horizontal card with explicit 16:9 aspect ratio
+            : isMobilePortrait
+              ? "aspect-video" // Render exactly 16:9 to match the backend composite thumbnail without horizontal clipping
+              : "lg:aspect-[2.2/1] xl:aspect-[2.5/1] lg:min-h-[70vh] max-h-[85vh]", // Render as desktop banner
       )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -576,12 +651,15 @@ export function FeaturedCarousel({
     >
       <div
         className={classNames(
-          "relative w-full h-full overflow-hidden",
+          "relative w-full h-full overflow-hidden transition-all duration-300",
+          isMobileLandscape ? "rounded-xl" : "rounded-none",
           searchClasses,
         )}
       >
         {media.map((item, index) => {
-          const imageUrl = getMediaBackdrop(item.backdrop_path);
+          const imageUrl =
+            (isMobile && item.id && resolvedImages[item.id.toString()]) ||
+            getMediaBackdrop(item.backdrop_path);
 
           return (
             <div
@@ -597,13 +675,7 @@ export function FeaturedCarousel({
             />
           );
         })}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 50%)",
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-background-main via-background-main/60 to-transparent via-30%" />
       </div>
 
       {/* Preload Logos */}
@@ -683,24 +755,31 @@ export function FeaturedCarousel({
       <div
         className={classNames(
           "absolute inset-0 flex items-end pb-16 landscape:pb-8 z-10 transition-opacity duration-150",
+          isMobilePortrait ? "cursor-pointer" : "",
           searchClasses,
         )}
         style={{ opacity: contentOpacity }}
+        onClick={(e) => {
+          if (isMobilePortrait) {
+            onShowDetails(currentMedia);
+          }
+        }}
       >
         <div className="container mx-auto mb-10 px-1.5 md:px-4 lg:px-4 flex justify-start items-end w-full">
           <div className="max-w-3xl w-full">
-            {currentMedia.logo ? (
-              <img
-                src={currentMedia.logo}
-                alt={mediaTitle}
-                className="max-w-[80%] max-h-32 md:max-h-52 object-contain mb-6 select-none"
-                draggable={false}
-              />
-            ) : (
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-                {mediaTitle}
-              </h1>
-            )}
+            {!hasCompositeImage &&
+              (currentMedia.logo ? (
+                <img
+                  src={currentMedia.logo}
+                  alt={mediaTitle}
+                  className="max-w-[80%] max-h-32 md:max-h-52 object-contain mb-6 select-none"
+                  draggable={false}
+                />
+              ) : (
+                <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+                  {mediaTitle}
+                </h1>
+              ))}
             {/* TMDB Rating and Year/Seasons */}
             <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
               {/* Quality Indicator */}
@@ -760,7 +839,7 @@ export function FeaturedCarousel({
                   </>
                 )}
             </div>
-            <p className="hidden md:block text-lg text-white mb-6 line-clamp-3 md:line-clamp-4">
+            <p className="hidden lg:block text-lg text-white mb-6 line-clamp-3 lg:line-clamp-4">
               {currentMedia.overview}
             </p>
             <div
@@ -768,21 +847,27 @@ export function FeaturedCarousel({
               onMouseEnter={() => setIsAutoPlaying(false)}
               onMouseLeave={() => setIsAutoPlaying(true)}
             >
-              <div className="flex flex-row items-center gap-3 w-full sm:w-auto px-0">
+              <div
+                className={classNames(
+                  "flex-row items-center gap-3 w-full sm:w-auto px-0",
+                  isMobilePortrait ? "hidden" : "flex",
+                )}
+              >
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     navigate(
                       `/media/tmdb-${currentMedia.type}-${currentMedia.id}-${(
                         mediaTitle || ""
                       )
                         .toLowerCase()
                         .replace(/[^a-z0-9]+/g, "-")}`,
-                    )
-                  }
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 bg-white hover:bg-gray-200 text-black rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg whitespace-nowrap"
+                    );
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 landscape:px-3 landscape:py-1.5 bg-white hover:bg-gray-200 text-black rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg landscape:text-xs whitespace-nowrap"
                 >
-                  <PlayIcon className="w-5 h-5 md:w-6 md:h-6 fill-current" />
+                  <PlayIcon className="w-5 h-5 md:w-6 md:h-6 landscape:w-4 landscape:h-4 fill-current" />
                   <span>
                     {currentMedia.type === "movie"
                       ? "Watch Movie"
@@ -791,11 +876,14 @@ export function FeaturedCarousel({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onShowDetails(currentMedia)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg whitespace-nowrap"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowDetails(currentMedia);
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 md:gap-3 px-5 py-2.5 md:px-8 md:py-3.5 landscape:px-3 landscape:py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full transition-all duration-300 font-bold text-xs ssm:text-sm md:text-lg landscape:text-xs whitespace-nowrap"
                 >
                   <span>{t("discover.featured.moreInfo")}</span>
-                  <InformationCircleIcon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <InformationCircleIcon className="w-5 h-5 md:w-6 md:h-6 landscape:w-4 landscape:h-4 text-white" />
                 </button>
               </div>
             </div>
