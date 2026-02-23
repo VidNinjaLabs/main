@@ -458,7 +458,7 @@ export function MediaCarousel({
           ) : (
             <div className="flex items-center justify-between w-full gap-2 md:gap-3 flex-nowrap">
               <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-                <h2 className="text-sm md:text-2xl cursor-default font-bold text-white truncate max-w-[50vw] md:max-w-none">
+                <h2 className="text-lg md:text-2xl cursor-default font-bold text-white truncate max-w-[50vw] md:max-w-none">
                   {sectionTitle}
                 </h2>
                 {showRecommendations &&

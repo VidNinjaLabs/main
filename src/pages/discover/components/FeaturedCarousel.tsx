@@ -781,7 +781,7 @@ export function FeaturedCarousel({
                 </h1>
               ))}
             {/* TMDB Rating and Year/Seasons */}
-            <div className="flex items-center gap-2 text-sm text-white/80 mb-4">
+            <div className="hidden md:flex items-center gap-2 text-sm text-white/80 mb-4">
               {/* Quality Indicator */}
               {getQualityIndicator() && (
                 <>
