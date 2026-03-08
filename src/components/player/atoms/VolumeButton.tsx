@@ -1,20 +1,24 @@
+/* eslint-disable no-lonely-if */
+/* eslint-disable react/button-has-type */
 import {
   VolumeHighIcon,
   VolumeLowIcon,
   VolumeMute01Icon,
 } from "@hugeicons/react";
-import { useState, useCallback, useRef, useEffect } from "react";
 import classNames from "classnames";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { usePlayerStore } from "@/stores/player/store";
-import { useVolume } from "../hooks/useVolume";
+
+import { HugeiconsIcon } from "@/components/HugeiconsIcon";
 import {
-  useProgressBar,
   makePercentage,
   makePercentageString,
+  useProgressBar,
 } from "@/hooks/useProgressBar";
-import { HugeiconsIcon } from "@/components/HugeiconsIcon";
+import { usePlayerStore } from "@/stores/player/store";
+
 import { usePopupPosition } from "./usePopupPosition";
+import { useVolume } from "../hooks/useVolume";
 
 function getPlayerPortalElement(): HTMLElement {
   return (
@@ -46,7 +50,7 @@ export function VolumeButton() {
   const volume = usePlayerStore((s) => s.mediaPlaying.volume);
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
   const { setVolume, toggleMute } = useVolume();
-  
+
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
 
@@ -65,14 +69,20 @@ export function VolumeButton() {
     dragMouseDown: dragMouseDownVertical,
   } = useProgressBar(refVertical, commitVolume, true, true); // commitImmediately=true, vertical=true
 
-  const popupStyle = usePopupPosition(anchorRef, isOpen || draggingVertical, 48);
+  const popupStyle = usePopupPosition(
+    anchorRef,
+    isOpen || draggingVertical,
+    48,
+  );
 
   useEffect(() => {
     _volSetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
     };
-    return () => { _volSetOpen = null; };
+    return () => {
+      _volSetOpen = null;
+    };
   }, [setHasOpenOverlay]);
 
   let percentage = makePercentage(volume * 100);
@@ -105,7 +115,12 @@ export function VolumeButton() {
     if (window.innerWidth >= 1024) scheduleCloseVol();
   }, []);
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    },
+    [],
+  );
 
   // Prevent closing when dragging
   useEffect(() => {
@@ -114,7 +129,7 @@ export function VolumeButton() {
       _volSetOpen?.(true);
     } else {
       // Once dragging stops, close if not hovering (easiest is to schedule a close, if they hover it'll cancel)
-      if (window.innerWidth >= 1024) scheduleCloseVol(800); 
+      if (window.innerWidth >= 1024) scheduleCloseVol(800);
     }
   }, [draggingVertical]);
 
@@ -151,14 +166,13 @@ export function VolumeButton() {
             "absolute bottom-[88px] z-[300] w-[48px]",
             "flex flex-col rounded-2xl overflow-hidden py-4",
             "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
-            "transition-all duration-200 ease-out origin-bottom",
             isOpen || draggingVertical
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-95 pointer-events-none",
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none",
           )}
           onMouseEnter={cancelCloseVol}
           onMouseLeave={() => {
-             if (!draggingVertical) scheduleCloseVol();
+            if (!draggingVertical) scheduleCloseVol();
           }}
         >
           <div className="flex flex-col items-center justify-center">
@@ -184,8 +198,6 @@ export function VolumeButton() {
                 }}
               />
             </div>
-            
-            
           </div>
         </div>,
         portalEl,

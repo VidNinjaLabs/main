@@ -206,10 +206,9 @@ export function QualityButton() {
             "absolute bottom-[88px] z-[300] min-w-[220px] max-w-[320px]",
             "flex flex-col rounded-2xl overflow-hidden",
             "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
-            "transition-all duration-200 ease-out origin-bottom",
             isOpen
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-95 pointer-events-none",
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none",
           )}
           onMouseEnter={cancelCloseQuality}
           onMouseLeave={() => scheduleCloseQuality()}

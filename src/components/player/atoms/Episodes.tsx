@@ -314,10 +314,9 @@ function DesktopEpisodesPopup({
         "absolute bottom-[88px] right-4 z-[300] w-[480px] max-h-[70vh]",
         "flex flex-col rounded-2xl overflow-hidden",
         "bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl",
-        "transition-all duration-200 ease-out origin-bottom-right",
         isOpen
-          ? "opacity-100 scale-100 pointer-events-auto"
-          : "opacity-0 scale-95 pointer-events-none",
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none",
       )}
       onMouseEnter={cancelClose}
       onMouseLeave={() => scheduleClose()}
@@ -397,7 +396,6 @@ function MobileEpisodesOverlay({
       className={classNames(
         "absolute inset-0 z-[300] flex flex-col",
         "bg-black/90 backdrop-blur-2xl",
-        "transition-all duration-250 ease-out",
         isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
       )}
     >
