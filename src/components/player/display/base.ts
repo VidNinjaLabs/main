@@ -1,20 +1,20 @@
+/* eslint-disable no-lonely-if */
 /* eslint-disable no-case-declarations */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
-import Hls, { Level } from "hls.js";
 
-import {
-  getResumeTime,
-  getSafeResumeTime,
-} from "@/components/player/utils/continueWatching";
-import { usePlayerStore } from "@/stores/player/store";
 import fscreen from "fscreen";
+import Hls, { Level } from "hls.js";
 
 // Extension imports removed
 import {
   DisplayInterface,
   DisplayInterfaceEvents,
 } from "@/components/player/display/displayInterface";
+import {
+  getResumeTime,
+  getSafeResumeTime,
+} from "@/components/player/utils/continueWatching";
 import { handleBuffered } from "@/components/player/utils/handleBuffered";
 import { getMediaErrorDetails } from "@/components/player/utils/mediaErrorDetails";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/components/player/utils/proxy";
 import { useAuthStore } from "@/stores/auth";
 import { useLanguageStore } from "@/stores/language";
+import { usePlayerStore } from "@/stores/player/store";
 import {
   LoadableSource,
   SourceQuality,
@@ -105,22 +106,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
   let shouldAutoplayAfterLoad = false; // Flag to track if we should autoplay after loading completes
   let loadingTimeout: NodeJS.Timeout | null = null; // Timeout to auto-clear stuck loading states
   let bufferMonitorInterval: NodeJS.Timeout | null = null; // Buffer health monitor
-  let lastBufferLevel = 0; // Track buffer trend
-
-  // Helper: Get seconds of buffer ahead of current playhead
-  function getBufferAhead(vid: HTMLVideoElement): number {
-    if (!vid || vid.buffered.length === 0) return 0;
-    const currentTime = vid.currentTime;
-    for (let i = 0; i < vid.buffered.length; i++) {
-      if (
-        vid.buffered.start(i) <= currentTime &&
-        currentTime <= vid.buffered.end(i)
-      ) {
-        return vid.buffered.end(i) - currentTime;
-      }
-    }
-    return 0;
-  }
 
   const languagePromises = new Map<
     string,
@@ -354,9 +339,9 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
                       });
                     }
                   }, 5000);
-                } else {
-                  hls?.startLoad();
                 }
+                hls?.startLoad();
+
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.log("[HLS] Media error, attempting recovery...");
@@ -422,44 +407,7 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
         // REMOVED: Buffer-aware quality switching blocking logic
         // The root cause was this was TOO aggressive and prevented recovery
 
-        // IMPROVED: Smarter buffer health monitoring
-        if (bufferMonitorInterval) clearInterval(bufferMonitorInterval);
-        bufferMonitorInterval = setInterval(() => {
-          if (!hls || !vid || vid.paused) return;
-          const bufferAhead = getBufferAhead(vid);
-
-          // Track buffer trend (increasing or decreasing)
-          const bufferTrend = bufferAhead - lastBufferLevel;
-          lastBufferLevel = bufferAhead;
-
-          // CRITICAL FIX: Proactive quality management based on buffer TREND
-          if (bufferAhead < 2 && bufferTrend < 0) {
-            // Buffer critically low AND decreasing - emergency downgrade
-            console.warn(
-              "[Buffer] Emergency: buffer =",
-              bufferAhead.toFixed(2),
-              "s, forcing lowest quality",
-            );
-            hls.nextLevel = 0; // Drop to lowest quality immediately
-            hls.startLoad();
-          } else if (bufferAhead < 8 && bufferTrend < -1) {
-            // Buffer getting dangerously low - proactive downgrade
-            const targetLevel = Math.max(0, hls.currentLevel - 1);
-            console.warn(
-              "[Buffer] Warning: buffer =",
-              bufferAhead.toFixed(2),
-              "s, downgrading to level",
-              targetLevel,
-            );
-            hls.nextLevel = targetLevel;
-            hls.startLoad();
-          } else if (bufferAhead < 15) {
-            // Buffer moderate - ensure loading continues, block upgrades
-            hls.startLoad();
-            // Don't force downgrades here, just prevent upgrades
-          }
-          // If buffer > 15s, let ABR work normally
-        }, 1000); // Check every 1s (not 2s!) for faster reaction
+        // Buffer monitor logic removed as it interfered with native ABR
 
         hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, () => {
           for (const [lang, resolve] of languagePromises) {
@@ -751,8 +699,6 @@ export function makeVideoElementDisplayInterface(): DisplayInterface {
       clearInterval(bufferMonitorInterval);
       bufferMonitorInterval = null;
     }
-    // Reset buffer tracking
-    lastBufferLevel = 0;
     // Reset the last valid duration and time when unloading source
     lastValidDuration = 0;
     lastValidTime = 0;
