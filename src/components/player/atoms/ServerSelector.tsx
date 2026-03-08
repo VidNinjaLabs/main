@@ -56,10 +56,22 @@ export function ServerSelector() {
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
   const display = usePlayerStore((s) => s.display);
 
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+
+  useEffect(() => {
+    if (activeOverlay !== "server" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
+
   useEffect(() => {
     _serverSetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
+      if (v) setActiveOverlay("server");
+      else if (usePlayerStore.getState().interface.activeOverlay === "server") setActiveOverlay(null);
     };
     return () => {
       _serverSetOpen = null;

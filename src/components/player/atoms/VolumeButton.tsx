@@ -75,10 +75,22 @@ export function VolumeButton() {
     48,
   );
 
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+
+  useEffect(() => {
+    if (activeOverlay !== "volume" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
+
   useEffect(() => {
     _volSetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
+      if (v) setActiveOverlay("volume");
+      else if (usePlayerStore.getState().interface.activeOverlay === "volume") setActiveOverlay(null);
     };
     return () => {
       _volSetOpen = null;

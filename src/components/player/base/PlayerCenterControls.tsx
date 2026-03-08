@@ -37,7 +37,7 @@ export function PlayerCenterControls() {
   return (
     <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
       {/* Mobile-only centered controls (Visible on Mobile + Tablet now) */}
-      <div className="lg:hidden flex items-center gap-10 pointer-events-auto">
+      <div className="lg:hidden flex items-center gap-24 pointer-events-auto">
         <Player.SkipBackward size="lg" onAction={() => seekRelative(-10)} />
 
         <button

@@ -213,12 +213,24 @@ export function CaptionsButton() {
   const audioTracks = usePlayerStore((s) => s.audioTracks);
   const currentAudioTrack = usePlayerStore((s) => s.currentAudioTrack);
   const display = usePlayerStore((s) => s.display);
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
   const { selectCaptionById } = useCaptions();
+
+  useEffect(() => {
+    if (activeOverlay !== "captions" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+      setView("main");
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
 
   useEffect(() => {
     _captionsSetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
+      if (v) setActiveOverlay("captions");
+      else if (usePlayerStore.getState().interface.activeOverlay === "captions") setActiveOverlay(null);
       if (!v) setView("main");
     };
     return () => {

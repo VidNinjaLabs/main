@@ -45,10 +45,22 @@ export function SpeedButton() {
   const anchorRef = useRef<HTMLDivElement>(null);
   const popupStyle = usePopupPosition(anchorRef, isOpen, 640);
 
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+
+  useEffect(() => {
+    if (activeOverlay !== "speed" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
+
   useEffect(() => {
     _speedSetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
+      if (v) setActiveOverlay("speed");
+      else if (usePlayerStore.getState().interface.activeOverlay === "speed") setActiveOverlay(null);
     };
     return () => { _speedSetOpen = null; };
   }, [setHasOpenOverlay]);

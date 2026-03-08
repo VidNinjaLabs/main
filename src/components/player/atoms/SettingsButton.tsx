@@ -177,9 +177,16 @@ export function SettingsButton({ icon: CustomIcon }: { icon?: any }) {
 
   const [view, setView] = useState<ViewType>("main");
 
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+  const isOpen = activeOverlay === "settings";
+
   // Reset view when closed
   const handleOpenChange = (open: boolean) => {
     setHasOpenOverlay(open);
+    if (open) setActiveOverlay("settings");
+    else if (activeOverlay === "settings") setActiveOverlay(null);
+
     if (!open) {
       setTimeout(() => setView("main"), 200);
     }
@@ -211,7 +218,7 @@ export function SettingsButton({ icon: CustomIcon }: { icon?: any }) {
   const speedOptions = [0.25, 0.5, 1, 1.5, 2];
 
   return (
-    <DropdownMenu.Root onOpenChange={handleOpenChange} modal={false}>
+    <DropdownMenu.Root open={isOpen} onOpenChange={handleOpenChange} modal={false}>
       <DropdownMenu.Trigger asChild>
         <button
           className="p-1 md:p-2 transition-colors group outline-none rounded-md focus-visible:ring-2 focus-visible:ring-white/20"

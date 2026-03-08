@@ -140,11 +140,22 @@ export function QualityButton() {
 
   const smartQualities = deriveSmartQualities(qualities);
   const currentCategory = getCategoryForQuality(currentQuality);
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+
+  useEffect(() => {
+    if (activeOverlay !== "quality" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
 
   useEffect(() => {
     _qualitySetOpen = (v) => {
       setIsOpen(v);
       setHasOpenOverlay(v);
+      if (v) setActiveOverlay("quality");
+      else if (usePlayerStore.getState().interface.activeOverlay === "quality") setActiveOverlay(null);
     };
     return () => {
       _qualitySetOpen = null;

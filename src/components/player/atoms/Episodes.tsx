@@ -541,10 +541,25 @@ export function EpisodesRouter(props: EpisodesProps) {
   const [isOpen, setIsOpen] = useState(false);
   const setHasOpenOverlay = usePlayerStore((s) => s.setHasOpenOverlay);
 
+  const activeOverlay = usePlayerStore((s) => s.interface.activeOverlay);
+  const setActiveOverlay = usePlayerStore((s) => s.setActiveOverlay);
+
   useEffect(() => {
-    _globalSetOpen = setIsOpen;
+    if (activeOverlay !== "episodes" && isOpen) {
+      setIsOpen(false);
+      setHasOpenOverlay(false);
+    }
+  }, [activeOverlay, isOpen, setHasOpenOverlay]);
+
+  useEffect(() => {
+    _globalSetOpen = (v) => {
+      setIsOpen(v);
+      setHasOpenOverlay(v);
+      if (v) setActiveOverlay("episodes");
+      else if (usePlayerStore.getState().interface.activeOverlay === "episodes") setActiveOverlay(null);
+    };
     return () => { _globalSetOpen = null; };
-  }, []);
+  }, [setHasOpenOverlay, setActiveOverlay]);
 
   useEffect(() => {
     setHasOpenOverlay(isOpen);

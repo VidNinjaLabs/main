@@ -18,6 +18,7 @@ export interface InterfaceSlice {
     isSeeking: boolean;
     lastVolume: number;
     hasOpenOverlay: boolean;
+    activeOverlay: string | null;
     hovering: PlayerHoverState;
     lastHoveringState: PlayerHoverState;
     canAirplay: boolean;
@@ -41,6 +42,7 @@ export interface InterfaceSlice {
   setHoveringLeftControls(state: boolean): void;
   setHoveringAnyControls(state: boolean): void;
   setHasOpenOverlay(state: boolean): void;
+  setActiveOverlay(id: string | null): void;
   setLastVolume(state: number): void;
   hideNextEpisodeButton(): void;
   setShouldStartFromBeginning(val: boolean): void;
@@ -52,6 +54,7 @@ export const createInterfaceSlice: MakeSlice<InterfaceSlice> = (set, get) => ({
   interface: {
     isCasting: false,
     hasOpenOverlay: false,
+    activeOverlay: null,
     isFullscreen: false,
     isSeeking: false,
     lastVolume: 0,
@@ -82,6 +85,11 @@ export const createInterfaceSlice: MakeSlice<InterfaceSlice> = (set, get) => ({
   setHasOpenOverlay(state) {
     set((s) => {
       s.interface.hasOpenOverlay = state;
+    });
+  },
+  setActiveOverlay(id) {
+    set((s) => {
+      s.interface.activeOverlay = id;
     });
   },
   setTimeFormat(format) {
